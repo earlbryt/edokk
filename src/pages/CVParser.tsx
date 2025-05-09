@@ -347,7 +347,7 @@ const CVParser: React.FC = () => {
       if (dbError) throw dbError;
       
       // Update local state to show uploading
-      setFiles(prev => prev.map(file => 
+        setFiles(prev => prev.map(file => 
         file.id === fileId 
           ? { ...file, status: 'uploading', progress: 10 } 
           : file
@@ -382,7 +382,7 @@ const CVParser: React.FC = () => {
       if (updateError) throw updateError;
       
       // Update the file record in state
-      setFiles(prev => prev.map(file => 
+        setFiles(prev => prev.map(file => 
         file.id === fileId 
           ? { 
               ...file, 
@@ -414,7 +414,7 @@ const CVParser: React.FC = () => {
         });
       
       // Update state
-      setFiles(prev => prev.map(file => 
+          setFiles(prev => prev.map(file => 
         file.id === fileId 
           ? { 
               ...file, 
@@ -433,15 +433,15 @@ const CVParser: React.FC = () => {
       const parsedData = {
         name: 'Candidate Name',
         email: 'candidate@example.com',
-        phone: '+233 20 123 4567',
-        skills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'UI/UX Design'],
-        experience: [
-          'Senior Frontend Developer at TechCorp (2019-Present)',
-          'UI Developer at WebSolutions (2016-2019)'
-        ],
-        education: [
-          'BSc Computer Science, University of Ghana (2012-2016)'
-        ]
+                phone: '+233 20 123 4567',
+                skills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'UI/UX Design'],
+                experience: [
+                  'Senior Frontend Developer at TechCorp (2019-Present)',
+                  'UI Developer at WebSolutions (2016-2019)'
+                ],
+                education: [
+                  'BSc Computer Science, University of Ghana (2012-2016)'
+                ]
       };
       
       try {
@@ -909,7 +909,7 @@ const CVParser: React.FC = () => {
               </h2>
               
               {isLoading ? (
-                <Card>
+              <Card>
                   <CardContent className="p-8">
                     <div className="flex justify-center items-center">
                       <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-lens-purple"></div>
@@ -920,10 +920,10 @@ const CVParser: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Card className="md:col-span-2">
-                    <CardHeader>
+                <CardHeader>
                       <CardTitle>Your Projects</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                </CardHeader>
+                <CardContent>
                       {projects.length === 0 ? (
                         <div className="text-center py-10 border border-dashed rounded-lg">
                           <p className="text-gray-500 mb-4">No projects created yet</p>
@@ -985,12 +985,12 @@ const CVParser: React.FC = () => {
                               {activeProject?.id === project.id && (
                                 <div 
                                   className={`border-2 border-dashed rounded-lg p-3 text-center cursor-pointer ${
-                                    dragActive ? 'border-lens-purple bg-lens-purple/5' : 'border-gray-300'
-                                  }`}
-                                  onDragEnter={handleDragEnter}
-                                  onDragOver={handleDragEnter}
-                                  onDragLeave={handleDragLeave}
-                                  onDrop={handleDrop}
+                      dragActive ? 'border-lens-purple bg-lens-purple/5' : 'border-gray-300'
+                    }`}
+                    onDragEnter={handleDragEnter}
+                    onDragOver={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     document.getElementById('file-upload')?.click();
@@ -999,30 +999,30 @@ const CVParser: React.FC = () => {
                                   <div className="flex items-center gap-2">
                                     <Upload className="h-4 w-4 text-lens-purple" />
                                     <span className="text-sm">Upload CVs</span>
-                                  </div>
-                                  <input
-                                    id="file-upload"
-                                    type="file"
-                                    multiple
-                                    accept=".pdf,.doc,.docx"
-                                    className="hidden"
-                                    onChange={handleFileChange}
-                                  />
+                    </div>
+                      <input
+                        id="file-upload"
+                        type="file"
+                        multiple
+                        accept=".pdf,.doc,.docx"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
                                 </div>
                               )}
-                            </div>
+                    </div>
                           ))}
-                        </div>
+                  </div>
                       )}
                     </CardContent>
                   </Card>
                   
-                  <Card>
-                    <CardHeader>
+              <Card>
+                <CardHeader>
                       <CardTitle>Create New Project</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
                         <div className="grid gap-2">
                           <Label htmlFor="new-project-name">Project Name</Label>
                           <Input 
@@ -1035,8 +1035,8 @@ const CVParser: React.FC = () => {
                         <Button onClick={handleCreateProject} className="w-full">
                           Create Project
                         </Button>
-                      </div>
-                      
+                              </div>
+                              
                       {activeProject && (
                         <div className="mt-6">
                           <h3 className="font-medium text-lg mb-4">Upload CVs to Project</h3>
@@ -1076,10 +1076,10 @@ const CVParser: React.FC = () => {
                               Supports PDF, DOCX, DOC formats (Max 10MB per file)
                             </p>
                           </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
                 </div>
               )}
             </div>
