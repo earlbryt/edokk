@@ -12,8 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
+import { useAuth } from '@/context/AuthContext';
 
 const TopBar: React.FC = () => {
+  const { logout } = useAuth();
+
   return (
     <div className="h-16 w-full bg-white border-b border-gray-200 flex items-center justify-between px-6">
       <div className="flex items-center gap-3 relative max-w-md w-full">
@@ -144,10 +147,8 @@ const TopBar: React.FC = () => {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Link to="/" className="w-full">
-                Sign out
-              </Link>
+            <DropdownMenuItem onClick={logout}>
+              Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -3,7 +3,7 @@ import React from 'react';
 import { Check, MessageSquare, FileText, Calendar, Upload, CheckSquare, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface Activity {
+export interface Activity {
   id: string;
   type: 'comment' | 'file' | 'task' | 'event' | 'upload' | 'feedback' | 'job' | 'interview';
   title: string;

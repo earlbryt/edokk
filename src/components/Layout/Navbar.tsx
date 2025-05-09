@@ -13,9 +13,11 @@ const Navbar: React.FC = () => {
         <nav className="flex items-center justify-between">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
-              <div className="h-10 w-10 rounded-full bg-lens-purple text-white flex items-center justify-center">
-                <span className="text-lg font-bold">L</span>
-              </div>
+              <img 
+                src="/lovable-uploads/0582cd63-9b75-4b39-b466-cff95f190456.png" 
+                alt="Lens Logo" 
+                className="h-10 w-auto"
+              />
               <span className="font-display font-semibold text-xl">Lens</span>
             </Link>
           </div>
@@ -32,10 +34,10 @@ const Navbar: React.FC = () => {
           </div>
           
           <div className="hidden md:flex items-center gap-4">
-            <Link to="/dashboard">
+            <Link to="/login">
               <Button variant="outline" className="rounded-full">Log In</Button>
             </Link>
-            <Link to="/dashboard">
+            <Link to="/signup">
               <Button className="rounded-full bg-lens-purple hover:bg-lens-purple-light">Get Started</Button>
             </Link>
           </div>
@@ -64,10 +66,10 @@ const Navbar: React.FC = () => {
               <Link to="/contact" className="text-gray-700 hover:text-lens-purple px-2 py-2 transition-colors">Contact</Link>
               <hr />
               <div className="flex flex-col gap-2">
-                <Link to="/dashboard">
+                <Link to="/login">
                   <Button variant="outline" className="w-full rounded-full">Log In</Button>
                 </Link>
-                <Link to="/dashboard">
+                <Link to="/signup">
                   <Button className="w-full rounded-full bg-lens-purple hover:bg-lens-purple-light">Get Started</Button>
                 </Link>
               </div>
