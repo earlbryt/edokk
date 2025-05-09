@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -15,7 +13,6 @@ const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('recruiter');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signup } = useAuth();
@@ -47,7 +44,8 @@ const Signup: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      await signup(name, email, password, role);
+      // Default role is recruiter
+      await signup(name, email, password, 'recruiter');
       navigate('/dashboard');
     } catch (error) {
       console.error('Signup failed:', error);
@@ -161,20 +159,6 @@ const Signup: React.FC = () => {
                     autoComplete="new-password"
                   />
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Account Type</Label>
-                <RadioGroup defaultValue="recruiter" value={role} onValueChange={setRole}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="recruiter" id="recruiter" />
-                    <Label htmlFor="recruiter">Recruiter</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="company" id="company" />
-                    <Label htmlFor="company">Company</Label>
-                  </div>
-                </RadioGroup>
               </div>
               
               <div className="text-sm">

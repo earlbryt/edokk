@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from '@/components/Dashboard/Sidebar';
@@ -105,33 +104,25 @@ const CVParser: React.FC = () => {
         
         // Simulate processing
         setTimeout(() => {
-          const success = Math.random() > 0.2; // 80% success rate for demo
-          
-          if (success) {
-            setFiles(prev => prev.map(file => 
-              file.id === fileId ? { 
-                ...file, 
-                status: 'completed',
-                parsed: {
-                  name: 'John Smith',
-                  email: 'john.smith@example.com',
-                  phone: '+233 20 123 4567',
-                  skills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'UI/UX Design'],
-                  experience: [
-                    'Senior Frontend Developer at TechCorp (2019-Present)',
-                    'UI Developer at WebSolutions (2016-2019)'
-                  ],
-                  education: [
-                    'BSc Computer Science, University of Ghana (2012-2016)'
-                  ]
-                }
-              } : file
-            ));
-          } else {
-            setFiles(prev => prev.map(file => 
-              file.id === fileId ? { ...file, status: 'failed' } : file
-            ));
-          }
+          setFiles(prev => prev.map(file => 
+            file.id === fileId ? { 
+              ...file, 
+              status: 'completed',
+              parsed: {
+                name: 'John Smith',
+                email: 'john.smith@example.com',
+                phone: '+233 20 123 4567',
+                skills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'UI/UX Design'],
+                experience: [
+                  'Senior Frontend Developer at TechCorp (2019-Present)',
+                  'UI Developer at WebSolutions (2016-2019)'
+                ],
+                education: [
+                  'BSc Computer Science, University of Ghana (2012-2016)'
+                ]
+              }
+            } : file
+          ));
         }, 2000);
       }
     }, 300);

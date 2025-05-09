@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -90,11 +89,6 @@ const Sidebar: React.FC = () => {
   ];
   
   const bottomMenuItems = [
-    { 
-      icon: <Settings size={22} />, 
-      label: 'Settings', 
-      to: '/dashboard/settings' 
-    },
     { 
       icon: <HelpCircle size={22} />, 
       label: 'Help Center', 

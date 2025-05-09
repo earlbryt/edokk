@@ -8,8 +8,11 @@ import ActivityList from '@/components/Dashboard/ActivityList';
 import { Users, FileText, CheckSquare, BarChart3, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useAuth } from '@/context/AuthContext';
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
+  
   // Mock data for the charts
   const monthlyData = [
     { name: 'Jan', value: 165 },
@@ -147,7 +150,9 @@ const Dashboard: React.FC = () => {
         <main className="p-6">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Recruitment Dashboard</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                {user?.name ? `Welcome, ${user.name.split(' ')[0]}` : 'Recruitment Dashboard'}
+              </h1>
               <div className="flex items-center">
                 <p className="text-gray-600">Active job: </p>
                 <div className="ml-2 flex items-center gap-1">

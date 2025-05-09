@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -90,9 +89,6 @@ const Login: React.FC = () => {
                     autoComplete="email"
                   />
                 </div>
-                <div className="text-xs text-gray-500">
-                  For demo: use recruiter@example.com
-                </div>
               </div>
               
               <div className="space-y-2">
@@ -118,9 +114,6 @@ const Login: React.FC = () => {
                       <Eye className="h-4 w-4" />
                     }
                   </button>
-                </div>
-                <div className="text-xs text-gray-500">
-                  For demo: use any password
                 </div>
               </div>
               
