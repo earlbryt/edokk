@@ -8,7 +8,8 @@ import {
   Settings,
   Filter,
   CheckSquare,
-  LogOut
+  LogOut,
+  TestTube
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -108,6 +109,11 @@ const Sidebar: React.FC = () => {
       icon: <Filter size={22} />, 
       label: 'Filters', 
       to: '/dashboard/filters' 
+    },
+    { 
+      icon: <TestTube size={22} />, 
+      label: 'Document Test', 
+      to: '/dashboard/document-test' 
     },
   ];
   
