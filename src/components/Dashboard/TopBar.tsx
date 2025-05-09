@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Search, Bell, Settings } from 'lucide-react';
+import { Search, Bell, Filter, Upload, Download } from 'lucide-react';
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,12 +20,45 @@ const TopBar: React.FC = () => {
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
         <Input 
           type="text" 
-          placeholder="Search..." 
+          placeholder="Search candidates or job positions..." 
           className="pl-10 h-10 w-full focus:outline-none focus:ring-2 focus:ring-lens-purple focus:border-transparent"
         />
       </div>
       
       <div className="flex items-center gap-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-9">
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Filter Candidates</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              By Job Position
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              By Skills
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              By Education
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              By Experience
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              By Match Score
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        <Button variant="outline" size="sm" className="h-9">
+          <Download className="h-4 w-4 mr-2" />
+          Export
+        </Button>
+
         <DropdownMenu>
           <DropdownMenuTrigger className="relative">
             <div className="relative">
@@ -38,19 +72,39 @@ const TopBar: React.FC = () => {
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <div className="max-h-72 overflow-y-auto">
-              {[...Array(3)].map((_, i) => (
-                <DropdownMenuItem key={i} className="cursor-pointer py-3">
-                  <div className="flex gap-3">
-                    <div className="h-9 w-9 rounded-full bg-lens-blue/20 text-lens-blue flex items-center justify-center flex-shrink-0">
-                      <Bell className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">New project assigned to you</p>
-                      <p className="text-xs text-gray-500">2 hours ago</p>
-                    </div>
+              <DropdownMenuItem className="cursor-pointer py-3">
+                <div className="flex gap-3">
+                  <div className="h-9 w-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0">
+                    <Upload className="h-4 w-4" />
                   </div>
-                </DropdownMenuItem>
-              ))}
+                  <div>
+                    <p className="text-sm font-medium">15 new CVs processed</p>
+                    <p className="text-xs text-gray-500">2 hours ago</p>
+                  </div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer py-3">
+                <div className="flex gap-3">
+                  <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">3 candidates moved to Bucket A</p>
+                    <p className="text-xs text-gray-500">5 hours ago</p>
+                  </div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer py-3">
+                <div className="flex gap-3">
+                  <div className="h-9 w-9 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
+                    <Bell className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">New job position created</p>
+                    <p className="text-xs text-gray-500">Yesterday</p>
+                  </div>
+                </div>
+              </DropdownMenuItem>
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer justify-center">
@@ -86,7 +140,6 @@ const TopBar: React.FC = () => {
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Link to="/dashboard/settings" className="flex items-center gap-2 w-full">
-                <Settings className="h-4 w-4 mr-2" />
                 Settings
               </Link>
             </DropdownMenuItem>

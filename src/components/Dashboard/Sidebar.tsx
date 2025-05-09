@@ -4,13 +4,15 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  Inbox,
-  BarChart2,
   Users,
   FileText,
   Settings,
   HelpCircle,
-  BellOff
+  Briefcase,
+  Filter,
+  BarChart3,
+  CheckSquare,
+  Search
 } from 'lucide-react';
 
 type SidebarItemProps = {
@@ -60,25 +62,30 @@ const Sidebar: React.FC = () => {
       to: '/dashboard' 
     },
     { 
-      icon: <Inbox size={22} />, 
-      label: 'Inbox', 
-      to: '/dashboard/inbox',
-      notificationCount: 3
-    },
-    { 
-      icon: <BarChart2 size={22} />, 
-      label: 'Analytics', 
-      to: '/dashboard/analytics' 
-    },
-    { 
       icon: <Users size={22} />, 
-      label: 'Team', 
-      to: '/dashboard/team' 
+      label: 'Candidates', 
+      to: '/dashboard/candidates',
+      notificationCount: 15
+    },
+    { 
+      icon: <Briefcase size={22} />, 
+      label: 'Job Positions', 
+      to: '/dashboard/jobs' 
     },
     { 
       icon: <FileText size={22} />, 
-      label: 'Projects', 
-      to: '/dashboard/projects' 
+      label: 'CV Parser', 
+      to: '/dashboard/parser' 
+    },
+    { 
+      icon: <Filter size={22} />, 
+      label: 'Filters', 
+      to: '/dashboard/filters' 
+    },
+    { 
+      icon: <BarChart3 size={22} />, 
+      label: 'Analytics', 
+      to: '/dashboard/analytics' 
     },
   ];
   
@@ -104,6 +111,17 @@ const Sidebar: React.FC = () => {
           </div>
           <span className="font-display font-semibold text-lg">Lens</span>
         </Link>
+        
+        <div className="mb-6">
+          <div className="px-4 mb-2 flex items-center">
+            <Search className="h-4 w-4 text-gray-400 mr-2" />
+            <input 
+              type="text" 
+              placeholder="Search candidates..." 
+              className="text-sm bg-transparent outline-none w-full"
+            />
+          </div>
+        </div>
         
         <div className="space-y-1">
           {menuItems.map((item) => (
@@ -144,7 +162,7 @@ const Sidebar: React.FC = () => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">Alex Thompson</p>
-            <p className="text-xs text-gray-500 truncate">Product Manager</p>
+            <p className="text-xs text-gray-500 truncate">HR Specialist</p>
           </div>
         </div>
       </div>
