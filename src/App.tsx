@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
+import CVParser from "./pages/CVParser";
+import Filters from "./pages/Filters";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Pricing from "./pages/Pricing";
@@ -50,6 +52,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/parser" 
+        element={
+          <ProtectedRoute>
+            <CVParser />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/filters" 
+        element={
+          <ProtectedRoute>
+            <Filters />
           </ProtectedRoute>
         } 
       />

@@ -26,17 +26,6 @@ const Hero: React.FC = () => {
             </Button>
           </div>
         </div>
-        
-        <div className="mt-16 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-          <div className="relative mx-auto max-w-5xl shadow-2xl rounded-2xl overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent z-10 pointer-events-none rounded-2xl"></div>
-            <img 
-              src="public/lovable-uploads/66af0d12-0137-4d14-a805-664900e08784.png" 
-              alt="Lens Dashboard Preview" 
-              className="w-full h-auto object-cover"
-            />
-          </div>
-        </div>
       </div>
     </section>
   );

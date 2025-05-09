@@ -14,9 +14,9 @@ const Navbar: React.FC = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
               <img 
-                src="/lovable-uploads/0582cd63-9b75-4b39-b466-cff95f190456.png" 
+                src="/lovable-uploads/445b7682-f658-493a-93b4-d0ee832f7d41.png" 
                 alt="Lens Logo" 
-                className="h-10 w-auto"
+                className="h-12 w-auto"
               />
               <span className="font-display font-semibold text-xl">Lens</span>
             </Link>
