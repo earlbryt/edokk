@@ -36,7 +36,7 @@ const Dashboard: React.FC = () => {
   const candidates = [
     {
       id: '1',
-      name: 'Emma Wilson',
+      name: 'Candidate One',
       role: 'Senior Software Engineer',
       status: 'bucket-a',
       score: 92,
@@ -47,7 +47,7 @@ const Dashboard: React.FC = () => {
     },
     {
       id: '2',
-      name: 'Michael Chen',
+      name: 'Candidate Two',
       role: 'Product Manager',
       status: 'bucket-a',
       score: 89,
@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
     },
     {
       id: '3',
-      name: 'Alex Johnson',
+      name: 'Candidate Three',
       role: 'UX Designer',
       status: 'bucket-b',
       score: 78,
@@ -69,7 +69,7 @@ const Dashboard: React.FC = () => {
     },
     {
       id: '4',
-      name: 'Sarah Kim',
+      name: 'Candidate Four',
       role: 'Marketing Specialist',
       status: 'bucket-b',
       score: 72,
@@ -80,7 +80,7 @@ const Dashboard: React.FC = () => {
     },
     {
       id: '5',
-      name: 'James Peterson',
+      name: 'Candidate Five',
       role: 'Data Analyst',
       status: 'bucket-c',
       score: 65,
@@ -97,9 +97,9 @@ const Dashboard: React.FC = () => {
       id: '1',
       type: 'upload' as const,
       title: 'New CVs uploaded',
-      description: 'Sarah uploaded 15 new CVs for the Software Engineer position.',
+      description: 'User uploaded 15 new CVs for the Software Engineer position.',
       user: {
-        name: 'Sarah Kim',
+        name: 'Team Member',
         avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80'
       },
       timestamp: '2 hours ago'
@@ -108,9 +108,9 @@ const Dashboard: React.FC = () => {
       id: '2',
       type: 'feedback' as const,
       title: 'Match score adjusted',
-      description: 'Michael adjusted the match score for Emma Wilson from B to A bucket.',
+      description: 'User adjusted the match score for a candidate from B to A bucket.',
       user: {
-        name: 'Michael Chen',
+        name: 'Team Member',
         avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80'
       },
       timestamp: '4 hours ago'
@@ -119,9 +119,9 @@ const Dashboard: React.FC = () => {
       id: '3',
       type: 'job' as const,
       title: 'New job position created',
-      description: 'James created a new Senior Product Manager position with custom scoring criteria.',
+      description: 'User created a new Senior Product Manager position with custom scoring criteria.',
       user: {
-        name: 'James Peterson',
+        name: 'Team Member',
         avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80'
       },
       timestamp: 'Yesterday'
@@ -130,9 +130,9 @@ const Dashboard: React.FC = () => {
       id: '4',
       type: 'interview' as const,
       title: 'Interview scheduled',
-      description: 'Alex scheduled an interview with Emma Wilson for the Software Engineer position.',
+      description: 'User scheduled an interview with a candidate for the Software Engineer position.',
       user: {
-        name: 'Alex Johnson',
+        name: 'Team Member',
         avatar: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80'
       },
       timestamp: 'Yesterday'

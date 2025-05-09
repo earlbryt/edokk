@@ -1,6 +1,4 @@
 import React from 'react';
-import { Search } from 'lucide-react';
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +10,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User, LogOut, Settings } from 'lucide-react';
 
 const TopBar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -27,13 +26,10 @@ const TopBar: React.FC = () => {
 
   return (
     <div className="h-16 w-full bg-white border-b border-gray-200 flex items-center justify-between px-6">
-      <div className="flex items-center gap-3 relative max-w-md w-full">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-        <Input 
-          type="text" 
-          placeholder="Search candidates or job positions..." 
-          className="pl-10 h-10 w-full focus:outline-none focus:ring-2 focus:ring-lens-purple focus:border-transparent"
-        />
+      <div>
+        <h1 className="text-xl font-semibold text-gray-800">
+          {user?.name ? `Welcome, ${user.name.split(' ')[0]}` : 'Welcome'}
+        </h1>
       </div>
       
       <div className="flex items-center gap-4">
@@ -56,11 +52,19 @@ const TopBar: React.FC = () => {
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Link to="/dashboard/profile" className="flex items-center gap-2 w-full">
+                <User className="h-4 w-4" />
                 Profile
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link to="/dashboard/settings" className="flex items-center gap-2 w-full">
+                <Settings className="h-4 w-4" />
+                Settings
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>
+            <DropdownMenuItem onClick={logout} className="text-red-600">
+              <LogOut className="h-4 w-4 mr-2" />
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>

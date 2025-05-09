@@ -6,13 +6,12 @@ import {
   Users,
   FileText,
   Settings,
-  HelpCircle,
-  Briefcase,
   Filter,
-  BarChart3,
   CheckSquare,
-  Search
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type SidebarItemProps = {
   icon: React.ReactNode;
@@ -20,6 +19,7 @@ type SidebarItemProps = {
   to: string;
   active?: boolean;
   notificationCount?: number;
+  onClick?: () => void;
 };
 
 const SidebarItem: React.FC<SidebarItemProps> = ({ 
@@ -27,8 +27,31 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   label, 
   to, 
   active = false,
-  notificationCount
+  notificationCount,
+  onClick
 }) => {
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={cn(
+          "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left",
+          active 
+            ? "bg-lens-purple text-white" 
+            : "text-gray-700 hover:bg-gray-100"
+        )}
+      >
+        <span className="w-6 h-6">{icon}</span>
+        <span className="flex-1">{label}</span>
+        {notificationCount && (
+          <span className="w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            {notificationCount}
+          </span>
+        )}
+      </button>
+    );
+  }
+  
   return (
     <Link
       to={to}
@@ -53,6 +76,16 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const pathname = location.pathname;
+  const { user, logout } = useAuth();
+  
+  // Create initials from user name for avatar fallback
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase();
+  };
   
   const menuItems = [
     { 
@@ -67,11 +100,6 @@ const Sidebar: React.FC = () => {
       notificationCount: 15
     },
     { 
-      icon: <Briefcase size={22} />, 
-      label: 'Job Positions', 
-      to: '/dashboard/jobs' 
-    },
-    { 
       icon: <FileText size={22} />, 
       label: 'CV Parser', 
       to: '/dashboard/parser' 
@@ -81,18 +109,13 @@ const Sidebar: React.FC = () => {
       label: 'Filters', 
       to: '/dashboard/filters' 
     },
-    { 
-      icon: <BarChart3 size={22} />, 
-      label: 'Analytics', 
-      to: '/dashboard/analytics' 
-    },
   ];
   
   const bottomMenuItems = [
     { 
-      icon: <HelpCircle size={22} />, 
-      label: 'Help Center', 
-      to: '/dashboard/help' 
+      icon: <Settings size={22} />, 
+      label: 'Settings', 
+      to: '/dashboard/settings' 
     },
   ];
 
@@ -107,17 +130,6 @@ const Sidebar: React.FC = () => {
           />
           <span className="font-display font-semibold text-lg">Lens</span>
         </Link>
-        
-        <div className="mb-6">
-          <div className="px-4 mb-2 flex items-center">
-            <Search className="h-4 w-4 text-gray-400 mr-2" />
-            <input 
-              type="text" 
-              placeholder="Search candidates..." 
-              className="text-sm bg-transparent outline-none w-full"
-            />
-          </div>
-        </div>
         
         <div className="space-y-1">
           {menuItems.map((item) => (
@@ -144,21 +156,26 @@ const Sidebar: React.FC = () => {
               active={pathname === item.to}
             />
           ))}
+          <SidebarItem 
+            icon={<LogOut size={22} />} 
+            label="Sign out" 
+            to="#" 
+            onClick={logout}
+          />
         </div>
       </div>
       
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-200">
-            <img 
-              src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80" 
-              alt="User avatar" 
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
+          <Avatar className="h-10 w-10">
+            <AvatarImage src="" alt={user?.name || "User"} />
+            <AvatarFallback className="bg-lens-purple text-white">
+              {user?.name ? getInitials(user.name) : "U"}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">Alex Thompson</p>
-            <p className="text-xs text-gray-500 truncate">HR Specialist</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{user?.name || "User"}</p>
+            <p className="text-xs text-gray-500 truncate">{user?.email || "user@example.com"}</p>
           </div>
         </div>
       </div>

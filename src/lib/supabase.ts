@@ -7,12 +7,29 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 // Create a single supabase client for interacting with your database
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Add custom query method for SQL execution
+supabase.query = async (sql: string, params?: any[]) => {
+  const rpcOptions = { count: 'exact' };
+  
+  // Apply SQL using PostgreSQL functions
+  const { data, error, count } = await supabase.rpc(
+    'pgfunction', 
+    { sql, params: params || [] },
+    rpcOptions
+  );
+  
+  return { data, error, count };
+};
+
+// The name of the storage bucket
+export const STORAGE_BUCKET = 'lens';
+
 // Storage helpers
 export const getStoragePath = (fileId: string, fileName: string) => {
-  return `cvs/${fileId}-${fileName}`;
+  return `${fileId}-${fileName}`;
 };
 
 export const getPublicURL = (path: string) => {
-  const { data } = supabase.storage.from('cvs').getPublicUrl(path);
+  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }; 
