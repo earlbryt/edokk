@@ -10,29 +10,29 @@ import {
 const FAQ: React.FC = () => {
   const faqs = [
     {
-      question: "How can Lens help my team improve productivity?",
+      question: "How accurate is the CV parsing technology?",
       answer:
-        "Lens provides comprehensive analytics and visualization tools that help you identify bottlenecks, track performance metrics, and streamline workflows. By gaining insights into your team's productivity patterns, you can make data-driven decisions to optimize processes and improve overall efficiency.",
+        "Our CV parsing technology achieves over 95% accuracy for standard CV formats. We use a hybrid approach combining rule-based systems with advanced AI models specifically trained on local Ghanaian and international resume formats to ensure high-quality data extraction even from non-standard documents.",
     },
     {
-      question: "Is Lens suitable for small businesses?",
+      question: "How many CVs can I process at once?",
       answer:
-        "Absolutely! Lens is designed to scale with your business. Our platform offers flexible plans tailored to the needs of small businesses, startups, and large enterprises alike. Many of our small business customers have reported significant improvements in project management and team coordination.",
+        "Our platform is designed to handle bulk uploads efficiently. Depending on your subscription tier, you can upload anywhere from 100 to unlimited CVs simultaneously. The processing speed scales with volume, and our queuing system ensures all documents are processed without overwhelming your system.",
     },
     {
-      question: "Can I integrate Lens with my existing tools?",
+      question: "Can I customize the candidate scoring criteria?",
       answer:
-        "Yes, Lens offers seamless integration with popular productivity tools, project management software, and communication platforms. Our API allows for custom integrations, ensuring that Lens works harmoniously with your existing tech stack.",
+        "Absolutely! Our platform allows you to define custom scoring weights for each job position. You can adjust importance factors for experience, skills, education, certifications, and more. Additionally, you can create company-specific rules to prioritize candidates from particular institutions or with specific skill sets.",
     },
     {
-      question: "How secure is my data with Lens?",
+      question: "Is my candidates' data secure?",
       answer:
-        "We take data security extremely seriously. Lens employs industry-standard encryption protocols, regular security audits, and strict access controls to ensure your data remains protected. We are compliant with major data protection regulations including GDPR and maintain a transparent privacy policy.",
+        "We take data security extremely seriously. All CV data is encrypted using AES-256 both in transit and at rest. We comply with GDPR and local data protection regulations, with a default data retention policy of 30 days unless otherwise specified. We also offer an anonymization feature to support unbiased screening.",
     },
     {
-      question: "What kind of support does Lens provide?",
+      question: "Can I integrate this with my existing ATS or HRIS?",
       answer:
-        "Lens offers comprehensive support including detailed documentation, video tutorials, a knowledge base, and responsive customer service. Our dedicated support team is available via chat and email to assist with any questions or issues you might encounter.",
+        "Yes, our platform offers comprehensive API access that allows for seamless integration with popular Applicant Tracking Systems and HR Information Systems. We provide detailed documentation and support for implementation. For enterprise clients, we also offer custom integration services.",
     },
   ];
 
@@ -42,7 +42,7 @@ const FAQ: React.FC = () => {
         <div className="text-center mb-16">
           <h2 className="font-display text-4xl font-bold mb-6 text-gray-900">Frequently Asked Questions</h2>
           <p className="text-xl text-gray-600">
-            Find answers to common questions about Lens and how it can help your business.
+            Find answers to common questions about our AI-powered recruitment platform.
           </p>
         </div>
 

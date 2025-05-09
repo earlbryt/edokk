@@ -1,33 +1,33 @@
 
 import React from 'react';
 import { 
-  BarChart3,
-  ArrowUp, 
-  User, 
-  Search 
+  Upload,
+  FileText, 
+  CheckCircle, 
+  BarChart3 
 } from 'lucide-react';
 
 const Features: React.FC = () => {
   const features = [
     {
-      icon: <BarChart3 className="h-10 w-10 text-lens-purple" />,
-      title: "Advanced Analytics",
-      description: "Gain deep insights into your team's performance with our powerful analytics tools and customizable dashboards."
+      icon: <Upload className="h-10 w-10 text-lens-purple" />,
+      title: "Bulk CV Upload",
+      description: "Upload hundreds of CVs in seconds via drag-and-drop, cloud link, or zip folder. Our system handles the processing so you can focus on decision making."
     },
     {
-      icon: <ArrowUp className="h-10 w-10 text-lens-blue" />,
-      title: "Progress Tracking",
-      description: "Monitor project milestones, track KPIs, and visualize your team's progress towards organizational goals."
+      icon: <FileText className="h-10 w-10 text-lens-blue" />,
+      title: "Intelligent CV Parsing",
+      description: "Our AI extracts key information from CVs including experience, education, skills, and certifications with industry-leading accuracy."
     },
     {
-      icon: <User className="h-10 w-10 text-lens-green" />,
-      title: "Team Management",
-      description: "Manage your team efficiently with performance metrics, task assignments, and collaborative workspaces."
+      icon: <CheckCircle className="h-10 w-10 text-lens-green" />,
+      title: "Smart Candidate Matching",
+      description: "Match candidates against job requirements using AI-powered scoring. Automatically sort applicants into A, B, and C buckets based on fit."
     },
     {
-      icon: <Search className="h-10 w-10 text-lens-orange" />,
-      title: "Insightful Reports",
-      description: "Generate comprehensive reports with actionable insights to make data-driven decisions for your business."
+      icon: <BarChart3 className="h-10 w-10 text-lens-orange" />,
+      title: "Insightful Analytics",
+      description: "Track your hiring pipeline with comprehensive analytics. Identify bottlenecks and optimize your recruitment process with data-driven insights."
     }
   ];
 
@@ -35,9 +35,9 @@ const Features: React.FC = () => {
     <section className="py-20 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="font-display text-4xl font-bold mb-6 text-gray-900">Powerful Features to Boost Your Productivity</h2>
+          <h2 className="font-display text-4xl font-bold mb-6 text-gray-900">Revolutionize Your Recruitment Process</h2>
           <p className="text-xl text-gray-600">
-            Our platform is designed to help you achieve more with less effort, providing the tools you need to succeed.
+            Our platform helps recruiters in Ghana and beyond save time, reduce bias, and find the best candidates efficiently.
           </p>
         </div>
         

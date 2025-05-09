@@ -7,9 +7,9 @@ const CTA: React.FC = () => {
     <section className="py-20 px-4 bg-gradient-to-br from-lens-purple/90 to-blue-600/90 text-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto">
-          <h2 className="font-display text-4xl font-bold mb-6">Ready to Transform Your Workflow?</h2>
+          <h2 className="font-display text-4xl font-bold mb-6">Ready to Transform Your Recruitment Process?</h2>
           <p className="text-xl mb-10 text-white/90">
-            Join thousands of teams who have already improved their productivity with Lens.
+            Join forward-thinking recruiting agencies and HR departments who have already cut their screening time by 80%. 
             Start your free trial today and see the difference.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

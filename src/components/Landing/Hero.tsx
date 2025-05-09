@@ -12,17 +12,17 @@ const Hero: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="font-display font-bold text-5xl md:text-6xl lg:text-7xl tracking-tight text-gray-900 mb-6 animate-fade-in">
-            Streamline Your Goals with Our KPI & Project Management Platform
+            AI-Powered Recruitment Screening Platform
           </h1>
           <p className="text-xl text-gray-600 mb-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Our innovative platform offers a robust solution to help you stay organized, focused, and on track to achieve your strategic objectives.
+            Transform your hiring process with our intelligent CV analysis platform. Reduce screening time by 80% and find the best candidates faster than ever before.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <Button size="lg" className="rounded-full px-8 py-6 text-lg bg-lens-purple hover:bg-lens-purple-light">
-              Try it Free
+              Start Free Trial
             </Button>
             <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-lg">
-              Learn More
+              Schedule Demo
             </Button>
           </div>
         </div>
