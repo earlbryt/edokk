@@ -9,10 +9,13 @@ import {
   Tooltip, 
   ResponsiveContainer,
   AreaChart,
-  Area
+  Area,
+  PieChart,
+  Pie,
+  Cell
 } from "recharts";
 
-type ChartType = "bar" | "area";
+type ChartType = "bar" | "area" | "pie";
 
 interface ChartCardProps {
   title: string;
@@ -97,6 +100,37 @@ const ChartCard: React.FC<ChartCardProps> = ({
                 strokeWidth={2}
               />
             </AreaChart>
+          </ResponsiveContainer>
+        );
+      case "pie":
+        const COLORS = ['#8B5CF6', '#60A5FA', '#34D399', '#FBBF24', '#F87171'];
+        return (
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={80}
+                fill="#8B5CF6"
+                dataKey="value"
+                nameKey="name"
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ 
+                  backgroundColor: 'white', 
+                  borderRadius: '8px', 
+                  boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  border: 'none'
+                }}
+              />
+            </PieChart>
           </ResponsiveContainer>
         );
       default:

@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Check, MessageSquare, FileText, Calendar } from 'lucide-react';
+import { Check, MessageSquare, FileText, Calendar, Upload, CheckSquare, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Activity {
   id: string;
-  type: 'comment' | 'file' | 'task' | 'event';
+  type: 'comment' | 'file' | 'task' | 'event' | 'upload' | 'feedback' | 'job' | 'interview';
   title: string;
   description: string;
   user: {
@@ -25,10 +25,14 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
       'comment': <MessageSquare className="h-4 w-4 text-blue-500" />,
       'file': <FileText className="h-4 w-4 text-green-500" />,
       'task': <Check className="h-4 w-4 text-purple-500" />,
-      'event': <Calendar className="h-4 w-4 text-orange-500" />
+      'event': <Calendar className="h-4 w-4 text-orange-500" />,
+      'upload': <Upload className="h-4 w-4 text-green-500" />,
+      'feedback': <CheckSquare className="h-4 w-4 text-blue-500" />,
+      'job': <Briefcase className="h-4 w-4 text-purple-500" />,
+      'interview': <Calendar className="h-4 w-4 text-orange-500" />
     };
     
-    return iconMap[type];
+    return iconMap[type] || <FileText className="h-4 w-4 text-gray-500" />;
   };
   
   const getActivityBgColor = (type: Activity['type']) => {
@@ -36,10 +40,14 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities }) => {
       'comment': 'bg-blue-100',
       'file': 'bg-green-100',
       'task': 'bg-purple-100',
-      'event': 'bg-orange-100'
+      'event': 'bg-orange-100',
+      'upload': 'bg-green-100',
+      'feedback': 'bg-blue-100',
+      'job': 'bg-purple-100',
+      'interview': 'bg-orange-100'
     };
     
-    return colorMap[type];
+    return colorMap[type] || 'bg-gray-100';
   };
 
   return (

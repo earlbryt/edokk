@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
@@ -93,7 +92,7 @@ const Dashboard: React.FC = () => {
   const activities = [
     {
       id: '1',
-      type: 'upload',
+      type: 'upload' as const,
       title: 'New CVs uploaded',
       description: 'Sarah uploaded 15 new CVs for the Software Engineer position.',
       user: {
@@ -104,7 +103,7 @@ const Dashboard: React.FC = () => {
     },
     {
       id: '2',
-      type: 'feedback',
+      type: 'feedback' as const,
       title: 'Match score adjusted',
       description: 'Michael adjusted the match score for Emma Wilson from B to A bucket.',
       user: {
@@ -115,7 +114,7 @@ const Dashboard: React.FC = () => {
     },
     {
       id: '3',
-      type: 'job',
+      type: 'job' as const,
       title: 'New job position created',
       description: 'James created a new Senior Product Manager position with custom scoring criteria.',
       user: {
@@ -126,7 +125,7 @@ const Dashboard: React.FC = () => {
     },
     {
       id: '4',
-      type: 'interview',
+      type: 'interview' as const,
       title: 'Interview scheduled',
       description: 'Alex scheduled an interview with Emma Wilson for the Software Engineer position.',
       user: {
