@@ -58,16 +58,21 @@ const AppRoutes = () => {
   );
 };
 
+// Separate the AuthProvider into its own component to avoid the circular dependency
+const AuthenticatedApp = () => (
+  <BrowserRouter>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <AppRoutes />
+    </TooltipProvider>
+  </BrowserRouter>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthenticatedApp />
     </AuthProvider>
   </QueryClientProvider>
 );
