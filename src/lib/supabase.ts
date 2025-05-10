@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // Use the actual Supabase URL and anon key
@@ -27,7 +26,9 @@ export const STORAGE_BUCKET = 'lens';
 
 // Storage helpers
 export const getStoragePath = (fileId: string, fileName: string) => {
-  return `${fileId}-${fileName}`;
+  // Encode the filename to handle special characters
+  const encodedFileName = encodeURIComponent(fileName);
+  return `${fileId}-${encodedFileName}`;
 };
 
 export const getPublicURL = (path: string) => {

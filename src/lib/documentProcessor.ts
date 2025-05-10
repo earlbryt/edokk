@@ -42,31 +42,9 @@ async function processNextInQueue() {
 }
 
 /**
- * Extract text from a PDF file
+ * Process a single document
  */
-async function extractTextFromPDF(arrayBuffer: ArrayBuffer): Promise<string> {
-  try {
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
-    
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const textItems = textContent.items.map((item: any) => item.str);
-      fullText += textItems.join(' ') + '\n';
-    }
-    
-    return fullText;
-  } catch (error) {
-    console.error('Error extracting text from PDF:', error);
-    throw new Error(`Failed to extract text: ${error.message}`);
-  }
-}
-
-/**
- * Process a document in the browser
- */
-async function processDocument(fileId: string): Promise<{ success: boolean; error?: string }> {
+async function processDocument(fileId: string) {
   try {
     // Update status to processing
     await supabase
@@ -77,7 +55,7 @@ async function processDocument(fileId: string): Promise<{ success: boolean; erro
       })
       .eq('id', fileId);
 
-    // Get the file data from the database
+    // Get file data from database
     const { data: fileData, error: fileError } = await supabase
       .from('cv_files')
       .select('*')
@@ -86,72 +64,72 @@ async function processDocument(fileId: string): Promise<{ success: boolean; erro
 
     if (fileError) throw fileError;
     if (!fileData) throw new Error('File not found');
+    if (!fileData.storage_path) throw new Error('No storage path found for file');
 
-    // Download the file from storage
-    const { data: fileBuffer, error: downloadError } = await supabase.storage
+    // Download file from storage
+    const { data: fileContent, error: downloadError } = await supabase.storage
       .from('lens')
       .download(fileData.storage_path);
 
-    if (downloadError) throw downloadError;
+    if (downloadError) {
+      console.error('Download error:', downloadError);
+      throw new Error(`Failed to download file: ${downloadError.message}`);
+    }
+    if (!fileContent) throw new Error('File content not found');
 
-    // Update progress
-    await supabase
-      .from('cv_files')
-      .update({ progress: 50 })
-      .eq('id', fileId);
+    // Convert file to ArrayBuffer
+    const arrayBuffer = await fileContent.arrayBuffer();
 
-    // Extract text based on file type
-    let extractedText = '';
-    const arrayBuffer = await fileBuffer.arrayBuffer();
-
-    if (fileData.type === 'application/pdf') {
-      extractedText = await extractTextFromPDF(arrayBuffer);
-    } else {
-      throw new Error('Unsupported file type. Only PDF files are supported.');
+    // Load PDF document
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    // Extract text from all pages
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item: any) => item.str).join(' ');
+      fullText += pageText + '\n';
     }
 
-    if (!extractedText) {
-      throw new Error('No text could be extracted from the document');
-    }
-
-    // Basic parsing of the extracted text (you can enhance this)
-    const parsed = {
-      name: '',
-      email: '',
-      phone: '',
-      skills: [] as string[],
-      experience: [] as string[],
-      education: [] as string[]
-    };
-
-    // Update the database with the extracted text and parsed data
+    // Update database with extracted text and status
     const { error: updateError } = await supabase
       .from('cv_files')
       .update({
-        status: 'completed',
-        progress: 100,
-        raw_text: extractedText,
+        raw_text: fullText,
         text_extracted: true,
         text_extraction_date: new Date().toISOString(),
-        parsed_data: parsed
+        status: 'completed',
+        progress: 100
       })
       .eq('id', fileId);
 
     if (updateError) throw updateError;
 
-    return { success: true };
-  } catch (error: any) {
+    // Call Edge Function to process the text
+    const { data: processedData, error: processError } = await supabase.functions
+      .invoke('process_resume', {
+        body: { resume: { id: fileId, raw_text: fullText } }
+      });
+
+    if (processError) {
+      console.error('Error processing resume with Edge Function:', processError);
+    }
+
+  } catch (error) {
     console.error('Error in processDocument:', error);
     
-    // Update the error status in the database
+    // Update database with error status
     await supabase
       .from('cv_files')
       .update({
+        text_extracted: false,
+        extraction_error: error.message,
         status: 'failed',
-        error: error.message || 'Unknown error processing document'
+        error: error.message
       })
       .eq('id', fileId);
-    
-    return { success: false, error: error.message };
+
+    throw error;
   }
 } 

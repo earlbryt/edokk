@@ -42,6 +42,7 @@ const CVParser: React.FC = () => {
   const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
   const [activeFileId, setActiveFileId] = useState<string | null>(null);
   const [innerActiveTab, setInnerActiveTab] = useState("all");
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   
   // Run migrations and load user's projects on component mount
   useEffect(() => {
@@ -113,8 +114,62 @@ const CVParser: React.FC = () => {
       }
     };
     
+    if (user) {
     initializeData();
-  }, [user, toast]);
+
+      // Subscribe to changes in the cv_files table
+      const subscription = supabase
+        .channel('cv_files_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'cv_files',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Received real-time update:', payload);
+            
+            // Handle different types of changes
+            if (payload.eventType === 'UPDATE') {
+              setFiles(prevFiles => 
+                prevFiles.map(file => 
+                  file.id === payload.new.id
+                    ? {
+                        ...file,
+                        status: payload.new.status,
+                        progress: payload.new.progress,
+                        error: payload.new.error,
+                        parsed: {
+                          name: payload.new.parsed_data?.name,
+                          email: payload.new.parsed_data?.email,
+                          phone: payload.new.parsed_data?.phone,
+                          skills: payload.new.parsed_data?.skills || [],
+                          experience: payload.new.parsed_data?.experience || [],
+                          education: payload.new.parsed_data?.education || [],
+                          projects: payload.new.parsed_data?.projects || [],
+                          awards: payload.new.parsed_data?.awards || [],
+                          certifications: payload.new.parsed_data?.certifications || [],
+                          languages: payload.new.parsed_data?.languages || [],
+                          publications: payload.new.parsed_data?.publications || [],
+                          volunteer: payload.new.parsed_data?.volunteer || []
+                        }
+                      }
+                    : file
+                )
+              );
+            }
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscription on unmount
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [user]);
   
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
@@ -373,7 +428,10 @@ const CVParser: React.FC = () => {
           upsert: false
         });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Storage upload error:', error);
+        throw error;
+      }
       
       // Get the public URL
       const storageUrl = getPublicURL(storagePath);
@@ -404,25 +462,20 @@ const CVParser: React.FC = () => {
           : file
       ));
       
-      // Add the file to the processing queue instead of processing in browser
+      // Add the file to the processing queue
       addToProcessingQueue(fileId);
       
     } catch (error: any) {
       console.error('Error uploading file:', error);
       
       // Update the error status in the database
-      supabase
+      await supabase
         .from('cv_files')
         .update({
           status: 'failed',
           error: error.message || 'Failed to upload file'
         })
-        .eq('id', fileId)
-        .then(({ error: updateError }) => {
-          if (updateError) {
-            console.error('Error updating file status:', updateError);
-          }
-        });
+        .eq('id', fileId);
       
       // Update state
       setFiles(prev => prev.map(file => 
@@ -434,6 +487,13 @@ const CVParser: React.FC = () => {
             } 
           : file
       ));
+      
+      // Show error toast
+      toast({
+        title: "Upload failed",
+        description: error.message || 'Failed to upload file',
+        variant: "destructive"
+      });
     }
   };
   
@@ -513,130 +573,534 @@ const CVParser: React.FC = () => {
               <ChevronLeft className="h-4 w-4" />
               Back to Files
             </Button>
-            <h2 className="text-xl font-medium">{file.name}</h2>
+            <h2 className="text-xl font-medium">{removeFileExtension(file.name)}</h2>
             {getFileStatusBadge(file.status)}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Document Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
+          <Card className="md:col-span-3">
+            <CardContent className="p-8">
                   {file.status === 'failed' && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6">
                       <h3 className="font-medium mb-1">Error</h3>
                       <p>{file.error || 'Unknown error occurred'}</p>
                     </div>
                   )}
                   
                   {file.status === 'completed' && file.parsed && (
-                    <div className="space-y-6">
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-xs text-gray-500">Name</Label>
-                          <p className="font-medium">{file.parsed.name}</p>
+                <div className="space-y-8">
+                  {/* Navigation Sidebar */}
+                  <div className="grid grid-cols-12 gap-8">
+                    <div className="col-span-3 space-y-4 h-fit sticky top-6">
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="text-sm font-medium text-gray-500 mb-3">Quick Navigation</h3>
+                        <nav className="space-y-2">
+                          <a 
+                            href="#basic-info" 
+                            className={`block text-sm hover:text-lens-purple transition-colors ${
+                              activeSection === 'basic-info' ? 'text-lens-purple font-medium' : 'text-gray-600'
+                            }`}
+                          >
+                            Basic Information
+                          </a>
+                          {file.parsed.skills?.length > 0 && (
+                            <a 
+                              href="#skills" 
+                              className={`block text-sm hover:text-lens-purple transition-colors ${
+                                activeSection === 'skills' ? 'text-lens-purple font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              Skills & Expertise
+                            </a>
+                          )}
+                          {file.parsed.experience?.length > 0 && (
+                            <a 
+                              href="#experience" 
+                              className={`block text-sm hover:text-lens-purple transition-colors ${
+                                activeSection === 'experience' ? 'text-lens-purple font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              Professional Experience
+                            </a>
+                          )}
+                          {file.parsed.education?.length > 0 && (
+                            <a 
+                              href="#education" 
+                              className={`block text-sm hover:text-lens-purple transition-colors ${
+                                activeSection === 'education' ? 'text-lens-purple font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              Education
+                            </a>
+                          )}
+                          {file.parsed.projects?.length > 0 && (
+                            <a 
+                              href="#projects" 
+                              className={`block text-sm hover:text-lens-purple transition-colors ${
+                                activeSection === 'projects' ? 'text-lens-purple font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              Projects
+                            </a>
+                          )}
+                          {file.parsed.awards?.length > 0 && (
+                            <a 
+                              href="#awards" 
+                              className={`block text-sm hover:text-lens-purple transition-colors ${
+                                activeSection === 'awards' ? 'text-lens-purple font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              Awards
+                            </a>
+                          )}
+                          {file.parsed.certifications?.length > 0 && (
+                            <a 
+                              href="#certifications" 
+                              className={`block text-sm hover:text-lens-purple transition-colors ${
+                                activeSection === 'certifications' ? 'text-lens-purple font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              Certifications
+                            </a>
+                          )}
+                          {file.parsed.languages?.length > 0 && (
+                            <a 
+                              href="#languages" 
+                              className={`block text-sm hover:text-lens-purple transition-colors ${
+                                activeSection === 'languages' ? 'text-lens-purple font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              Languages
+                            </a>
+                          )}
+                          {file.parsed.publications?.length > 0 && (
+                            <a 
+                              href="#publications" 
+                              className={`block text-sm hover:text-lens-purple transition-colors ${
+                                activeSection === 'publications' ? 'text-lens-purple font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              Publications
+                            </a>
+                          )}
+                          {file.parsed.volunteer?.length > 0 && (
+                            <a 
+                              href="#volunteer" 
+                              className={`block text-sm hover:text-lens-purple transition-colors ${
+                                activeSection === 'volunteer' ? 'text-lens-purple font-medium' : 'text-gray-600'
+                              }`}
+                            >
+                              Volunteer Experience
+                            </a>
+                          )}
+                        </nav>
                         </div>
-                        <div>
-                          <Label className="text-xs text-gray-500">Email</Label>
-                          <p>{file.parsed.email}</p>
                         </div>
-                        <div>
-                          <Label className="text-xs text-gray-500">Phone</Label>
-                          <p>{file.parsed.phone}</p>
+
+                    {/* Main Content */}
+                    <div className="col-span-9 space-y-8 divide-y divide-gray-100">
+                      {/* Basic Info Section */}
+                      <div 
+                        id="basic-info" 
+                        className="pt-8 first:pt-0"
+                        ref={(el) => {
+                          if (el) {
+                            const observer = new IntersectionObserver(
+                              ([entry]) => {
+                                if (entry.isIntersecting) {
+                                  setActiveSection('basic-info');
+                                }
+                              },
+                              { threshold: 0.5 }
+                            );
+                            observer.observe(el);
+                          }
+                        }}
+                      >
+                        <div className="text-center pb-8">
+                          <h2 className="text-2xl font-bold text-gray-900 mb-2">{file.parsed.name}</h2>
+                          <div className="flex items-center justify-center gap-4 text-gray-600">
+                            {file.parsed.email && (
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                <span>{file.parsed.email}</span>
+                              </div>
+                            )}
+                            {file.parsed.phone && (
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                <span>{file.parsed.phone}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                       
-                      <div>
-                        <Label className="text-xs text-gray-500">Skills</Label>
-                        <div className="flex flex-wrap gap-1 mt-1">
+                      {/* Skills Section */}
+                      {file.parsed.skills && file.parsed.skills.length > 0 && (
+                        <div 
+                          id="skills" 
+                          className="pt-8"
+                          ref={(el) => {
+                            if (el) {
+                              const observer = new IntersectionObserver(
+                                ([entry]) => {
+                                  if (entry.isIntersecting) {
+                                    setActiveSection('skills');
+                                  }
+                                },
+                                { threshold: 0.5 }
+                              );
+                              observer.observe(el);
+                            }
+                          }}
+                        >
+                          <div className="bg-gradient-to-r from-lens-purple/5 to-transparent p-6 rounded-xl">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              Skills & Expertise
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
                           {file.parsed.skills.map((skill, index) => (
-                            <Badge key={index} variant="secondary" className="bg-lens-purple/10 text-lens-purple">
+                                <Badge 
+                                  key={index} 
+                                  variant="secondary" 
+                                  className="bg-white border border-lens-purple/20 text-lens-purple hover:bg-lens-purple/5 transition-colors"
+                                >
                               {skill}
                             </Badge>
                           ))}
                         </div>
                       </div>
-                      
-                      <div>
-                        <Label className="text-xs text-gray-500">Experience</Label>
-                        <ul className="list-disc list-inside mt-1 space-y-1">
+                        </div>
+                      )}
+
+                      {/* Rest of the sections with id attributes and pt-8 class */}
+                      {/* Experience Section */}
+                      {file.parsed.experience && file.parsed.experience.length > 0 && (
+                        <div 
+                          id="experience" 
+                          className="pt-8"
+                          ref={(el) => {
+                            if (el) {
+                              const observer = new IntersectionObserver(
+                                ([entry]) => {
+                                  if (entry.isIntersecting) {
+                                    setActiveSection('experience');
+                                  }
+                                },
+                                { threshold: 0.5 }
+                              );
+                              observer.observe(el);
+                            }
+                          }}
+                        >
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                              Professional Experience
+                            </h3>
+                            <div className="space-y-4">
                           {file.parsed.experience.map((exp, index) => (
-                            <li key={index} className="text-sm">{exp}</li>
+                                <div key={index} className="bg-white p-4 rounded-lg border border-gray-100 hover:border-lens-purple/20 transition-colors">
+                                  <p className="text-gray-700">{exp}</p>
+                                </div>
                           ))}
-                        </ul>
                       </div>
-                      
-                      <div>
-                        <Label className="text-xs text-gray-500">Education</Label>
-                        <ul className="list-disc list-inside mt-1 space-y-1">
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Education Section */}
+                      {file.parsed.education && file.parsed.education.length > 0 && (
+                        <div 
+                          id="education" 
+                          className="pt-8"
+                          ref={(el) => {
+                            if (el) {
+                              const observer = new IntersectionObserver(
+                                ([entry]) => {
+                                  if (entry.isIntersecting) {
+                                    setActiveSection('education');
+                                  }
+                                },
+                                { threshold: 0.5 }
+                              );
+                              observer.observe(el);
+                            }
+                          }}
+                        >
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                                <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                              </svg>
+                              Education
+                            </h3>
+                            <div className="space-y-4">
                           {file.parsed.education.map((edu, index) => (
-                            <li key={index} className="text-sm">{edu}</li>
+                                <div key={index} className="bg-white p-4 rounded-lg border border-gray-100 hover:border-lens-purple/20 transition-colors">
+                                  <p className="text-gray-700">{edu}</p>
+                                </div>
                           ))}
-                        </ul>
+                            </div>
                       </div>
                     </div>
                   )}
                   
-                  {(file.status === 'uploading' || file.status === 'processing') && (
-                    <div className="flex flex-col items-center justify-center py-10">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-lens-purple mb-4"></div>
-                      <p className="text-gray-600">
-                        {file.status === 'uploading' ? 'Uploading document...' : 'Processing document...'}
-                      </p>
-                      {file.progress !== undefined && (
-                        <Progress value={file.progress} className="w-64 mt-4" />
-                      )}
+                      {/* Projects Section */}
+                      {file.parsed.projects && file.parsed.projects.length > 0 && (
+                        <div 
+                          id="projects" 
+                          className="pt-8"
+                          ref={(el) => {
+                            if (el) {
+                              const observer = new IntersectionObserver(
+                                ([entry]) => {
+                                  if (entry.isIntersecting) {
+                                    setActiveSection('projects');
+                                  }
+                                },
+                                { threshold: 0.5 }
+                              );
+                              observer.observe(el);
+                            }
+                          }}
+                        >
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                              </svg>
+                              Notable Projects
+                            </h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              {file.parsed.projects.map((project, index) => (
+                                <div key={index} className="bg-white p-4 rounded-lg border border-gray-100 hover:border-lens-purple/20 transition-colors">
+                                  <p className="text-gray-700">{project}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                     </div>
                   )}
+
+                      {/* Awards Section */}
+                      {file.parsed.awards && file.parsed.awards.length > 0 && (
+                        <div 
+                          id="awards" 
+                          className="pt-8"
+                          ref={(el) => {
+                            if (el) {
+                              const observer = new IntersectionObserver(
+                                ([entry]) => {
+                                  if (entry.isIntersecting) {
+                                    setActiveSection('awards');
+                                  }
+                                },
+                                { threshold: 0.5 }
+                              );
+                              observer.observe(el);
+                            }
+                          }}
+                        >
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                              </svg>
+                              Awards & Achievements
+                            </h3>
+                            <div className="space-y-2">
+                              {file.parsed.awards.map((award, index) => (
+                                <div key={index} className="bg-white p-3 rounded-lg border border-lens-purple/10">
+                                  <p className="text-gray-700">{award}</p>
                 </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>File Information</CardTitle>
-              </CardHeader>
-              <CardContent>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Certifications Section */}
+                      {file.parsed.certifications && file.parsed.certifications.length > 0 && (
+                        <div 
+                          id="certifications" 
+                          className="pt-8"
+                          ref={(el) => {
+                            if (el) {
+                              const observer = new IntersectionObserver(
+                                ([entry]) => {
+                                  if (entry.isIntersecting) {
+                                    setActiveSection('certifications');
+                                  }
+                                },
+                                { threshold: 0.5 }
+                              );
+                              observer.observe(el);
+                            }
+                          }}
+                        >
                 <div className="space-y-4">
-                  <div>
-                    <Label className="text-xs text-gray-500">File Type</Label>
-                    <p>{file.type}</p>
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                              </svg>
+                              Certifications
+                            </h3>
+                            <div className="space-y-2">
+                              {file.parsed.certifications.map((cert, index) => (
+                                <div key={index} className="bg-white p-3 rounded-lg border border-lens-purple/10">
+                                  <p className="text-gray-700">{cert}</p>
                   </div>
-                  <div>
-                    <Label className="text-xs text-gray-500">Uploaded</Label>
-                    <p>{formatDate(file.uploadedAt)}</p>
+                              ))}
                   </div>
-                  <div>
-                    <Label className="text-xs text-gray-500">Status</Label>
-                    <div className="mt-1">{getFileStatusBadge(file.status)}</div>
                   </div>
                 </div>
-              </CardContent>
-              <CardFooter className="flex-col space-y-2">
-                {file.storageUrl && (
-                  <Button 
-                    variant="outline" 
-                    className="w-full flex items-center gap-2"
-                    onClick={() => window.open(file.storageUrl, '_blank')}
-                  >
-                    <Download className="h-4 w-4" />
-                    Download Original
-                  </Button>
-                )}
-                {file.status === 'failed' && (
-                  <Button
-                    variant="outline"
-                    className="w-full flex items-center gap-2 border-red-200 hover:border-red-300 text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete File
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
+                      )}
+
+                      {/* Languages Section */}
+                      {file.parsed.languages && file.parsed.languages.length > 0 && (
+                        <div 
+                          id="languages" 
+                          className="pt-8"
+                          ref={(el) => {
+                            if (el) {
+                              const observer = new IntersectionObserver(
+                                ([entry]) => {
+                                  if (entry.isIntersecting) {
+                                    setActiveSection('languages');
+                                  }
+                                },
+                                { threshold: 0.5 }
+                              );
+                              observer.observe(el);
+                            }
+                          }}
+                        >
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                              </svg>
+                              Languages
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                              {file.parsed.languages.map((language, index) => (
+                                <Badge 
+                                  key={index} 
+                                  variant="secondary" 
+                                  className="bg-white border border-lens-purple/20 text-lens-purple hover:bg-lens-purple/5 transition-colors"
+                                >
+                                  {language}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Publications Section */}
+                      {file.parsed.publications && file.parsed.publications.length > 0 && (
+                        <div 
+                          id="publications" 
+                          className="pt-8"
+                          ref={(el) => {
+                            if (el) {
+                              const observer = new IntersectionObserver(
+                                ([entry]) => {
+                                  if (entry.isIntersecting) {
+                                    setActiveSection('publications');
+                                  }
+                                },
+                                { threshold: 0.5 }
+                              );
+                              observer.observe(el);
+                            }
+                          }}
+                        >
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                              </svg>
+                              Publications
+                            </h3>
+                            <div className="space-y-4">
+                              {file.parsed.publications.map((pub, index) => (
+                                <div key={index} className="bg-white p-4 rounded-lg border border-gray-100 hover:border-lens-purple/20 transition-colors">
+                                  <p className="text-gray-700">{pub}</p>
           </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Volunteer Experience Section */}
+                      {file.parsed.volunteer && file.parsed.volunteer.length > 0 && (
+                        <div 
+                          id="volunteer" 
+                          className="pt-8"
+                          ref={(el) => {
+                            if (el) {
+                              const observer = new IntersectionObserver(
+                                ([entry]) => {
+                                  if (entry.isIntersecting) {
+                                    setActiveSection('volunteer');
+                                  }
+                                },
+                                { threshold: 0.5 }
+                              );
+                              observer.observe(el);
+                            }
+                          }}
+                        >
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                              </svg>
+                              Volunteer Experience
+                            </h3>
+                            <div className="space-y-4">
+                              {file.parsed.volunteer.map((vol, index) => (
+                                <div key={index} className="bg-white p-4 rounded-lg border border-gray-100 hover:border-lens-purple/20 transition-colors">
+                                  <p className="text-gray-700">{vol}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {(file.status === 'uploading' || file.status === 'processing') && (
+                <div className="flex flex-col items-center justify-center py-10">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-lens-purple mb-4"></div>
+                  <p className="text-gray-600">
+                    {file.status === 'uploading' ? 'Uploading document...' : 'Processing document...'}
+                  </p>
+                  {file.progress !== undefined && (
+                    <Progress value={file.progress} className="w-64 mt-4" />
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       );
     }
@@ -803,7 +1267,7 @@ const CVParser: React.FC = () => {
             </div>
             
             <div className="flex-1 mr-4">
-              <h3 className="font-medium">{file.name}</h3>
+              <h3 className="font-medium">{removeFileExtension(file.name)}</h3>
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-xs text-gray-500">{formatDate(file.uploadedAt)}</span>
               </div>
@@ -833,6 +1297,11 @@ const CVParser: React.FC = () => {
   // Add a function to navigate to filters page for a specific project
   const goToFilters = (projectId: string) => {
     navigate(`/dashboard/filters?project=${projectId}`);
+  };
+
+  // Add this function near your other utility functions
+  const removeFileExtension = (filename: string) => {
+    return filename.replace(/\.[^/.]+$/, '');
   };
 
   return (
