@@ -5,11 +5,9 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  Settings,
   Filter,
   CheckSquare,
-  LogOut,
-  TestTube
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -102,28 +100,17 @@ const Sidebar: React.FC = () => {
     },
     { 
       icon: <FileText size={22} />, 
-      label: 'CV Parser', 
+      label: 'Resume Upload', 
       to: '/dashboard/parser' 
     },
     { 
       icon: <Filter size={22} />, 
-      label: 'Filters', 
+      label: 'Requirements', 
       to: '/dashboard/filters' 
-    },
-    { 
-      icon: <TestTube size={22} />, 
-      label: 'Document Test', 
-      to: '/dashboard/document-test' 
     },
   ];
   
-  const bottomMenuItems = [
-    { 
-      icon: <Settings size={22} />, 
-      label: 'Settings', 
-      to: '/dashboard/settings' 
-    },
-  ];
+  const bottomMenuItems = [];
 
   return (
     <div className="w-64 h-screen flex flex-col bg-white border-r border-gray-200 fixed left-0 top-0">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
-import { Upload, FileText, Check, AlertTriangle, X, File, FolderPlus, ChevronLeft, Clock, Calendar, User, PlusCircle, Download, Eye, Trash2 } from 'lucide-react';
+import { Upload, FileText, Check, AlertTriangle, X, File, FolderPlus, ChevronLeft, Clock, Calendar, User, PlusCircle, Download, Eye, Trash2, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,6 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase, getStoragePath, getPublicURL, STORAGE_BUCKET } from '@/lib/supabase';
 import { runMigrations } from '@/lib/migrations';
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from 'react-router-dom';
 
 interface Project {
   id: string;
@@ -49,6 +50,7 @@ interface CVFile {
 const CVParser: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [files, setFiles] = useState<CVFile[]>([]);
   const [activeTab, setActiveTab] = useState("projects");
   const [dragActive, setDragActive] = useState(false);
@@ -208,6 +210,25 @@ const CVParser: React.FC = () => {
       
       if (error) throw error;
       
+      // Automatically create a filter group for this project
+      const filterGroupId = `filtergroup-${Date.now()}`;
+      const { error: filterGroupError } = await supabase
+        .from('filter_groups')
+        .insert({
+          id: filterGroupId,
+          name: newProjectName, // Use the same name as the project
+          project_id: projectId,
+          user_id: user.id,
+          enabled: true
+        });
+      
+      if (filterGroupError) {
+        console.error('Error creating filter group:', filterGroupError);
+        // Continue anyway since the project was created successfully
+      } else {
+        console.log('Filter group created successfully');
+      }
+      
       // Update local state
       setProjects(prev => [newProject, ...prev]);
       setActiveProject(newProject);
@@ -217,6 +238,7 @@ const CVParser: React.FC = () => {
         title: "Project created",
         description: `Project "${newProject.name}" has been created successfully`,
       });
+
     } catch (error) {
       console.error('Error creating project:', error);
       toast({
@@ -714,6 +736,14 @@ const CVParser: React.FC = () => {
               <ChevronLeft className="h-4 w-4" />
               Back to Projects
             </Button>
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={() => goToFilters(activeProject.id)}
+            >
+              <Filter className="h-4 w-4" />
+              Requirements
+            </Button>
             {innerActiveTab === 'all' && (
               <div 
                 className={`border-2 border-dashed rounded-lg px-4 py-2 text-center flex items-center gap-2 cursor-pointer ${
@@ -877,6 +907,11 @@ const CVParser: React.FC = () => {
     );
   };
 
+  // Add a function to navigate to filters page for a specific project
+  const goToFilters = (projectId: string) => {
+    navigate(`/dashboard/filters?project=${projectId}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
@@ -885,8 +920,8 @@ const CVParser: React.FC = () => {
         <main className="p-6">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">CV Parser</h1>
-              <p className="text-gray-600">Manage projects and parse CV documents</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Resume Upload</h1>
+              <p className="text-gray-600">Manage projects and upload candidate resumes</p>
             </div>
             
             {activeProject && (
@@ -895,6 +930,15 @@ const CVParser: React.FC = () => {
                   <p className="text-sm font-medium">Active Project:</p>
                   <p className="text-lens-purple font-semibold">{activeProject.name}</p>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={() => goToFilters(activeProject.id)}
+                >
+                  <Filter className="h-4 w-4" />
+                  Requirements
+                </Button>
               </div>
             )}
           </div>
@@ -982,23 +1026,37 @@ const CVParser: React.FC = () => {
                                 </div>
                               </div>
                               
-                              {activeProject?.id === project.id && (
-                                <div 
-                                  className={`border-2 border-dashed rounded-lg p-3 text-center cursor-pointer ${
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="flex items-center gap-1 text-gray-600 hover:text-lens-purple"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    goToFilters(project.id);
+                                  }}
+                                >
+                                  <Filter className="h-4 w-4" />
+                                  Filters
+                                </Button>
+                              
+                                {activeProject?.id === project.id && (
+                                  <div 
+                                    className={`border-2 border-dashed rounded-lg p-3 text-center cursor-pointer ${
                       dragActive ? 'border-lens-purple bg-lens-purple/5' : 'border-gray-300'
                     }`}
                     onDragEnter={handleDragEnter}
                     onDragOver={handleDragEnter}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    document.getElementById('file-upload')?.click();
-                                  }}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <Upload className="h-4 w-4 text-lens-purple" />
-                                    <span className="text-sm">Upload CVs</span>
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      document.getElementById('file-upload')?.click();
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <Upload className="h-4 w-4 text-lens-purple" />
+                                      <span className="text-sm">Upload CVs</span>
                     </div>
                       <input
                         id="file-upload"
@@ -1008,8 +1066,9 @@ const CVParser: React.FC = () => {
                         className="hidden"
                         onChange={handleFileChange}
                       />
-                                </div>
-                              )}
+                                  </div>
+                                )}
+                              </div>
                     </div>
                           ))}
                   </div>

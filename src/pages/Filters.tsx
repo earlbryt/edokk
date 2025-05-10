@@ -1,11 +1,10 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
-import { Filter, Plus, X, Check, Save } from 'lucide-react';
+import { Filter, Plus, X, Check, Save, FolderPlus, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
@@ -13,15 +12,28 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useLocation } from 'react-router-dom';
 
-interface FilterGroup {
+interface Project {
   id: string;
   name: string;
-  filters: Filter[];
-  enabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  documentsCount: number;
 }
 
-interface Filter {
+interface RequirementGroup {
+  id: string;
+  name: string;
+  filters: Requirement[];
+  enabled: boolean;
+  projectId?: string;
+}
+
+interface Requirement {
   id: string;
   type: 'skill' | 'experience' | 'education' | 'keyword' | 'location';
   value: string;
@@ -31,147 +43,458 @@ interface Filter {
 
 const Filters: React.FC = () => {
   const { toast } = useToast();
-  const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([
-    {
-      id: 'fg-1',
-      name: 'Software Engineer',
-      enabled: true,
-      filters: [
-        { id: 'f-1', type: 'skill', value: 'JavaScript', weight: 80, required: true },
-        { id: 'f-2', type: 'skill', value: 'React', weight: 90, required: true },
-        { id: 'f-3', type: 'skill', value: 'TypeScript', weight: 70, required: false },
-        { id: 'f-4', type: 'experience', value: '3+ years frontend development', weight: 85, required: true },
-        { id: 'f-5', type: 'education', value: 'Computer Science degree', weight: 60, required: false },
-      ]
-    },
-    {
-      id: 'fg-2',
-      name: 'Product Manager',
-      enabled: false,
-      filters: [
-        { id: 'f-6', type: 'skill', value: 'Product Strategy', weight: 90, required: true },
-        { id: 'f-7', type: 'skill', value: 'User Research', weight: 80, required: false },
-        { id: 'f-8', type: 'skill', value: 'Agile Methodology', weight: 75, required: true },
-        { id: 'f-9', type: 'experience', value: '5+ years product management', weight: 95, required: true },
-      ]
-    }
-  ]);
-  
-  const [selectedGroup, setSelectedGroup] = useState<string | null>('fg-1');
-  const [newFilterType, setNewFilterType] = useState<Filter['type']>('skill');
-  const [newFilterValue, setNewFilterValue] = useState('');
+  const { user } = useAuth();
+  const location = useLocation();
+  const [requirementGroups, setRequirementGroups] = useState<RequirementGroup[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [newRequirementType, setNewRequirementType] = useState<Requirement['type']>('skill');
+  const [newRequirementValue, setNewRequirementValue] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [commonSkills, setCommonSkills] = useState<string[]>([
+    'JavaScript', 'React', 'TypeScript', 'Python', 'Java', 'C#', 'Node.js', 
+    'SQL', 'AWS', 'Docker', 'Kubernetes', 'HTML', 'CSS', 'Git', 'Agile',
+    'Product Management', 'UI/UX', 'Data Analysis', 'Machine Learning'
+  ]);
   
-  const currentGroup = filterGroups.find(group => group.id === selectedGroup);
+  const currentGroup = requirementGroups.find(group => group.id === selectedGroup);
   
-  const handleToggleFilterGroup = (groupId: string) => {
-    setFilterGroups(prev => prev.map(group => 
-      group.id === groupId ? { ...group, enabled: !group.enabled } : group
-    ));
+  // Parse URL parameters for project selection
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const projectId = params.get('project');
     
-    toast({
-      title: "Filter group updated",
-      description: `Filter group ${filterGroups.find(group => group.id === groupId)?.name} ${filterGroups.find(group => group.id === groupId)?.enabled ? 'disabled' : 'enabled'}`
-    });
-  };
+    if (projectId) {
+      setSelectedProject(projectId);
+    }
+  }, [location]);
   
-  const handleAddFilter = () => {
-    if (!newFilterValue.trim() || !selectedGroup) return;
-    
-    const newFilter: Filter = {
-      id: `f-${Date.now()}`,
-      type: newFilterType,
-      value: newFilterValue,
-      weight: 50,
-      required: false
-    };
-    
-    setFilterGroups(prev => prev.map(group => 
-      group.id === selectedGroup 
-        ? { ...group, filters: [...group.filters, newFilter] } 
-        : group
-    ));
-    
-    setNewFilterValue('');
-    
-    toast({
-      title: "Filter added",
-      description: `Added ${newFilterType} filter: ${newFilterValue}`
-    });
-  };
-  
-  const handleRemoveFilter = (filterId: string) => {
-    if (!selectedGroup) return;
-    
-    const filterToRemove = filterGroups
-      .find(group => group.id === selectedGroup)?.filters
-      .find(filter => filter.id === filterId);
+  // Load user's projects and requirement groups
+  useEffect(() => {
+    const loadData = async () => {
+      if (!user) return;
       
-    setFilterGroups(prev => prev.map(group => 
-      group.id === selectedGroup 
-        ? { 
-            ...group, 
-            filters: group.filters.filter(filter => filter.id !== filterId) 
+      setIsLoading(true);
+      
+      try {
+        // Load user's projects
+        const { data: projectsData, error: projectsError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (projectsError) throw projectsError;
+        
+        if (projectsData) {
+          const formattedProjects = projectsData.map(project => ({
+            id: project.id,
+            name: project.name,
+            createdAt: new Date(project.created_at),
+            updatedAt: new Date(project.updated_at),
+            documentsCount: project.documents_count || 0
+          }));
+          
+          setProjects(formattedProjects);
+          
+          // If URL has a project parameter and it exists in the projects list, use that
+          const params = new URLSearchParams(location.search);
+          const projectIdFromUrl = params.get('project');
+          
+          if (projectIdFromUrl && formattedProjects.some(p => p.id === projectIdFromUrl)) {
+            setSelectedProject(projectIdFromUrl);
+            await loadRequirementGroups(projectIdFromUrl);
           } 
-        : group
-    ));
-    
-    toast({
-      title: "Filter removed",
-      description: `Removed ${filterToRemove?.type} filter: ${filterToRemove?.value}`
-    });
-  };
-  
-  const handleUpdateFilter = (filterId: string, updates: Partial<Filter>) => {
-    if (!selectedGroup) return;
-    
-    setFilterGroups(prev => prev.map(group => 
-      group.id === selectedGroup 
-        ? { 
-            ...group, 
-            filters: group.filters.map(filter => 
-              filter.id === filterId 
-                ? { ...filter, ...updates } 
-                : filter
-            ) 
-          } 
-        : group
-    ));
-  };
-  
-  const handleAddGroup = () => {
-    if (!newGroupName.trim()) return;
-    
-    const newGroup: FilterGroup = {
-      id: `fg-${Date.now()}`,
-      name: newGroupName,
-      enabled: true,
-      filters: []
+          // Otherwise, if there are projects, select the first one by default
+          else if (formattedProjects.length > 0 && !selectedProject) {
+            setSelectedProject(formattedProjects[0].id);
+            await loadRequirementGroups(formattedProjects[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+        toast({
+          title: 'Error loading data',
+          description: 'There was a problem loading your projects and requirements.',
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    setFilterGroups(prev => [...prev, newGroup]);
-    setSelectedGroup(newGroup.id);
-    setNewGroupName('');
-    setIsCreatingGroup(false);
+    loadData();
+  }, [user, toast, location.search]);
+  
+  // Load requirement groups for a specific project
+  const loadRequirementGroups = async (projectId: string) => {
+    if (!user) return;
     
-    toast({
-      title: "Filter group created",
-      description: `Created new filter group: ${newGroupName}`
-    });
+    try {
+      // Load requirement groups
+      const { data: groupsData, error: groupsError } = await supabase
+        .from('filter_groups')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (groupsError) throw groupsError;
+      
+      if (groupsData) {
+        const groups = [];
+        
+        for (const group of groupsData) {
+          // Load requirements for each group
+          const { data: requirementsData, error: requirementsError } = await supabase
+            .from('filters')
+            .select('*')
+            .eq('filter_group_id', group.id)
+            .order('created_at', { ascending: true });
+          
+          if (requirementsError) throw requirementsError;
+          
+          groups.push({
+            id: group.id,
+            name: group.name,
+            enabled: group.enabled,
+            projectId: group.project_id,
+            filters: requirementsData ? requirementsData.map(requirement => ({
+              id: requirement.id,
+              type: requirement.type as Requirement['type'],
+              value: requirement.value,
+              weight: requirement.weight,
+              required: requirement.required
+            })) : []
+          });
+        }
+        
+        setRequirementGroups(groups);
+        
+        // Select the first group if available
+        if (groups.length > 0) {
+          setSelectedGroup(groups[0].id);
+        } else {
+          setSelectedGroup(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading requirement groups:', error);
+      toast({
+        title: 'Error loading requirement groups',
+        description: 'There was a problem loading your requirement groups.',
+        variant: 'destructive'
+      });
+    }
   };
   
-  const handleDeleteGroup = (groupId: string) => {
-    setFilterGroups(prev => prev.filter(group => group.id !== groupId));
+  // Handle project selection change
+  useEffect(() => {
+    if (selectedProject) {
+      loadRequirementGroups(selectedProject);
+    }
+  }, [selectedProject]);
+  
+  const handleToggleRequirementGroup = async (groupId: string) => {
+    const group = requirementGroups.find(g => g.id === groupId);
+    if (!group) return;
     
-    if (selectedGroup === groupId) {
-      setSelectedGroup(filterGroups.length > 1 ? filterGroups[0].id : null);
+    const newEnabled = !group.enabled;
+    
+    try {
+      // Update in database
+      const { error } = await supabase
+        .from('filter_groups')
+        .update({ enabled: newEnabled, updated_at: new Date().toISOString() })
+        .eq('id', groupId);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setRequirementGroups(prev => prev.map(group => 
+        group.id === groupId ? { ...group, enabled: newEnabled } : group
+      ));
+      
+      toast({
+        title: "Requirement group updated",
+        description: `Requirement group ${group.name} ${newEnabled ? 'enabled' : 'disabled'}`
+      });
+    } catch (error) {
+      console.error('Error updating requirement group:', error);
+      toast({
+        title: 'Error updating requirement group',
+        description: 'There was a problem updating the requirement group.',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  const handleAddRequirement = async () => {
+    if (!user) {
+      console.error("User not authenticated");
+      toast({
+        title: 'Authentication required',
+        description: 'You must be logged in to add requirements',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!newRequirementValue.trim() || !selectedGroup) {
+      console.error("Cannot add requirement: empty value or no selected group", { 
+        newRequirementValue, 
+        selectedGroup 
+      });
+      toast({
+        title: 'Cannot add requirement',
+        description: !newRequirementValue.trim() 
+          ? 'Please enter a requirement value' 
+          : 'No requirement group selected',
+        variant: 'destructive'
+      });
+      return;
     }
     
-    toast({
-      title: "Filter group deleted",
-      description: `Deleted filter group: ${filterGroups.find(group => group.id === groupId)?.name}`
+    console.log("Adding requirement:", { 
+      newRequirementType, 
+      newRequirementValue, 
+      selectedGroup,
+      user_id: user.id
     });
+    
+    const requirementId = `filter-${Date.now()}`;
+    
+    try {
+      // Add to database
+      console.log("Inserting requirement into database:", {
+        id: requirementId,
+        filter_group_id: selectedGroup,
+        type: newRequirementType,
+        value: newRequirementValue
+      });
+      
+      const { data, error } = await supabase
+        .from('filters')
+        .insert({
+          id: requirementId,
+          filter_group_id: selectedGroup,
+          type: newRequirementType,
+          value: newRequirementValue,
+          weight: 50,
+          required: false
+        })
+        .select();
+      
+      console.log("Database response:", { data, error });
+      
+      if (error) throw error;
+      
+      // Create the new requirement object from the returned data
+      const newRequirement: Requirement = {
+        id: requirementId,
+        type: newRequirementType,
+        value: newRequirementValue,
+        weight: 50,
+        required: false
+      };
+      
+      // Update local state
+      setRequirementGroups(prev => prev.map(group => 
+        group.id === selectedGroup 
+          ? { ...group, filters: [...group.filters, newRequirement] } 
+          : group
+      ));
+      
+      setNewRequirementValue('');
+      
+      toast({
+        title: "Requirement added",
+        description: `Added ${newRequirementType} requirement: ${newRequirementValue}`
+      });
+    } catch (error: any) {
+      console.error('Error adding requirement:', error);
+      toast({
+        title: 'Error adding requirement',
+        description: error.message || 'There was a problem adding the requirement.',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  const handleRemoveRequirement = async (requirementId: string) => {
+    if (!selectedGroup) return;
+    
+    const requirementToRemove = requirementGroups
+      .find(group => group.id === selectedGroup)?.filters
+      .find(requirement => requirement.id === requirementId);
+    
+    if (!requirementToRemove) return;
+    
+    try {
+      // Remove from database
+      const { error } = await supabase
+        .from('filters')
+        .delete()
+        .eq('id', requirementId);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setRequirementGroups(prev => prev.map(group => 
+        group.id === selectedGroup 
+          ? { 
+              ...group, 
+              filters: group.filters.filter(requirement => requirement.id !== requirementId) 
+            } 
+          : group
+      ));
+      
+      toast({
+        title: "Requirement removed",
+        description: `Removed ${requirementToRemove.type} requirement: ${requirementToRemove.value}`
+      });
+    } catch (error) {
+      console.error('Error removing requirement:', error);
+      toast({
+        title: 'Error removing requirement',
+        description: 'There was a problem removing the requirement.',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  const handleUpdateRequirement = async (requirementId: string, updates: Partial<Requirement>) => {
+    if (!selectedGroup) return;
+    
+    try {
+      // Update in database
+      const { error } = await supabase
+        .from('filters')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', requirementId);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setRequirementGroups(prev => prev.map(group => 
+        group.id === selectedGroup 
+          ? { 
+              ...group, 
+              filters: group.filters.map(requirement => 
+                requirement.id === requirementId 
+                  ? { ...requirement, ...updates } 
+                  : requirement
+              ) 
+            } 
+          : group
+      ));
+    } catch (error) {
+      console.error('Error updating requirement:', error);
+      toast({
+        title: 'Error updating requirement',
+        description: 'There was a problem updating the requirement.',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  const handleAddGroup = async () => {
+    if (!newGroupName.trim() || !selectedProject) return;
+    
+    const groupId = `filtergroup-${Date.now()}`;
+    
+    try {
+      // Add to database
+      const { error } = await supabase
+        .from('filter_groups')
+        .insert({
+          id: groupId,
+          name: newGroupName,
+          project_id: selectedProject,
+          user_id: user?.id,
+          enabled: true
+        });
+      
+      if (error) throw error;
+      
+      // Update local state
+      const newGroup: RequirementGroup = {
+        id: groupId,
+        name: newGroupName,
+        enabled: true,
+        projectId: selectedProject,
+        filters: []
+      };
+      
+      setRequirementGroups(prev => [newGroup, ...prev]);
+      setSelectedGroup(groupId);
+      setNewGroupName('');
+      setIsCreatingGroup(false);
+      
+      toast({
+        title: "Requirement group created",
+        description: `Created new requirement group: ${newGroupName}`
+      });
+    } catch (error) {
+      console.error('Error creating requirement group:', error);
+      toast({
+        title: 'Error creating requirement group',
+        description: 'There was a problem creating the requirement group.',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  const handleDeleteGroup = async (groupId: string) => {
+    const group = requirementGroups.find(g => g.id === groupId);
+    if (!group) return;
+    
+    try {
+      // Delete from database
+      const { error } = await supabase
+        .from('filter_groups')
+        .delete()
+        .eq('id', groupId);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setRequirementGroups(prev => prev.filter(group => group.id !== groupId));
+      
+      if (selectedGroup === groupId) {
+        setSelectedGroup(requirementGroups.length > 1 ? requirementGroups.filter(g => g.id !== groupId)[0]?.id : null);
+      }
+      
+      toast({
+        title: "Requirement group deleted",
+        description: `Deleted requirement group: ${group.name}`
+      });
+    } catch (error) {
+      console.error('Error deleting requirement group:', error);
+      toast({
+        title: 'Error deleting requirement group',
+        description: 'There was a problem deleting the requirement group.',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  const handleSelectSkill = (skill: string) => {
+    setNewRequirementValue(skill);
+  };
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    }).format(date);
   };
 
   return (
@@ -182,52 +505,102 @@ const Filters: React.FC = () => {
         <main className="p-6">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Candidate Filters</h1>
-              <p className="text-gray-600">Create and manage filters for automatic candidate matching</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Job Requirements</h1>
+              <p className="text-gray-600">Define requirements for candidate matching</p>
             </div>
+            
+            {projects.length > 0 && (
+              <div className="flex items-center gap-3">
+                <Label htmlFor="project-select" className="text-sm font-medium">
+                  Project:
+                </Label>
+                <Select
+                  value={selectedProject || ''}
+                  onValueChange={(value) => setSelectedProject(value)}
+                >
+                  <SelectTrigger className="w-[220px]">
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           
+          {isLoading ? (
+            <Card>
+              <CardContent className="p-8">
+                <div className="flex justify-center items-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-lens-purple"></div>
+                  <span className="ml-3 text-gray-600">Loading requirements...</span>
+                </div>
+              </CardContent>
+            </Card>
+          ) : projects.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <FolderPlus className="h-16 w-16 mx-auto opacity-20 mb-4" />
+                <h3 className="text-xl font-medium mb-2">No Projects Available</h3>
+                <p className="text-gray-600 mb-4">
+                  You need to create a project in the Resume Upload section first
+                </p>
+                <Button
+                  className="bg-lens-purple hover:bg-lens-purple/90"
+                  onClick={() => window.location.href = '/dashboard/parser'}
+                >
+                  Go to Resume Upload
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Filter Groups Sidebar */}
+            {/* Requirement Groups Sidebar */}
             <Card className="lg:col-span-1">
-              <CardHeader>
-                <CardTitle>Filter Groups</CardTitle>
-                <CardDescription>
-                  Create different filter sets for each job position
-                </CardDescription>
-              </CardHeader>
               <CardContent className="p-0">
                 <div className="max-h-[600px] overflow-y-auto">
-                  {filterGroups.map(group => (
-                    <div
-                      key={group.id}
-                      className={`flex items-center justify-between p-3 border-b cursor-pointer hover:bg-gray-50 ${
-                        selectedGroup === group.id ? 'bg-lens-purple/5 border-l-4 border-l-lens-purple' : ''
-                      }`}
-                      onClick={() => setSelectedGroup(group.id)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-2 h-2 rounded-full ${group.enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
-                        <span className="font-medium">{group.name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {group.filters.length} filters
-                        </Badge>
-                      </div>
-                      {selectedGroup === group.id && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteGroup(group.id);
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
+                  {requirementGroups.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">
+                      <p>No requirement groups yet</p>
+                      <p className="text-sm">Create your first requirement group</p>
                     </div>
-                  ))}
+                  ) : (
+                    requirementGroups.map(group => (
+                      <div
+                        key={group.id}
+                        className={`flex items-center justify-between p-3 border-b cursor-pointer hover:bg-gray-50 ${
+                          selectedGroup === group.id ? 'bg-lens-purple/5 border-l-4 border-l-lens-purple' : ''
+                        }`}
+                        onClick={() => setSelectedGroup(group.id)}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-2 h-2 rounded-full ${group.enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
+                          <span className="font-medium">{group.name}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {group.filters.length} requirements
+                          </Badge>
+                        </div>
+                        {selectedGroup === group.id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteGroup(group.id);
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
                 
                 {isCreatingGroup ? (
@@ -268,14 +641,14 @@ const Filters: React.FC = () => {
                       onClick={() => setIsCreatingGroup(true)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Add Filter Group
+                      Add Requirement Group
                     </Button>
                   </div>
                 )}
               </CardContent>
             </Card>
             
-            {/* Filter Content */}
+            {/* Requirement Content */}
             <div className="lg:col-span-3 space-y-6">
               {currentGroup ? (
                 <>
@@ -284,44 +657,68 @@ const Filters: React.FC = () => {
                       <div>
                         <CardTitle className="text-xl">{currentGroup.name}</CardTitle>
                         <CardDescription>
-                          These filters will be applied to all CVs processed for this position
+                          These requirements will be applied to all resumes processed for this position
                         </CardDescription>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Switch
                           checked={currentGroup.enabled}
-                          onCheckedChange={() => handleToggleFilterGroup(currentGroup.id)}
+                          onCheckedChange={() => handleToggleRequirementGroup(currentGroup.id)}
                         />
-                        <Label htmlFor="filter-active">{currentGroup.enabled ? 'Active' : 'Inactive'}</Label>
+                        <Label htmlFor="requirement-active">{currentGroup.enabled ? 'Active' : 'Inactive'}</Label>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex items-center space-x-2 mb-6">
-                        <div className="grid grid-cols-3 gap-2 flex-1">
-                          <select 
-                            className="border rounded-md px-3 py-2 text-sm"
-                            value={newFilterType}
-                            onChange={(e) => setNewFilterType(e.target.value as Filter['type'])}
+                      <div className="flex flex-col space-y-4 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          <Select 
+                            value={newRequirementType}
+                            onValueChange={(value) => setNewRequirementType(value as Requirement['type'])}
                           >
-                            <option value="skill">Skill</option>
-                            <option value="experience">Experience</option>
-                            <option value="education">Education</option>
-                            <option value="keyword">Keyword</option>
-                            <option value="location">Location</option>
-                          </select>
-                          <Input 
-                            placeholder="Filter value" 
-                            className="col-span-2"
-                            value={newFilterValue}
-                            onChange={(e) => setNewFilterValue(e.target.value)}
-                          />
+                            <SelectTrigger>
+                              <SelectValue placeholder="Requirement type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="skill">Skill</SelectItem>
+                              <SelectItem value="experience">Experience</SelectItem>
+                              <SelectItem value="education">Education</SelectItem>
+                              <SelectItem value="keyword">Keyword</SelectItem>
+                              <SelectItem value="location">Location</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <div className="md:col-span-2">
+                            <Input 
+                              placeholder="Requirement value" 
+                              value={newRequirementValue}
+                              onChange={(e) => setNewRequirementValue(e.target.value)}
+                            />
+                          </div>
                         </div>
+                        
+                        {newRequirementType === 'skill' && (
+                          <div>
+                            <Label className="text-sm text-gray-500 mb-2 block">Common Skills</Label>
+                            <div className="flex flex-wrap gap-1">
+                              {commonSkills.map((skill) => (
+                                <Badge 
+                                  key={skill} 
+                                  variant="outline" 
+                                  className="cursor-pointer hover:bg-lens-purple/10"
+                                  onClick={() => handleSelectSkill(skill)}
+                                >
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
                         <Button
-                          className="bg-lens-purple hover:bg-lens-purple/90"
-                          onClick={handleAddFilter}
+                          className="bg-lens-purple hover:bg-lens-purple/90 w-full md:w-auto"
+                          onClick={handleAddRequirement}
                         >
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Filter
+                          Add Requirement
                         </Button>
                       </div>
                       
@@ -331,8 +728,8 @@ const Filters: React.FC = () => {
                         {currentGroup.filters.length === 0 ? (
                           <div className="text-center py-8 text-gray-500">
                             <Filter className="h-12 w-12 mx-auto opacity-20 mb-2" />
-                            <p>No filters added yet</p>
-                            <p className="text-sm">Start by adding filters above</p>
+                            <p>No requirements added yet</p>
+                            <p className="text-sm">Start by adding requirements above</p>
                           </div>
                         ) : (
                           <>
@@ -344,27 +741,27 @@ const Filters: React.FC = () => {
                               <div className="col-span-1"></div>
                             </div>
                             
-                            {currentGroup.filters.map(filter => (
-                              <div key={filter.id} className="grid grid-cols-12 gap-4 items-center py-2 border-b">
+                            {currentGroup.filters.map(requirement => (
+                              <div key={requirement.id} className="grid grid-cols-12 gap-4 items-center py-2 border-b">
                                 <div className="col-span-3">
-                                  <Badge className="capitalize">{filter.type}</Badge>
+                                  <Badge className="capitalize">{requirement.type}</Badge>
                                 </div>
-                                <div className="col-span-4 font-medium">{filter.value}</div>
+                                <div className="col-span-4 font-medium">{requirement.value}</div>
                                 <div className="col-span-2">
                                   <Slider
-                                    value={[filter.weight]}
+                                    value={[requirement.weight]}
                                     min={0}
                                     max={100}
                                     step={5}
                                     className="w-full"
-                                    onValueChange={(value) => handleUpdateFilter(filter.id, { weight: value[0] })}
+                                    onValueChange={(value) => handleUpdateRequirement(requirement.id, { weight: value[0] })}
                                   />
-                                  <div className="text-xs text-center mt-1">{filter.weight}%</div>
+                                  <div className="text-xs text-center mt-1">{requirement.weight}%</div>
                                 </div>
                                 <div className="col-span-2 flex justify-center">
                                   <Checkbox 
-                                    checked={filter.required} 
-                                    onCheckedChange={(checked) => handleUpdateFilter(filter.id, { required: !!checked })}
+                                    checked={requirement.required} 
+                                    onCheckedChange={(checked) => handleUpdateRequirement(requirement.id, { required: !!checked })}
                                   />
                                 </div>
                                 <div className="col-span-1 flex justify-center">
@@ -372,7 +769,7 @@ const Filters: React.FC = () => {
                                     variant="ghost"
                                     size="icon"
                                     className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                    onClick={() => handleRemoveFilter(filter.id)}
+                                    onClick={() => handleRemoveRequirement(requirement.id)}
                                   >
                                     <X className="h-4 w-4" />
                                   </Button>
@@ -383,78 +780,35 @@ const Filters: React.FC = () => {
                         )}
                       </div>
                     </CardContent>
+                    <CardFooter>
+                      <Button className="bg-lens-purple hover:bg-lens-purple/90 gap-2">
+                        <Save className="h-4 w-4" />
+                        Save Configuration
+                      </Button>
+                    </CardFooter>
                   </Card>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Filter Settings</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <Label>Minimum Match Score</Label>
-                            <div className="flex items-center space-x-4">
-                              <Slider
-                                defaultValue={[70]}
-                                min={0}
-                                max={100}
-                                step={5}
-                                className="flex-1"
-                              />
-                              <span className="font-medium w-8 text-center">70%</span>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label>Auto-bin Candidates</Label>
-                            <div className="space-y-1">
-                              <div className="flex items-center space-x-2">
-                                <Switch defaultChecked />
-                                <span>80%+ to Bucket A</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Switch defaultChecked />
-                                <span>60-79% to Bucket B</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Switch defaultChecked />
-                                <span>Below 60% to Bucket C</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <div className="flex justify-end">
-                    <Button className="bg-lens-purple hover:bg-lens-purple/90 gap-2">
-                      <Save className="h-4 w-4" />
-                      Save Configuration
-                    </Button>
-                  </div>
                 </>
               ) : (
                 <Card>
                   <CardContent className="p-8 text-center">
                     <Filter className="h-16 w-16 mx-auto opacity-20 mb-4" />
-                    <h3 className="text-xl font-medium mb-2">No Filter Group Selected</h3>
+                    <h3 className="text-xl font-medium mb-2">No Requirement Group Selected</h3>
                     <p className="text-gray-600 mb-4">
-                      Select an existing filter group or create a new one to get started
+                      Select an existing requirement group or create a new one to get started
                     </p>
                     <Button
                       className="bg-lens-purple hover:bg-lens-purple/90 mx-auto"
                       onClick={() => setIsCreatingGroup(true)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Create New Filter Group
+                      Create New Requirement Group
                     </Button>
                   </CardContent>
                 </Card>
               )}
             </div>
           </div>
+          )}
         </main>
       </div>
     </div>
