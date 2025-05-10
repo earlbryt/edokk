@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Hero: React.FC = () => {
   return (
@@ -53,20 +54,40 @@ const Hero: React.FC = () => {
           
           {/* Right side - Dashboard preview */}
           <div className="relative lg:ml-auto">
-            <div className="relative z-10 rounded-xl shadow-lg overflow-hidden">
+            <motion.div 
+              className="relative z-10 rounded-xl shadow-lg overflow-hidden"
+              initial={{ y: 40, opacity: 0, scale: 0.9 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{
+                type: "spring",
+                stiffness: 250,
+                damping: 25,
+                delay: 0.3
+              }}
+            >
               <img 
                 src="/assets/3d-dashboard.png" 
                 alt="Lens Dashboard" 
                 className="w-full h-auto"
               />
-            </div>
+            </motion.div>
             
             {/* Floating elements */}
             <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-lens-purple/20 rounded-lg rotate-12 z-0"></div>
             <div className="absolute -top-6 -right-6 w-24 h-24 bg-lens-blue/20 rounded-lg -rotate-12 z-0"></div>
             
             {/* Floating card */}
-            <div className="absolute -bottom-10 -right-10 bg-white p-4 rounded-lg shadow-lg border border-gray-100 z-20 hidden md:block">
+            <motion.div 
+              className="absolute -bottom-10 -right-10 bg-white p-4 rounded-lg shadow-lg border border-gray-100 z-20 hidden md:block"
+              initial={{ scale: 0, x: 50, opacity: 0 }}
+              animate={{ scale: 1, x: 0, opacity: 1 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+                delay: 0.8
+              }}
+            >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
                   <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -78,7 +99,7 @@ const Hero: React.FC = () => {
                   <p className="text-xs text-gray-500">12 candidates matched</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

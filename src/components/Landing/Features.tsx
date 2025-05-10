@@ -7,6 +7,7 @@ import {
   Users,
   Zap
 } from 'lucide-react';
+import { motion } from "framer-motion";
 
 const Features: React.FC = () => {
   const features = [
@@ -45,14 +46,22 @@ const Features: React.FC = () => {
         {/* Feature grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
           {features.map((feature, index) => (
-            <div 
+            <motion.div 
               key={index} 
               className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-300 hover:translate-y-[-4px] transform transition-transform"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ 
+                delay: 0.1 * index,
+                duration: 0.5,
+                ease: "easeOut"
+              }}
+              viewport={{ once: true, margin: "-50px" }}
             >
               <div className="mb-5">{feature.icon}</div>
               <h3 className="font-display text-xl font-semibold mb-3 text-gray-900">{feature.title}</h3>
               <p className="text-gray-600">{feature.description}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
         
@@ -60,17 +69,40 @@ const Features: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Dashboard image */}
           <div className="relative">
-            <div className="relative z-10 rounded-xl shadow-md overflow-hidden">
+            <motion.div 
+              className="relative z-10 rounded-xl shadow-md overflow-hidden"
+              initial={{ scale: 0.8, opacity: 0, rotateY: -15 }}
+              whileInView={{ scale: 1, opacity: 1, rotateY: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 15,
+                delay: 0.1
+              }}
+              viewport={{ once: true }}
+            >
               <img 
                 src="/assets/data-analyst-avatar-icon-poster-2.png" 
                 alt="Data Analyst" 
                 className="w-full h-auto"
               />
-            </div>
+            </motion.div>
             
             {/* Decorative elements */}
-            <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-lens-purple/10 rounded-full z-0"></div>
-            <div className="absolute -top-4 -left-4 w-32 h-32 bg-lens-blue/10 rounded-full z-0"></div>
+            <motion.div 
+              className="absolute -bottom-4 -right-4 w-32 h-32 bg-lens-purple/10 rounded-full z-0"
+              initial={{ scale: 0, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              viewport={{ once: true }}
+            ></motion.div>
+            <motion.div 
+              className="absolute -top-4 -left-4 w-32 h-32 bg-lens-blue/10 rounded-full z-0"
+              initial={{ scale: 0, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+              viewport={{ once: true }}
+            ></motion.div>
           </div>
           
           {/* Right side - Feature list */}

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { motion } from "framer-motion";
 
 const Signup: React.FC = () => {
   const [name, setName] = useState('');
@@ -86,7 +87,7 @@ const Signup: React.FC = () => {
                 Back to Home
               </Link>
             </div>
-            <div className="text-center pt-12">
+            <div className="text-center pt-20">
               <Link to="/" className="inline-block">
                 <div className="flex items-center justify-center">
                   <span className="font-display font-semibold text-2xl">Lens</span>
@@ -209,13 +210,30 @@ const Signup: React.FC = () => {
       {/* Right side with image */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-lens-purple/5 items-center justify-center overflow-hidden">
         <div className="relative z-10 p-12 text-center">
-          <img 
-            src="/assets/content-management-icon-poster-2.png" 
-            alt="Content Management" 
-            className="mx-auto w-3/4 h-auto drop-shadow-2xl"
-          />
-          <h2 className="mt-8 text-3xl font-bold text-lens-purple">Streamline Recruitment</h2>
-          <p className="mt-2 text-gray-600">Find, evaluate, and hire top talent efficiently</p>
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0, rotate: -5 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 20,
+              delay: 0.2
+            }}
+          >
+            <img 
+              src="/assets/content-management-icon-poster-2.png" 
+              alt="Content Management" 
+              className="mx-auto w-3/4 h-auto drop-shadow-2xl"
+            />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <h2 className="mt-8 text-3xl font-bold text-lens-purple">Streamline Recruitment</h2>
+            <p className="mt-2 text-gray-600">Find, evaluate, and hire top talent efficiently</p>
+          </motion.div>
         </div>
         <div className="absolute inset-0 bg-gradient-to-tl from-lens-purple/20 to-transparent opacity-70 z-0"></div>
       </div>

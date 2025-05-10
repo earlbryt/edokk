@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { motion } from "framer-motion";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -50,13 +51,30 @@ const Login: React.FC = () => {
       {/* Left side with image */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-lens-purple/5 items-center justify-center overflow-hidden">
         <div className="relative z-10 p-12 text-center">
-          <img 
-            src="/assets/login.png" 
-            alt="Lens" 
-            className="mx-auto w-3/4 h-auto drop-shadow-2xl"
-          />
-          <h2 className="mt-8 text-3xl font-bold text-lens-purple">Welcome Back</h2>
-          <p className="mt-2 text-gray-600">Find the perfect candidates with Lens</p>
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 20,
+              delay: 0.2
+            }}
+          >
+            <img 
+              src="/assets/login.png" 
+              alt="Lens" 
+              className="mx-auto w-3/4 h-auto drop-shadow-2xl"
+            />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <h2 className="mt-8 text-3xl font-bold text-lens-purple">Welcome Back</h2>
+            <p className="mt-2 text-gray-600">Find the perfect candidates with Lens</p>
+          </motion.div>
         </div>
         <div className="absolute inset-0 bg-gradient-to-br from-lens-purple/20 to-transparent opacity-70 z-0"></div>
       </div>
@@ -87,7 +105,7 @@ const Login: React.FC = () => {
                 Back to Home
               </Link>
             </div>
-            <div className="text-center pt-12">
+            <div className="text-center pt-20">
               <Link to="/" className="inline-block">
                 <div className="flex items-center justify-center">
                   <span className="font-display font-semibold text-2xl">Lens</span>
