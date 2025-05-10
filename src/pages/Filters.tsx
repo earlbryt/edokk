@@ -216,9 +216,9 @@ const Filters: React.FC = () => {
       // Update local state
       setRequirementGroups(prev => prev.map(group => 
         group.id === groupId ? { ...group, enabled: newEnabled } : group
-      ));
-      
-      toast({
+    ));
+    
+    toast({
         title: "Requirement group updated",
         description: `Requirement group ${group.name} ${newEnabled ? 'enabled' : 'disabled'}`
       });
@@ -297,20 +297,20 @@ const Filters: React.FC = () => {
         id: requirementId,
         type: newRequirementType,
         value: newRequirementValue,
-        weight: 50,
-        required: false
-      };
-      
+      weight: 50,
+      required: false
+    };
+    
       // Update local state
       setRequirementGroups(prev => prev.map(group => 
-        group.id === selectedGroup 
+      group.id === selectedGroup 
           ? { ...group, filters: [...group.filters, newRequirement] } 
-          : group
-      ));
-      
+        : group
+    ));
+    
       setNewRequirementValue('');
-      
-      toast({
+    
+    toast({
         title: "Requirement added",
         description: `Added ${newRequirementType} requirement: ${newRequirementValue}`
       });
@@ -344,15 +344,15 @@ const Filters: React.FC = () => {
       
       // Update local state
       setRequirementGroups(prev => prev.map(group => 
-        group.id === selectedGroup 
-          ? { 
-              ...group, 
+      group.id === selectedGroup 
+        ? { 
+            ...group, 
               filters: group.filters.filter(requirement => requirement.id !== requirementId) 
-            } 
-          : group
-      ));
-      
-      toast({
+          } 
+        : group
+    ));
+    
+    toast({
         title: "Requirement removed",
         description: `Removed ${requirementToRemove.type} requirement: ${requirementToRemove.value}`
       });
@@ -383,17 +383,17 @@ const Filters: React.FC = () => {
       
       // Update local state
       setRequirementGroups(prev => prev.map(group => 
-        group.id === selectedGroup 
-          ? { 
-              ...group, 
+      group.id === selectedGroup 
+        ? { 
+            ...group, 
               filters: group.filters.map(requirement => 
                 requirement.id === requirementId 
                   ? { ...requirement, ...updates } 
                   : requirement
-              ) 
-            } 
-          : group
-      ));
+            ) 
+          } 
+        : group
+    ));
     } catch (error) {
       console.error('Error updating requirement:', error);
       toast({
@@ -426,18 +426,18 @@ const Filters: React.FC = () => {
       // Update local state
       const newGroup: RequirementGroup = {
         id: groupId,
-        name: newGroupName,
-        enabled: true,
+      name: newGroupName,
+      enabled: true,
         projectId: selectedProject,
-        filters: []
-      };
-      
+      filters: []
+    };
+    
       setRequirementGroups(prev => [newGroup, ...prev]);
       setSelectedGroup(groupId);
-      setNewGroupName('');
-      setIsCreatingGroup(false);
-      
-      toast({
+    setNewGroupName('');
+    setIsCreatingGroup(false);
+    
+    toast({
         title: "Requirement group created",
         description: `Created new requirement group: ${newGroupName}`
       });
@@ -466,12 +466,12 @@ const Filters: React.FC = () => {
       
       // Update local state
       setRequirementGroups(prev => prev.filter(group => group.id !== groupId));
-      
-      if (selectedGroup === groupId) {
+    
+    if (selectedGroup === groupId) {
         setSelectedGroup(requirementGroups.length > 1 ? requirementGroups.filter(g => g.id !== groupId)[0]?.id : null);
-      }
-      
-      toast({
+    }
+    
+    toast({
         title: "Requirement group deleted",
         description: `Deleted requirement group: ${group.name}`
       });
@@ -571,34 +571,34 @@ const Filters: React.FC = () => {
                     </div>
                   ) : (
                     requirementGroups.map(group => (
-                      <div
-                        key={group.id}
-                        className={`flex items-center justify-between p-3 border-b cursor-pointer hover:bg-gray-50 ${
-                          selectedGroup === group.id ? 'bg-lens-purple/5 border-l-4 border-l-lens-purple' : ''
-                        }`}
-                        onClick={() => setSelectedGroup(group.id)}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-2 h-2 rounded-full ${group.enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
-                          <span className="font-medium">{group.name}</span>
-                          <Badge variant="outline" className="text-xs">
+                    <div
+                      key={group.id}
+                      className={`flex items-center justify-between p-3 border-b cursor-pointer hover:bg-gray-50 ${
+                        selectedGroup === group.id ? 'bg-lens-purple/5 border-l-4 border-l-lens-purple' : ''
+                      }`}
+                      onClick={() => setSelectedGroup(group.id)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-2 h-2 rounded-full ${group.enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
+                        <span className="font-medium">{group.name}</span>
+                        <Badge variant="outline" className="text-xs">
                             {group.filters.length} requirements
-                          </Badge>
-                        </div>
-                        {selectedGroup === group.id && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteGroup(group.id);
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
+                        </Badge>
                       </div>
+                      {selectedGroup === group.id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteGroup(group.id);
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                     ))
                   )}
                 </div>
@@ -687,7 +687,7 @@ const Filters: React.FC = () => {
                             </SelectContent>
                           </Select>
                           <div className="md:col-span-2">
-                            <Input 
+                          <Input 
                               placeholder="Requirement value" 
                               value={newRequirementValue}
                               onChange={(e) => setNewRequirementValue(e.target.value)}
@@ -781,10 +781,10 @@ const Filters: React.FC = () => {
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button className="bg-lens-purple hover:bg-lens-purple/90 gap-2">
-                        <Save className="h-4 w-4" />
-                        Save Configuration
-                      </Button>
+                    <Button className="bg-lens-purple hover:bg-lens-purple/90 gap-2">
+                      <Save className="h-4 w-4" />
+                      Save Configuration
+                    </Button>
                     </CardFooter>
                   </Card>
                 </>

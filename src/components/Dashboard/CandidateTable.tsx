@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Table, 
@@ -9,7 +8,7 @@ import {
   TableCell 
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Eye, ArrowUpRight } from 'lucide-react';
+import { Eye, ArrowUpRight, CheckCircle, Clock, AlertTriangle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Candidate = {
@@ -35,44 +34,63 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
 }) => {
   // Function to render badge based on candidate status
   const renderStatusBadge = (status: string) => {
-    let bgColor = '';
+    let borderColor = '';
     let textColor = '';
     let label = '';
+    let icon = null;
     
     switch(status) {
       case 'bucket-a':
-        bgColor = 'bg-green-100';
-        textColor = 'text-green-800';
-        label = 'Bucket A';
+        borderColor = 'border-green-200';
+        textColor = 'text-green-700';
+        label = 'A';
+        icon = <CheckCircle className="h-3 w-3 mr-1 text-green-600" />;
         break;
       case 'bucket-b':
-        bgColor = 'bg-blue-100';
-        textColor = 'text-blue-800';
-        label = 'Bucket B';
+        borderColor = 'border-blue-200';
+        textColor = 'text-blue-700';
+        label = 'B';
+        icon = <Clock className="h-3 w-3 mr-1 text-blue-600" />;
         break;
       case 'bucket-c':
-        bgColor = 'bg-orange-100';
-        textColor = 'text-orange-800';
-        label = 'Bucket C';
+        borderColor = 'border-orange-200';
+        textColor = 'text-orange-700';
+        label = 'C';
+        icon = <AlertTriangle className="h-3 w-3 mr-1 text-orange-600" />;
+        break;
+      case 'bucket-d':
+        borderColor = 'border-red-200';
+        textColor = 'text-red-700';
+        label = 'D';
+        icon = <XCircle className="h-3 w-3 mr-1 text-red-600" />;
         break;
       default:
-        bgColor = 'bg-gray-100';
-        textColor = 'text-gray-800';
+        borderColor = 'border-gray-200';
+        textColor = 'text-gray-700';
         label = 'Unknown';
     }
     
     return (
-      <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium inline-flex items-center', bgColor, textColor)}>
-        {label}
+      <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium inline-flex items-center border bg-white', borderColor, textColor)}>
+        {icon}{label}
       </span>
     );
   };
   
-  // Function to calculate score color
-  const getScoreColor = (score: number) => {
-    if (score >= 85) return 'text-green-600';
-    if (score >= 70) return 'text-blue-600';
-    return 'text-orange-600';
+  // Function to get bucket name from status
+  const getBucketName = (status: string) => {
+    switch(status) {
+      case 'bucket-a':
+        return 'Excellent Match';
+      case 'bucket-b':
+        return 'Good Match';
+      case 'bucket-c':
+        return 'Potential Match';
+      case 'bucket-d':
+        return 'Not Suitable';
+      default:
+        return 'Unknown';
+    }
   };
 
   return (
@@ -88,8 +106,8 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
           <TableHeader>
             <TableRow>
               <TableHead>Candidate</TableHead>
-              <TableHead>Match Score</TableHead>
               <TableHead>Bucket</TableHead>
+              <TableHead>Match Quality</TableHead>
               <TableHead>Experience</TableHead>
               <TableHead>Education</TableHead>
               <TableHead>Skills</TableHead>
@@ -114,12 +132,10 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <span className={cn("font-semibold", getScoreColor(candidate.score))}>
-                    {candidate.score}%
-                  </span>
-                </TableCell>
                 <TableCell>{renderStatusBadge(candidate.status)}</TableCell>
+                <TableCell>
+                  <span className="text-sm">{getBucketName(candidate.status)}</span>
+                </TableCell>
                 <TableCell>{candidate.experience}</TableCell>
                 <TableCell>{candidate.education}</TableCell>
                 <TableCell>

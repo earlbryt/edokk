@@ -21,6 +21,13 @@ type SidebarItemProps = {
   onClick?: () => void;
 };
 
+type MenuItem = {
+  icon: React.ReactNode;
+  label: string;
+  to: string;
+  notificationCount?: number;
+};
+
 const SidebarItem: React.FC<SidebarItemProps> = ({ 
   icon, 
   label, 
@@ -86,7 +93,7 @@ const Sidebar: React.FC = () => {
       .toUpperCase();
   };
   
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     { 
       icon: <LayoutDashboard size={22} />, 
       label: 'Dashboard', 
@@ -95,8 +102,7 @@ const Sidebar: React.FC = () => {
     { 
       icon: <Users size={22} />, 
       label: 'Candidates', 
-      to: '/dashboard/candidates',
-      notificationCount: 15
+      to: '/dashboard/candidates'
     },
     { 
       icon: <FileText size={22} />, 
@@ -110,7 +116,7 @@ const Sidebar: React.FC = () => {
     },
   ];
   
-  const bottomMenuItems = [];
+  const bottomMenuItems: MenuItem[] = [];
 
   return (
     <div className="w-64 h-screen flex flex-col bg-white border-r border-gray-200 fixed left-0 top-0">
