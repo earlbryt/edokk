@@ -403,7 +403,7 @@ const CVParser: React.FC = () => {
           : file
       ));
       
-      // Process the file in the browser instead of calling the edge function
+      // Process the document directly in the browser
       if (file.type === 'application/pdf' || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
         // Process the document in the browser
         try {
