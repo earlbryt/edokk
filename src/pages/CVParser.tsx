@@ -17,6 +17,7 @@ import { processDocument } from '@/lib/realDocumentProcessor';
 import { runMigrations } from '@/lib/migrations';
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
+import { CVFile } from '@/types/CVFile';
 
 interface Project {
   id: string;
@@ -112,7 +113,14 @@ const CVParser: React.FC = () => {
             storagePath: file.storage_path,
             storageUrl: file.storage_url,
             error: file.error,
-            parsed: file.parsed_data
+            parsed: file.parsed_data as {
+              name?: string;
+              email?: string;
+              phone?: string;
+              skills: string[];
+              experience: string[];
+              education: string[];
+            }
           })));
         }
       } catch (error) {
@@ -475,9 +483,16 @@ const CVParser: React.FC = () => {
         file.id === fileId 
           ? { 
               ...file, 
-              status: updatedFile.status,
+              status: updatedFile.status as 'uploading' | 'processing' | 'completed' | 'failed',
               progress: updatedFile.progress || 100,
-              parsed: updatedFile.parsed_data,
+              parsed: updatedFile.parsed_data as {
+                name?: string;
+                email?: string;
+                phone?: string;
+                skills: string[];
+                experience: string[];
+                education: string[];
+              },
               error: updatedFile.error
             } 
           : file
@@ -491,7 +506,7 @@ const CVParser: React.FC = () => {
         file.id === fileId 
           ? { 
               ...file, 
-              status: 'failed', 
+              status: 'failed' as const, 
               error: error.message || 'Failed to process document' 
             } 
           : file

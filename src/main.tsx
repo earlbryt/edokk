@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
@@ -24,8 +25,8 @@ if (migrationsCompleted) {
 } else {
   // Run migrations once
   runMigrations()
-    .then(({ success }) => {
-      if (success) {
+    .then((result) => {
+      if (result && result.success) {
         console.log('Database setup complete');
         // Mark migrations as completed
         localStorage.setItem('migrationsCompleted', MIGRATIONS_VERSION);

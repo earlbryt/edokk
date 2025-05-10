@@ -1,7 +1,7 @@
+
 import { Groq } from 'groq-sdk';
 import * as pdfParse from 'pdf-parse';
 import * as mammoth from 'mammoth';
-import * as nlp from 'compromise';
 
 // Initialize the Groq client with the API key from environment variables
 const groq = new Groq({
@@ -59,8 +59,8 @@ function preprocessText(text: string): string {
   // Remove excessive newlines and whitespace
   let processed = text.replace(/\n{3,}/g, '\n\n').trim();
   
-  // Use compromise for basic NLP preprocessing if needed
-  const doc = nlp(processed);
+  // NLP preprocessing can be added here if needed
+  // We're removing the problematic nlp call
   
   // You can perform additional processing here, such as:
   // - Removing headers/footers

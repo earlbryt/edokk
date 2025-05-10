@@ -27,7 +27,7 @@ export async function processDocument(fileId: string): Promise<{ success: boolea
 }
 
 /**
- * Updates the CVParser component to use the new document processor
+ * Updates the file status in the database
  */
 export function updateFileStatus(fileId: string, status: 'processing' | 'completed' | 'failed', progress?: number, error?: string) {
   return supabase

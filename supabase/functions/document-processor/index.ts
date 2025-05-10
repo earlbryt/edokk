@@ -1,9 +1,9 @@
 
 // document-processor/index.ts
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.6';
-import * as pdfjsLib from 'https://esm.sh/pdfjs-dist@3.4.120/es2022/build/pdf.js';
+import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/build/pdf.mjs';
 
-// Define the CORS headers - make sure they're properly defined and applied
+// Define the CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -90,15 +90,14 @@ Deno.serve(async (req) => {
     try {
       const arrayBuffer = await fileBuffer.arrayBuffer();
       
-      // Set global worker source - this is necessary to make PDF.js work in Deno
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+      // Configure PDF.js for Deno environment
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/build/pdf.worker.mjs';
       
-      // Configure the PDF loading task with options that work in Deno environment
-      const loadingTask = pdfjsLib.getDocument({ 
+      // Load the PDF document
+      const loadingTask = pdfjsLib.getDocument({
         data: arrayBuffer,
         useWorkerFetch: false,
         isEvalSupported: false,
-        useSystemFonts: true,
         standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/standard_fonts/'
       });
       
@@ -112,7 +111,7 @@ Deno.serve(async (req) => {
         const page = await pdfDocument.getPage(i);
         const content = await page.getTextContent();
         const pageText = content.items
-          .map((item: any) => item.str)
+          .map((item) => item.str)
           .join(' ');
         
         textContents.push(pageText);
@@ -149,7 +148,7 @@ Deno.serve(async (req) => {
         }
       );
       
-    } catch (extractionError: any) {
+    } catch (extractionError) {
       console.error(`PDF extraction error: ${extractionError.message}`);
       
       // Update the database with the error
@@ -165,7 +164,7 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to extract text: ${extractionError.message}`);
     }
 
-  } catch (error: any) {
+  } catch (error) {
     console.error(`Error processing document: ${error.message}`);
     
     return new Response(
