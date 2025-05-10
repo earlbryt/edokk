@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
@@ -60,36 +59,31 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <Link to="/" className="inline-block">
-            <div className="flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/0582cd63-9b75-4b39-b466-cff95f190456.png" 
-                alt="Lens Logo" 
-                className="h-16 w-auto"
-              />
-            </div>
-          </Link>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create a new account</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
-            <Link to="/login" className="font-medium text-lens-purple hover:text-lens-purple-light">
-              sign in to an existing account
+    <div className="min-h-screen flex bg-white">
+      {/* Left side with signup form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div className="max-w-md w-full">
+          <div className="text-center mb-8">
+            <Link to="/" className="inline-block">
+              <div className="flex items-center justify-center">
+                <img 
+                  src="/lovable-uploads/0582cd63-9b75-4b39-b466-cff95f190456.png" 
+                  alt="Lens Logo" 
+                  className="h-12 w-auto"
+                />
+                <span className="font-display font-semibold text-xl ml-2">Lens</span>
+              </div>
             </Link>
-          </p>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign Up</CardTitle>
-            <CardDescription>Enter your details to create an account</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSignup}>
-            <CardContent className="space-y-4">
+            <h2 className="mt-6 text-3xl font-bold text-gray-900">Create your account</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Start finding the perfect candidates today
+            </p>
+          </div>
+          
+          <form onSubmit={handleSignup} className="space-y-6">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name" className="text-gray-700 font-medium">Full Name</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
@@ -98,14 +92,14 @@ const Signup: React.FC = () => {
                     placeholder="John Doe"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 border-gray-300 focus:border-lens-purple focus:ring-lens-purple"
                     autoComplete="name"
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
@@ -114,14 +108,14 @@ const Signup: React.FC = () => {
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 border-gray-300 focus:border-lens-purple focus:ring-lens-purple"
                     autoComplete="email"
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
@@ -129,7 +123,7 @@ const Signup: React.FC = () => {
                     type={showPassword ? "text" : "password"}
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 border-gray-300 focus:border-lens-purple focus:ring-lens-purple"
                     autoComplete="new-password"
                   />
                   <button 
@@ -147,7 +141,7 @@ const Signup: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Label htmlFor="confirm-password" className="text-gray-700 font-medium">Confirm Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
@@ -155,36 +149,56 @@ const Signup: React.FC = () => {
                     type={showPassword ? "text" : "password"}
                     value={confirmPassword} 
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 border-gray-300 focus:border-lens-purple focus:ring-lens-purple"
                     autoComplete="new-password"
                   />
                 </div>
               </div>
               
-              <div className="text-sm">
-                <p className="text-gray-500">
-                  By signing up, you agree to our{' '}
-                  <Link to="/terms" className="font-medium text-lens-purple hover:text-lens-purple-light">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="font-medium text-lens-purple hover:text-lens-purple-light">
-                    Privacy Policy
-                  </Link>.
-                </p>
+              <div className="text-xs text-gray-500">
+                By signing up, you agree to our{' '}
+                <Link to="/terms" className="font-medium text-lens-purple hover:text-lens-purple-light">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link to="/privacy" className="font-medium text-lens-purple hover:text-lens-purple-light">
+                  Privacy Policy
+                </Link>.
               </div>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                type="submit" 
-                className="w-full bg-lens-purple hover:bg-lens-purple-light"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Creating account...' : 'Create account'}
-              </Button>
-            </CardFooter>
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full bg-lens-purple hover:bg-lens-purple-light text-white font-medium py-2.5"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Creating account...' : 'Create account'}
+            </Button>
           </form>
-        </Card>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account?{' '}
+              <Link to="/login" className="font-medium text-lens-purple hover:text-lens-purple-light">
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right side with image */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-lens-purple/5 items-center justify-center overflow-hidden">
+        <div className="relative z-10 p-12 text-center">
+          <img 
+            src="/content-management-icon-poster-2.png" 
+            alt="Content Management" 
+            className="mx-auto w-3/4 h-auto drop-shadow-2xl"
+          />
+          <h2 className="mt-8 text-3xl font-bold text-lens-purple">Streamline Recruitment</h2>
+          <p className="mt-2 text-gray-600">Find, evaluate, and hire top talent efficiently</p>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-tl from-lens-purple/20 to-transparent opacity-70 z-0"></div>
       </div>
     </div>
   );
