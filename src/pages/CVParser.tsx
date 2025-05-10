@@ -18,6 +18,7 @@ import { runMigrations } from '@/lib/migrations';
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
 import { CVFile } from '@/types/CVFile';
+import { addToProcessingQueue } from '@/lib/documentProcessor';
 
 interface Project {
   id: string;
@@ -403,75 +404,9 @@ const CVParser: React.FC = () => {
           : file
       ));
       
-      // Process the document directly in the browser
-      if (file.type === 'application/pdf' || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-        // Process the document in the browser
-        try {
-          await processDocumentInBrowser(fileId, file);
-          
-          // The browser function updates the database, so we need to refresh our data
-          const { data: updatedFile, error: fetchError } = await supabase
-            .from('cv_files')
-            .select('*')
-            .eq('id', fileId)
-            .single();
-          
-          if (fetchError) {
-            throw fetchError;
-          }
-          
-          // Update our local state with the processed data
-          setFiles(prev => prev.map(file => 
-            file.id === fileId 
-              ? { 
-                  ...file, 
-                  status: updatedFile.status as 'uploading' | 'processing' | 'completed' | 'failed',
-                  progress: updatedFile.progress || 100,
-                  parsed: updatedFile.parsed_data as {
-                    name?: string;
-                    email?: string;
-                    phone?: string;
-                    skills: string[];
-                    experience: string[];
-                    education: string[];
-                  },
-                  error: updatedFile.error
-                } 
-              : file
-          ));
-        } catch (error) {
-          console.error('Error in browser document processing:', error);
-          setFiles(prev => prev.map(file => 
-            file.id === fileId 
-              ? { 
-                  ...file, 
-                  status: 'failed', 
-                  error: error.message || 'Failed to process document' 
-                } 
-              : file
-          ));
-        }
-      } else {
-        // Unsupported file type
-        setFiles(prev => prev.map(file => 
-          file.id === fileId 
-            ? { 
-                ...file, 
-                status: 'failed', 
-                error: 'Unsupported file type. Please upload PDF, DOC, or DOCX files.' 
-              } 
-            : file
-        ));
-        
-        // Update the error status in the database
-        supabase
-          .from('cv_files')
-          .update({
-            status: 'failed',
-            error: 'Unsupported file type. Please upload PDF, DOC, or DOCX files.'
-          })
-          .eq('id', fileId);
-      }
+      // Add the file to the processing queue instead of processing in browser
+      addToProcessingQueue(fileId);
+      
     } catch (error: any) {
       console.error('Error uploading file:', error);
       
