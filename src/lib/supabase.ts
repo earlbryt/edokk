@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 // Use the actual Supabase URL and anon key
@@ -7,9 +8,9 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 // Create a single supabase client for interacting with your database
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Add custom query method for SQL execution
-supabase.query = async (sql: string, params?: any[]) => {
-  const rpcOptions = { count: 'exact' };
+// Custom query function using rpc
+export async function executeSQL(sql: string, params?: any[]) {
+  const rpcOptions = { count: 'exact' as const };
   
   // Apply SQL using PostgreSQL functions
   const { data, error, count } = await supabase.rpc(
@@ -19,7 +20,7 @@ supabase.query = async (sql: string, params?: any[]) => {
   );
   
   return { data, error, count };
-};
+}
 
 // The name of the storage bucket
 export const STORAGE_BUCKET = 'lens';
