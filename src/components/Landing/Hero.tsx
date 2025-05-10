@@ -55,7 +55,7 @@ const Hero: React.FC = () => {
           <div className="relative lg:ml-auto">
             <div className="relative z-10 rounded-xl shadow-lg overflow-hidden">
               <img 
-                src="/3d-dashboard.png" 
+                src="/assets/3d-dashboard.png" 
                 alt="Lens Dashboard" 
                 className="w-full h-auto"
               />

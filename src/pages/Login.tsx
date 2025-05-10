@@ -51,7 +51,7 @@ const Login: React.FC = () => {
       <div className="hidden lg:flex lg:w-1/2 relative bg-lens-purple/5 items-center justify-center overflow-hidden">
         <div className="relative z-10 p-12 text-center">
           <img 
-            src="/login.png" 
+            src="/assets/login.png" 
             alt="Lens" 
             className="mx-auto w-3/4 h-auto drop-shadow-2xl"
           />

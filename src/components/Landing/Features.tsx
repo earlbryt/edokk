@@ -62,7 +62,7 @@ const Features: React.FC = () => {
           <div className="relative">
             <div className="relative z-10 rounded-xl shadow-md overflow-hidden">
               <img 
-                src="/data-analyst-avatar-icon-poster-2.png" 
+                src="/assets/data-analyst-avatar-icon-poster-2.png" 
                 alt="Data Analyst" 
                 className="w-full h-auto"
               />
