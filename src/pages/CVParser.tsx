@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getStoragePath, getPublicURL, STORAGE_BUCKET } from '@/lib/supabase';
-import { processDocument } from '@/lib/realDocumentProcessor';
+import { processDocumentInBrowser } from '@/lib/browserDocumentProcessor';
 import { runMigrations } from '@/lib/migrations';
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
@@ -403,8 +403,75 @@ const CVParser: React.FC = () => {
           : file
       ));
       
-      // Process the file using our edge function
-      processUploadedFile(fileId);
+      // Process the file in the browser instead of calling the edge function
+      if (file.type === 'application/pdf' || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+        // Process the document in the browser
+        try {
+          await processDocumentInBrowser(fileId, file);
+          
+          // The browser function updates the database, so we need to refresh our data
+          const { data: updatedFile, error: fetchError } = await supabase
+            .from('cv_files')
+            .select('*')
+            .eq('id', fileId)
+            .single();
+          
+          if (fetchError) {
+            throw fetchError;
+          }
+          
+          // Update our local state with the processed data
+          setFiles(prev => prev.map(file => 
+            file.id === fileId 
+              ? { 
+                  ...file, 
+                  status: updatedFile.status as 'uploading' | 'processing' | 'completed' | 'failed',
+                  progress: updatedFile.progress || 100,
+                  parsed: updatedFile.parsed_data as {
+                    name?: string;
+                    email?: string;
+                    phone?: string;
+                    skills: string[];
+                    experience: string[];
+                    education: string[];
+                  },
+                  error: updatedFile.error
+                } 
+              : file
+          ));
+        } catch (error) {
+          console.error('Error in browser document processing:', error);
+          setFiles(prev => prev.map(file => 
+            file.id === fileId 
+              ? { 
+                  ...file, 
+                  status: 'failed', 
+                  error: error.message || 'Failed to process document' 
+                } 
+              : file
+          ));
+        }
+      } else {
+        // Unsupported file type
+        setFiles(prev => prev.map(file => 
+          file.id === fileId 
+            ? { 
+                ...file, 
+                status: 'failed', 
+                error: 'Unsupported file type. Please upload PDF, DOC, or DOCX files.' 
+              } 
+            : file
+        ));
+        
+        // Update the error status in the database
+        supabase
+          .from('cv_files')
+          .update({
+            status: 'failed',
+            error: 'Unsupported file type. Please upload PDF, DOC, or DOCX files.'
+          })
+          .eq('id', fileId);
+      }
     } catch (error: any) {
       console.error('Error uploading file:', error);
       
@@ -429,62 +496,6 @@ const CVParser: React.FC = () => {
               ...file, 
               status: 'failed', 
               error: error.message || 'Failed to upload file' 
-            } 
-          : file
-      ));
-    }
-  };
-  
-  const processUploadedFile = async (fileId: string) => {
-    try {
-      // Call the edge function to process the document
-      const result = await processDocument(fileId);
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Unknown error processing document');
-      }
-      
-      // The edge function updates the database, so we need to refresh our data
-      const { data: updatedFile, error: fetchError } = await supabase
-        .from('cv_files')
-        .select('*')
-        .eq('id', fileId)
-        .single();
-      
-      if (fetchError) {
-        throw fetchError;
-      }
-      
-      // Update our local state with the processed data
-      setFiles(prev => prev.map(file => 
-        file.id === fileId 
-          ? { 
-              ...file, 
-              status: updatedFile.status as 'uploading' | 'processing' | 'completed' | 'failed',
-              progress: updatedFile.progress || 100,
-              parsed: updatedFile.parsed_data as {
-                name?: string;
-                email?: string;
-                phone?: string;
-                skills: string[];
-                experience: string[];
-                education: string[];
-              },
-              error: updatedFile.error
-            } 
-          : file
-      ));
-      
-    } catch (error: any) {
-      console.error('Error processing document:', error);
-      
-      // Update state
-      setFiles(prev => prev.map(file => 
-        file.id === fileId 
-          ? { 
-              ...file, 
-              status: 'failed' as const, 
-              error: error.message || 'Failed to process document' 
             } 
           : file
       ));
