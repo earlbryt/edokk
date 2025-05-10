@@ -1,7 +1,7 @@
 
 // document-processor/index.ts
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.6';
-import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/build/pdf.mjs';
+import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/+esm';
 
 // Define the CORS headers
 const corsHeaders = {
@@ -91,14 +91,10 @@ Deno.serve(async (req) => {
       const arrayBuffer = await fileBuffer.arrayBuffer();
       
       // Configure PDF.js for Deno environment
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/build/pdf.worker.mjs';
-      
-      // Load the PDF document
       const loadingTask = pdfjsLib.getDocument({
         data: arrayBuffer,
         useWorkerFetch: false,
-        isEvalSupported: false,
-        standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/standard_fonts/'
+        isEvalSupported: false
       });
       
       const pdfDocument = await loadingTask.promise;
