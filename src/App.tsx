@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +8,7 @@ import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import CVParser from "./pages/CVParser";
 import Filters from "./pages/Filters";
+import Candidates from "./pages/Candidates";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Pricing from "./pages/Pricing";
@@ -68,6 +68,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Filters />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/candidates" 
+        element={
+          <ProtectedRoute>
+            <Candidates />
           </ProtectedRoute>
         } 
       />
