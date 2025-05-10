@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -106,7 +105,7 @@ const Pricing: React.FC = () => {
                 "30-day data retention",
                 "Candidate bulk actions"
               ]}
-              buttonText="Start 14-day Trial"
+              buttonText="Get Started"
               buttonLink="/signup"
               highlighted
             />

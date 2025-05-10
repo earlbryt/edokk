@@ -61,8 +61,7 @@ const CTA: React.FC = () => {
         <div className="text-center max-w-3xl mx-auto">
           <h2 className="font-display text-4xl font-bold mb-6">Ready to Transform Your Recruitment Process?</h2>
           <p className="text-xl mb-10 text-white/90">
-            Join forward-thinking recruiting agencies and HR departments who have already cut their screening time by 80%. 
-            Start your free trial today and see the difference.
+            Join forward-thinking recruiting agencies and HR departments who have already cut their screening time by 80%.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/signup">
@@ -71,12 +70,11 @@ const CTA: React.FC = () => {
               </Button>
             </Link>
             <Link to="/login">
-              <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-lg border-white text-white hover:bg-white/10">
+              <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-lg border-white text-white bg-lens-purple/20 hover:bg-lens-purple/30">
                 Log In <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
           </div>
-          <p className="mt-6 text-sm text-white/80">No credit card required. 14-day free trial.</p>
         </div>
       </div>
     </section>

@@ -122,12 +122,7 @@ const Sidebar: React.FC = () => {
     <div className="w-64 h-screen flex flex-col bg-white border-r border-gray-200 fixed left-0 top-0">
       <div className="p-4">
         <Link to="/" className="flex items-center gap-2 mb-8 px-4">
-          <img
-            src="/lovable-uploads/445b7682-f658-493a-93b4-d0ee832f7d41.png"
-            alt="Lens Logo"
-            className="h-8 w-auto"
-          />
-          <span className="font-display font-semibold text-lg">Lens</span>
+          <span className="font-display font-semibold text-2xl">Lens</span>
         </Link>
         
         <div className="space-y-1">

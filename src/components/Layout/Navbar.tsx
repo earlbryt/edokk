@@ -1,11 +1,29 @@
-
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { AnimatePresence, motion } from "framer-motion";
 
 const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   return (
     <header className="w-full py-4 px-4 md:px-8 absolute top-0 z-50">
@@ -13,12 +31,7 @@ const Navbar: React.FC = () => {
         <nav className="flex items-center justify-between">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
-              <img 
-                src="/lovable-uploads/445b7682-f658-493a-93b4-d0ee832f7d41.png" 
-                alt="Lens Logo" 
-                className="h-12 w-auto"
-              />
-              <span className="font-display font-semibold text-xl">Lens</span>
+              <span className="font-display font-semibold text-2xl">Lens</span>
             </Link>
           </div>
           
@@ -49,35 +62,107 @@ const Navbar: React.FC = () => {
               size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
+              className="relative z-50"
             >
-              <Menu className="h-6 w-6" />
+              <AnimatePresence mode="wait" initial={false}>
+                {mobileMenuOpen ? (
+                  <motion.div
+                    key="close"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <X className="h-6 w-6 text-lens-purple" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="menu"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Menu className="h-6 w-6" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Button>
           </div>
         </nav>
         
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg rounded-b-lg p-4 animate-fade-in">
-            <div className="flex flex-col gap-4">
-              <Link to="/" className="text-gray-700 hover:text-lens-purple px-2 py-2 transition-colors">Home</Link>
-              <Link to="/features" className="text-gray-700 hover:text-lens-purple px-2 py-2 transition-colors">Features</Link>
-              <Link to="/pricing" className="text-gray-700 hover:text-lens-purple px-2 py-2 transition-colors">Pricing</Link>
-              <Link to="/about" className="text-gray-700 hover:text-lens-purple px-2 py-2 transition-colors">About</Link>
-              <Link to="/contact" className="text-gray-700 hover:text-lens-purple px-2 py-2 transition-colors">Contact</Link>
-              <hr />
-              <div className="flex flex-col gap-2">
-                <Link to="/login">
-                  <Button variant="outline" className="w-full rounded-full">Log In</Button>
-                </Link>
-                <Link to="/signup">
-                  <Button className="w-full rounded-full bg-lens-purple hover:bg-lens-purple-light">Get Started</Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Mobile Menu Overlay */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              
+              <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 300, 
+                  damping: 30 
+                }}
+                className="md:hidden fixed top-[4.5rem] left-4 right-4 bg-white shadow-xl rounded-xl p-5 z-40 border border-gray-100"
+              >
+                <div className="flex flex-col gap-3">
+                  <NavLink to="/">Home</NavLink>
+                  <NavLink to="/features">Features</NavLink>
+                  <NavLink to="/pricing">Pricing</NavLink>
+                  <NavLink to="/about">About</NavLink>
+                  <NavLink to="/contact">Contact</NavLink>
+                  
+                  <div className="h-px bg-gray-100 my-3" />
+                  
+                  <div className="flex flex-col gap-3 pt-2">
+                    <Link to="/login" className="w-full">
+                      <Button variant="outline" className="w-full rounded-full border-lens-purple text-lens-purple hover:bg-lens-purple/5">
+                        Log In
+                      </Button>
+                    </Link>
+                    <Link to="/signup" className="w-full">
+                      <Button className="w-full rounded-full bg-lens-purple hover:bg-lens-purple-light">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
     </header>
+  );
+};
+
+// Helper component for mobile nav links
+const NavLink: React.FC<{ to: string, children: React.ReactNode }> = ({ to, children }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to || 
+                  (to !== '/' && location.pathname.startsWith(to));
+  
+  return (
+    <Link 
+      to={to} 
+      className={`flex items-center px-3 py-2.5 rounded-lg transition-colors ${
+        isActive 
+          ? "bg-lens-purple/10 text-lens-purple font-medium" 
+          : "text-gray-700 hover:bg-gray-50 hover:text-lens-purple"
+      }`}
+    >
+      {children}
+    </Link>
   );
 };
 

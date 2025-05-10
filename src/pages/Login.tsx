@@ -64,24 +64,43 @@ const Login: React.FC = () => {
       {/* Right side with login form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="max-w-md w-full">
-          <div className="text-center mb-8">
-            <Link to="/" className="inline-block">
-              <div className="flex items-center justify-center">
-                <img 
-                  src="/lovable-uploads/0582cd63-9b75-4b39-b466-cff95f190456.png" 
-                  alt="Lens Logo" 
-                  className="h-12 w-auto"
-                />
-                <span className="font-display font-semibold text-xl ml-2">Lens</span>
-              </div>
-            </Link>
-            <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Or{' '}
-              <Link to="/signup" className="font-medium text-lens-purple hover:text-lens-purple-light">
-                create a new account
+          <div className="relative mb-16">
+            <div className="absolute top-0 left-0">
+              <Link 
+                to="/" 
+                className="inline-flex items-center px-4 py-2 rounded-md bg-gray-50 border border-gray-200 text-lens-purple hover:text-white hover:bg-lens-purple transition-colors duration-200 shadow-sm hover:shadow"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className="h-5 w-5 mr-2" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18" 
+                  />
+                </svg>
+                Back to Home
               </Link>
-            </p>
+            </div>
+            <div className="text-center pt-12">
+              <Link to="/" className="inline-block">
+                <div className="flex items-center justify-center">
+                  <span className="font-display font-semibold text-2xl">Lens</span>
+                </div>
+              </Link>
+              <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                Or{' '}
+                <Link to="/signup" className="font-medium text-lens-purple hover:text-lens-purple-light">
+                  create a new account
+                </Link>
+              </p>
+            </div>
           </div>
           
           <form onSubmit={handleLogin} className="space-y-6">
