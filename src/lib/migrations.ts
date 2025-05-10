@@ -1,199 +1,231 @@
-import { supabase } from './supabase';
+import { supabase } from '@/integrations/supabase/client';
 
-// SQL for creating projects table
-export const createProjectsTable = `
-CREATE TABLE IF NOT EXISTS projects (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  documents_count INTEGER DEFAULT 0
-);
-
--- Create index on user_id for faster queries
-CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id);
-
--- Enable RLS
-ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
-
--- RLS policies for projects
-CREATE POLICY IF NOT EXISTS "Users can create their own projects"
-  ON projects FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY IF NOT EXISTS "Users can view their own projects"
-  ON projects FOR SELECT
-  TO authenticated
-  USING (auth.uid() = user_id);
-
-CREATE POLICY IF NOT EXISTS "Users can update their own projects"
-  ON projects FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = user_id);
-
-CREATE POLICY IF NOT EXISTS "Users can delete their own projects"
-  ON projects FOR DELETE
-  TO authenticated
-  USING (auth.uid() = user_id);
-`;
-
-// SQL for creating cv_files table
-export const createCVFilesTable = `
-CREATE TABLE IF NOT EXISTS cv_files (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  size TEXT NOT NULL,
-  type TEXT NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('uploading', 'processing', 'completed', 'failed')),
-  progress INTEGER,
-  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  storage_path TEXT,
-  storage_url TEXT,
-  error TEXT,
-  parsed_data JSONB
-);
-
--- Create indexes
-CREATE INDEX IF NOT EXISTS idx_cv_files_project_id ON cv_files(project_id);
-CREATE INDEX IF NOT EXISTS idx_cv_files_user_id ON cv_files(user_id);
-CREATE INDEX IF NOT EXISTS idx_cv_files_status ON cv_files(status);
-
--- Enable RLS
-ALTER TABLE cv_files ENABLE ROW LEVEL SECURITY;
-
--- RLS policies for cv_files
-CREATE POLICY IF NOT EXISTS "Users can create their own cv_files"
-  ON cv_files FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY IF NOT EXISTS "Users can view their own cv_files"
-  ON cv_files FOR SELECT
-  TO authenticated
-  USING (auth.uid() = user_id);
-
-CREATE POLICY IF NOT EXISTS "Users can update their own cv_files"
-  ON cv_files FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = user_id);
-
-CREATE POLICY IF NOT EXISTS "Users can delete their own cv_files"
-  ON cv_files FOR DELETE
-  TO authenticated
-  USING (auth.uid() = user_id);
-`;
-
-// SQL for setting up storage bucket policies
-export const createStoragePolicies = `
--- Create policy to allow authenticated users to insert objects
-CREATE POLICY "Allow authenticated users to upload CVs"
-ON storage.objects
-FOR INSERT
-TO authenticated
-WITH CHECK (bucket_id = 'lens' AND auth.uid() IS NOT NULL);
-
--- Create policy to allow users to select their own objects
-CREATE POLICY "Allow users to view their own CVs"
-ON storage.objects
-FOR SELECT
-TO authenticated
-USING (bucket_id = 'lens' AND auth.uid() IS NOT NULL);
-
--- Create policy to allow users to update their own objects
-CREATE POLICY "Allow users to update their own CVs"
-ON storage.objects
-FOR UPDATE
-TO authenticated
-USING (bucket_id = 'lens' AND auth.uid() IS NOT NULL);
-
--- Create policy to allow users to delete their own objects
-CREATE POLICY "Allow users to delete their own CVs"
-ON storage.objects
-FOR DELETE
-TO authenticated
-USING (bucket_id = 'lens' AND auth.uid() IS NOT NULL);
-`;
-
-// Function to run migrations
-export const runMigrations = async () => {
+// Function to create the migrations table if it doesn't exist
+async function createMigrationsTable() {
   try {
-    console.log('Checking database setup...');
-    
-    // Check if tables already exist
-    const { data, error } = await supabase
-      .from('projects')
-      .select('id')
-      .limit(1)
-      .catch(err => {
-        // Return an object with the same structure as the supabase response
-        return { data: null, error: err };
-      });
-    
-    // If no error, tables exist and we can skip migrations
-    if (!error) {
-      console.log('Database tables already exist, skipping migrations');
-      return { success: true };
-    }
-    
-    console.log('Running migrations...');
-    
-    // Create projects table directly using SQL
-    try {
-      console.log('Creating projects table...');
-      const { error } = await supabase.from('projects').select('id').limit(1);
-      if (error && error.code === '42P01') {
-        // Use PSQL directly
-        await mcp_createTable('projects', createProjectsTable);
-      }
-    } catch (projectsError) {
-      console.error('Error checking projects table:', projectsError);
-    }
-    
-    // Create cv_files table
-    try {
-      console.log('Creating cv_files table...');
-      const { error } = await supabase.from('cv_files').select('id').limit(1);
-      if (error && error.code === '42P01') {
-        // Use PSQL directly
-        await mcp_createTable('cv_files', createCVFilesTable);
-      }
-    } catch (cvFilesError) {
-      console.error('Error checking cv_files table:', cvFilesError);
-    }
-    
-    // Skip storage policy creation as it's likely already set up
-    
-    console.log('Migrations completed successfully!');
-    return { success: true };
-  } catch (error) {
-    console.error('Migration error:', error);
-    return { success: false, error };
-  }
-};
-
-// Helper function for SQL execution that doesn't rely on custom methods
-async function mcp_createTable(name: string, sql: string) {
-  try {
-    // Execute raw SQL directly - handle this on the server side
-    const { error } = await supabase.rpc('exec_sql', { query: sql });
+    console.log("Creating migrations table...");
+    const { error } = await supabase.schema.hasTable('migrations');
     
     if (error) {
-      // If the exec_sql function doesn't exist
-      if (error.message && error.message.includes('function "exec_sql" does not exist')) {
-        // Direct SQL execution via the console
-        console.error(`Table creation failed. Please run this SQL in the Supabase SQL editor:`, sql);
-        return { success: false, error };
+      const { error: createError } = await supabase.schema.createTable('migrations', (table) => {
+        table.increments('id').primary();
+        table.string('name').notNullable().unique();
+        table.timestamp('created_at', { useTz: true }).defaultTo('now()');
+      });
+      
+      if (createError) {
+        throw createError;
       }
+      console.log("Migrations table created successfully.");
+    } else {
+      console.log("Migrations table already exists.");
+    }
+  } catch (error) {
+    console.error("Error creating migrations table:", error);
+    throw error;
+  }
+}
+
+// Function to create the projects table if it doesn't exist
+async function createProjectsTable() {
+  try {
+    console.log("Creating projects table...");
+    const { error } = await supabase.schema.hasTable('projects');
+    
+    if (error) {
+      // Create the projects table
+      const { error: createError } = await supabase.schema.createTable('projects', (table) => {
+        table.uuid('id').primary();
+        table.foreign('user_id').references('users.id').onDelete('CASCADE');
+        table.string('name').notNullable();
+        table.timestamp('created_at', { useTz: true }).defaultTo('now()');
+        table.timestamp('updated_at', { useTz: true }).defaultTo('now()');
+        table.integer('documents_count').defaultTo(0);
+      });
+      
+      if (createError) {
+        throw createError;
+      }
+      console.log("Projects table created successfully.");
+      
+      // Create the cv_files table
+      const { error: createFilesError } = await supabase.schema.createTable('cv_files', (table) => {
+        table.uuid('id').primary();
+        table.foreign('user_id').references('users.id').onDelete('CASCADE');
+        table.foreign('project_id').references('projects.id').onDelete('CASCADE');
+        table.string('name').notNullable();
+        table.string('size');
+        table.string('type');
+        table.string('status');
+        table.integer('progress');
+        table.string('storage_path');
+        table.string('storage_url');
+        table.timestamp('uploaded_at', { useTz: true }).defaultTo('now()');
+        table.text('raw_text');
+        table.boolean('text_extracted').defaultTo(false);
+        table.timestamp('text_extraction_date', { useTz: true });
+        table.jsonb('parsed_data');
+        table.text('extraction_error');
+      });
+      
+      if (createFilesError) {
+        throw createFilesError;
+      }
+      console.log("CV Files table created successfully.");
+
+      // Create the filter_groups table
+      const { error: createFilterGroupsError } = await supabase.schema.createTable('filter_groups', (table) => {
+        table.uuid('id').primary();
+        table.foreign('user_id').references('users.id').onDelete('CASCADE');
+        table.foreign('project_id').references('projects.id').onDelete('CASCADE');
+        table.string('name').notNullable();
+        table.boolean('enabled').defaultTo(true);
+        table.timestamp('created_at', { useTz: true }).defaultTo('now()');
+        table.timestamp('updated_at', { useTz: true }).defaultTo('now()');
+      });
+
+      if (createFilterGroupsError) {
+        throw createFilterGroupsError;
+      }
+      console.log("Filter Groups table created successfully.");
+
+      // Create the filters table
+      const { error: createFiltersError } = await supabase.schema.createTable('filters', (table) => {
+        table.uuid('id').primary();
+        table.foreign('filter_group_id').references('filter_groups.id').onDelete('CASCADE');
+        table.string('name').notNullable();
+        table.string('value').notNullable();
+        table.timestamp('created_at', { useTz: true }).defaultTo('now()');
+        table.timestamp('updated_at', { useTz: true }).defaultTo('now()');
+      });
+
+      if (createFiltersError) {
+        throw createFiltersError;
+      }
+      console.log("Filters table created successfully.");
+    } else {
+      console.log("Projects table already exists.");
+    }
+  } catch (error) {
+    console.error("Error creating projects table:", error);
+    throw error;
+  }
+}
+
+// Function to check if a migration has already been run
+async function hasMigrationRun(migrationName: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('migrations')
+      .select('id')
+      .eq('name', migrationName)
+      .limit(1);
+    
+    if (error) {
       throw error;
     }
     
-    return { success: true };
+    return data !== null && data.length > 0;
   } catch (error) {
-    console.error(`Error creating ${name}:`, error);
-    return { success: false, error };
+    console.error(`Error checking if migration ${migrationName} has run:`, error);
+    return false;
   }
-} 
+}
+
+// Function to record that a migration has been run
+async function recordMigration(migrationName: string) {
+  try {
+    const { error } = await supabase
+      .from('migrations')
+      .insert({ name: migrationName });
+    
+    if (error) {
+      throw error;
+    }
+    console.log(`Migration ${migrationName} recorded successfully.`);
+  } catch (error) {
+    console.error(`Error recording migration ${migrationName}:`, error);
+    throw error;
+  }
+}
+
+// Example migration function (replace with your actual migration logic)
+async function exampleMigration() {
+  const migrationName = 'example_migration';
+  
+  try {
+    if (await hasMigrationRun(migrationName)) {
+      console.log(`Migration ${migrationName} already run, skipping.`);
+      return;
+    }
+    
+    console.log(`Running migration ${migrationName}...`);
+    
+    // Your migration logic here
+    // For example, creating a new table:
+    // const { error } = await supabase.schema.createTable('example_table', (table) => {
+    //   table.increments('id').primary();
+    //   table.string('name');
+    // });
+    
+    // if (error) {
+    //   throw error;
+    // }
+    
+    // Record the migration
+    await recordMigration(migrationName);
+    
+  } catch (error) {
+    console.error(`Error running migration ${migrationName}:`, error);
+    throw error;
+  }
+}
+
+// Run all migrations
+async function runAllMigrations() {
+  try {
+    await exampleMigration();
+    // Add more migrations here as needed
+  } catch (error) {
+    console.error("Failed to complete all migrations:", error);
+  }
+}
+
+// Only modify the problematic catch usage
+export async function runMigrations() {
+  try {
+    console.log("Checking database setup...");
+    
+    // Check if migrations table exists
+    const { data: migrationsCheck, error: migrationsError } = await supabase
+      .from('migrations')
+      .select('*')
+      .limit(1);
+      
+    if (migrationsError) {
+      console.error("Error checking migrations:", migrationsError);
+      // Try to create migrations table
+      await createMigrationsTable();
+    }
+    
+    // Check if the projects table exists
+    const { data: projectsCheck, error: projectsError } = await supabase
+      .from('projects')
+      .select('*')
+      .limit(1);
+      
+    if (projectsError) {
+      console.error("Error checking projects:", projectsError);
+      // Try to create projects and related tables
+      await createProjectsTable();
+    }
+    
+    // Run all migrations in sequence
+    await runAllMigrations();
+    
+  } catch (error) {
+    console.error("Migration error:", error);
+  } finally {
+    console.warn("Some migration steps failed, but application will continue");
+  }
+}

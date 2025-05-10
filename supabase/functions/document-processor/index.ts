@@ -1,15 +1,13 @@
 
 // document-processor/index.ts
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.6';
-import * as pdfjsLib from 'https://esm.sh/pdfjs-dist@3.4.120/build/pdf.js';
+import * as pdfjsLib from 'https://esm.sh/pdfjs-dist@3.4.120/es2022/build/pdf.js';
 
-// Initialize the PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://esm.sh/pdfjs-dist@3.4.120/build/pdf.worker.min.js';
-
-// Define the CORS headers
+// Define the CORS headers - make sure they're properly defined and applied
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
 };
 
 // Create a Supabase client
@@ -21,9 +19,15 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const STORAGE_BUCKET = 'lens';
 
 Deno.serve(async (req) => {
+  console.log("Document processor function invoked");
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    console.log("Responding to OPTIONS request with CORS headers");
+    return new Response('ok', { 
+      headers: corsHeaders,
+      status: 200
+    });
   }
 
   try {
@@ -86,12 +90,16 @@ Deno.serve(async (req) => {
     try {
       const arrayBuffer = await fileBuffer.arrayBuffer();
       
-      // Load the PDF document
+      // Set global worker source - this is necessary to make PDF.js work in Deno
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+      
+      // Configure the PDF loading task with options that work in Deno environment
       const loadingTask = pdfjsLib.getDocument({ 
         data: arrayBuffer,
         useWorkerFetch: false,
         isEvalSupported: false,
-        useSystemFonts: true
+        useSystemFonts: true,
+        standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/standard_fonts/'
       });
       
       const pdfDocument = await loadingTask.promise;
@@ -137,6 +145,7 @@ Deno.serve(async (req) => {
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
         }
       );
       

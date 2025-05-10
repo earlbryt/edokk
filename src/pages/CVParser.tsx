@@ -40,9 +40,9 @@ interface CVFile {
   originalFile?: File;
   error?: string;
   parsed?: {
-    name: string;
-    email: string;
-    phone: string;
+    name?: string;
+    email?: string;
+    phone?: string;
     skills: string[];
     experience: string[];
     education: string[];

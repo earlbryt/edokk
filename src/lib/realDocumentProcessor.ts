@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export async function processDocument(fileId: string): Promise<{ success: boolean, error?: string }> {
   try {
+    console.log("Calling document-processor with fileId:", fileId);
     // Call the document-processor edge function
     const { data, error } = await supabase.functions.invoke('document-processor', {
       body: { fileId }
@@ -19,7 +20,7 @@ export async function processDocument(fileId: string): Promise<{ success: boolea
     }
     
     return { success: true, ...data };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in processDocument:", error);
     return { success: false, error: error.message || 'An unknown error occurred' };
   }
