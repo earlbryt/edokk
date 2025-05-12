@@ -41,7 +41,6 @@ const Navbar: React.FC = () => {
               <Link to="/" className="text-gray-700 hover:text-lens-purple transition-colors">Home</Link>
               <Link to="/features" className="text-gray-700 hover:text-lens-purple transition-colors">Features</Link>
               <Link to="/pricing" className="text-gray-700 hover:text-lens-purple transition-colors">Pricing</Link>
-              <Link to="/about" className="text-gray-700 hover:text-lens-purple transition-colors">About</Link>
               <Link to="/contact" className="text-gray-700 hover:text-lens-purple transition-colors">Contact</Link>
             </div>
           </div>
@@ -119,7 +118,6 @@ const Navbar: React.FC = () => {
                   <NavLink to="/">Home</NavLink>
                   <NavLink to="/features">Features</NavLink>
                   <NavLink to="/pricing">Pricing</NavLink>
-                  <NavLink to="/about">About</NavLink>
                   <NavLink to="/contact">Contact</NavLink>
                   
                   <div className="h-px bg-gray-100 my-3" />

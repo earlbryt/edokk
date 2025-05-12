@@ -95,23 +95,14 @@ const FAQ: React.FC = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="w-12 h-12 bg-lens-purple/10 rounded-full flex items-center justify-center mb-4">
-                <MessageCircle className="h-6 w-6 text-lens-purple" />
-              </div>
-              <h4 className="font-medium mb-1">Live Chat</h4>
-              <p className="text-sm text-gray-500 mb-3">Get instant answers</p>
-              <Button variant="outline" className="border-lens-purple text-lens-purple">Start Chat</Button>
-            </div>
-            
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mx-auto max-w-2xl">
             <div className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-gray-50 transition-colors">
               <div className="w-12 h-12 bg-lens-blue/10 rounded-full flex items-center justify-center mb-4">
                 <Mail className="h-6 w-6 text-lens-blue" />
               </div>
               <h4 className="font-medium mb-1">Email Us</h4>
               <p className="text-sm text-gray-500 mb-3">support@lens.com</p>
-              <Button variant="outline" className="border-lens-blue text-lens-blue">Send Email</Button>
+              <Button variant="outline" className="border-lens-blue text-lens-blue" onClick={() => window.location.href = '/contact#contact-form'}>Send Email</Button>
             </div>
             
             <div className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-gray-50 transition-colors">
@@ -120,7 +111,7 @@ const FAQ: React.FC = () => {
               </div>
               <h4 className="font-medium mb-1">Call Us</h4>
               <p className="text-sm text-gray-500 mb-3">Mon-Fri, 9am-5pm</p>
-              <Button variant="outline" className="border-lens-green text-lens-green">+1 (555) 123-4567</Button>
+              <Button variant="outline" className="border-lens-green text-lens-green">+233 20 343 8668</Button>
             </div>
           </div>
         </div>
