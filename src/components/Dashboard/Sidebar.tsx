@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Logo from "@/components/shared/Logo";
 
 type SidebarItemProps = {
   icon: React.ReactNode;
@@ -121,9 +122,7 @@ const Sidebar: React.FC = () => {
   return (
     <div className="w-64 h-screen flex flex-col bg-white border-r border-gray-200 fixed left-0 top-0">
       <div className="p-4">
-        <Link to="/" className="flex items-center gap-2 mb-8 px-4">
-          <span className="font-display font-semibold text-2xl">Lens</span>
-        </Link>
+        <Logo className="mb-8 px-4" />
         
         <div className="space-y-1">
           {menuItems.map((item) => (

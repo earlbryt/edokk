@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Logo from "@/components/shared/Logo";
 
 const Footer: React.FC = () => {
   return (
@@ -8,12 +9,7 @@ const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="col-span-1">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="h-10 w-10 rounded-full bg-lens-purple text-white flex items-center justify-center">
-                <span className="text-lg font-bold">L</span>
-              </div>
-              <span className="font-display font-semibold text-xl">Lens</span>
-            </Link>
+            <Logo className="mb-4" />
             <p className="text-gray-600 mb-4">
               Visualize your data, track progress, and achieve your goals with our powerful analytics platform.
             </p>
@@ -42,24 +38,24 @@ const Footer: React.FC = () => {
           </div>
           
           <div className="col-span-1">
-            <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Pages</h3>
             <ul className="space-y-3">
+              <li><Link to="/" className="text-gray-600 hover:text-lens-purple transition-colors">Home</Link></li>
               <li><Link to="/features" className="text-gray-600 hover:text-lens-purple transition-colors">Features</Link></li>
               <li><Link to="/pricing" className="text-gray-600 hover:text-lens-purple transition-colors">Pricing</Link></li>
-              <li><Link to="/integrations" className="text-gray-600 hover:text-lens-purple transition-colors">Integrations</Link></li>
-              <li><Link to="/roadmap" className="text-gray-600 hover:text-lens-purple transition-colors">Roadmap</Link></li>
+              <li><Link to="/contact" className="text-gray-600 hover:text-lens-purple transition-colors">Contact</Link></li>
             </ul>
           </div>
           
 
           
           <div className="col-span-1">
-            <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Dashboard</h3>
             <ul className="space-y-3">
-              <li><Link to="/about" className="text-gray-600 hover:text-lens-purple transition-colors">About</Link></li>
-              <li><Link to="/careers" className="text-gray-600 hover:text-lens-purple transition-colors">Careers</Link></li>
-              <li><Link to="/contact" className="text-gray-600 hover:text-lens-purple transition-colors">Contact</Link></li>
-              <li><Link to="/privacy" className="text-gray-600 hover:text-lens-purple transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/dashboard" className="text-gray-600 hover:text-lens-purple transition-colors">Dashboard</Link></li>
+              <li><Link to="/dashboard/parser" className="text-gray-600 hover:text-lens-purple transition-colors">Bulk Document Upload</Link></li>
+              <li><Link to="/dashboard/filters" className="text-gray-600 hover:text-lens-purple transition-colors">Filters</Link></li>
+              <li><Link to="/dashboard/candidates" className="text-gray-600 hover:text-lens-purple transition-colors">Candidates</Link></li>
             </ul>
           </div>
         </div>

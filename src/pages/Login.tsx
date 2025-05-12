@@ -7,6 +7,7 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { motion } from "framer-motion";
+import Logo from "@/components/shared/Logo";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -82,46 +83,41 @@ const Login: React.FC = () => {
       {/* Right side with login form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="max-w-md w-full">
-          <div className="relative mb-16">
-            <div className="absolute top-0 left-0">
-              <Link 
-                to="/" 
-                className="inline-flex items-center px-4 py-2 rounded-md bg-gray-50 border border-gray-200 text-lens-purple hover:text-white hover:bg-lens-purple transition-colors duration-200 shadow-sm hover:shadow"
+          <div className="mb-12">
+            <Link 
+              to="/" 
+              className="inline-flex items-center text-sm text-gray-500 hover:text-lens-purple transition-colors mb-8"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-4 w-4 mr-1" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
               >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5 mr-2" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18" 
-                  />
-                </svg>
-                Back to Home
-              </Link>
-            </div>
-            <div className="text-center pt-20">
-              <Link to="/" className="inline-block">
-                <div className="flex items-center justify-center">
-                  <span className="font-display font-semibold text-2xl">Lens</span>
-                </div>
-              </Link>
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18" 
+                />
+              </svg>
+              Back to Home
+            </Link>
+            
+            <div className="text-center">
+              <Logo size="lg" className="inline-block mx-auto" />
               <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
-              <p className="mt-2 text-sm text-gray-600">
+              <p className="mt-2 text-sm text-gray-600 mb-2">
                 Or{' '}
-                <Link to="/signup" className="font-medium text-lens-purple hover:text-lens-purple-light">
+                <Link to="/signup" className="font-medium text-lens-purple hover:text-lens-purple/80">
                   create a new account
                 </Link>
               </p>
             </div>
           </div>
           
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>

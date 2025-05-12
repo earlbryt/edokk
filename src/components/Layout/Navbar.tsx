@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from 'lucide-react';
 import { AnimatePresence, motion } from "framer-motion";
+import Logo from "@/components/shared/Logo";
 
 const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -30,9 +31,7 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <nav className="flex items-center justify-between">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="font-display font-semibold text-2xl">Lens</span>
-            </Link>
+            <Logo size="lg" />
           </div>
           
           {/* Desktop Navigation */}
