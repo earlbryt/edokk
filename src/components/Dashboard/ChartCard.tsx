@@ -103,35 +103,128 @@ const ChartCard: React.FC<ChartCardProps> = ({
           </ResponsiveContainer>
         );
       case "pie":
-        const COLORS = ['#8B5CF6', '#60A5FA', '#34D399', '#FBBF24', '#F87171'];
-        return (
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={80}
-                fill="#8B5CF6"
-                dataKey="value"
-                nameKey="name"
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-              >
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+        const COLORS = ['#8B5CF6', '#60A5FA', '#34D399', '#F87171'];
+        
+        // Define the full set of categories we want to show in the legend
+        const allCategories = [
+          { name: 'Ideal Match', color: COLORS[0] },
+          { name: 'Good Match', color: COLORS[1] },
+          { name: 'Possible Match', color: COLORS[2] },
+          { name: 'Not Suitable', color: COLORS[3] }
+        ];
+        
+        // Filter out zero values for the chart (but keep them for the legend)
+        const filteredData = data.filter(item => item.value > 0);
+        
+        // Create a lookup of values by name for the legend
+        const valueByName: {[key: string]: number} = {};
+        data.forEach(item => {
+          valueByName[item.name] = item.value;
+        });
+        
+        // Custom render for the label that handles positioning and formatting
+        const renderCustomizedLabel = (props: any) => {
+          const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name } = props;
+          
+          // Skip rendering labels for segments that are too small (less than 5%)
+          if (percent < 0.05) return null;
+          
+          // Calculate the position of the label
+          const RADIAN = Math.PI / 180;
+          const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
+          const x = cx + radius * Math.cos(-midAngle * RADIAN);
+          const y = cy + radius * Math.sin(-midAngle * RADIAN);
+          
+          return (
+            <text 
+              x={x} 
+              y={y} 
+              fill={COLORS[index % COLORS.length]}
+              textAnchor={x > cx ? 'start' : 'end'}
+              dominantBaseline="central"
+              fontSize={12}
+              fontWeight="500"
+            >
+              {`${name}: ${(percent * 100).toFixed(0)}%`}
+            </text>
+          );
+        };
+        
+        // If we have no data, show a message
+        if (filteredData.length === 0) {
+          return (
+            <div className="flex flex-col h-[250px]">
+              <div className="flex-1 flex items-center justify-center text-gray-500">
+                <p className="text-center">No candidates rated yet</p>
+              </div>
+              
+              {/* Legend showing all categories even with no data */}
+              <div className="mt-4 flex flex-wrap justify-center gap-4">
+                {allCategories.map((category, index) => (
+                  <div key={index} className="flex items-center">
+                    <div 
+                      className="w-3 h-3 mr-2" 
+                      style={{ backgroundColor: category.color }}
+                    ></div>
+                    <span className="text-xs text-gray-600">
+                      {category.name}: 0
+                    </span>
+                  </div>
                 ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  borderRadius: '8px', 
-                  boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                  border: 'none'
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+              </div>
+            </div>
+          );
+        }
+        
+        return (
+          <div>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={filteredData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={true}
+                  outerRadius={80}
+                  fill="#8B5CF6"
+                  dataKey="value"
+                  nameKey="name"
+                  label={renderCustomizedLabel}
+                >
+                  {filteredData.map((entry, index) => {
+                    // Find the color based on category name
+                    const categoryIndex = allCategories.findIndex(c => c.name === entry.name);
+                    const color = categoryIndex >= 0 ? COLORS[categoryIndex] : COLORS[index % COLORS.length];
+                    return <Cell key={`cell-${index}`} fill={color} />;
+                  })}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [`${value}`, 'Count']}
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    borderRadius: '8px', 
+                    boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    border: 'none'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            
+            {/* Legend showing all categories */}
+            <div className="mt-4 flex flex-wrap justify-center gap-4">
+              {allCategories.map((category, index) => (
+                <div key={index} className="flex items-center">
+                  <div 
+                    className="w-3 h-3 mr-2 rounded-sm" 
+                    style={{ backgroundColor: category.color }}
+                  ></div>
+                  <span className="text-xs text-gray-600">
+                    {category.name}: {valueByName[category.name] || 0}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         );
       default:
         return null;

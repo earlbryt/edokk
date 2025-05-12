@@ -21,6 +21,54 @@ export async function executeSQL(sql: string, params?: any[]) {
   return { data, error, count };
 }
 
+// Match a candidate against project requirements
+export interface MatchCandidateParams {
+  candidate_id: string;
+  project_id: string;
+  filter_group_id?: string;
+}
+
+export interface MatchCandidateResult {
+  id: string;
+  cv_file_id: string;
+  project_id: string;
+  filter_group_id: string | null;
+  rating: 'A' | 'B' | 'C' | 'D';
+  rating_reason: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function matchCandidate(params: MatchCandidateParams): Promise<MatchCandidateResult | null> {
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/match_candidate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`
+      },
+      body: JSON.stringify(params)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error matching candidate:', errorData);
+      throw new Error(errorData.error || 'Failed to match candidate');
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to match candidate');
+    }
+
+    return result.data;
+  } catch (error) {
+    console.error('Error in matchCandidate:', error);
+    return null;
+  }
+}
+
 // The name of the storage bucket
 export const STORAGE_BUCKET = 'lens';
 

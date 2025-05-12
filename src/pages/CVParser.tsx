@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getStoragePath, getPublicURL, STORAGE_BUCKET } from '@/lib/supabase';
 import { processDocumentInBrowser } from '@/lib/browserDocumentProcessor';
 import { runMigrations } from '@/lib/migrations';
+import LoadingAnimation from '@/components/ui/loading-animation';
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
 import { CVFile } from '@/types/CVFile';
@@ -1345,14 +1346,8 @@ const CVParser: React.FC = () => {
               </h2>
               
               {isLoading ? (
-              <Card>
-                  <CardContent className="p-8">
-                    <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-lens-purple"></div>
-                      <span className="ml-3 text-gray-600">Loading projects...</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                <LoadingAnimation message="Loading your projects..." />
+              
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Card className="md:col-span-2">

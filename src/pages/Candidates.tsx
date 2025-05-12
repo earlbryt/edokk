@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
 import CandidateTable from '@/components/Dashboard/CandidateTable';
@@ -6,6 +6,10 @@ import { Search, Users, Star, Award, ThumbsUp, UserCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from "@/lib/utils";
+import { supabase } from '@/lib/supabase';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
+import LoadingAnimation from '@/components/ui/loading-animation';
 
 // Define bucket types
 type BucketType = 'bucket-a' | 'bucket-b' | 'bucket-c' | 'bucket-d';
@@ -22,7 +26,148 @@ interface Bucket {
 
 const Candidates: React.FC = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [bucketCounts, setBucketCounts] = useState({
+    'bucket-a': 0,
+    'bucket-b': 0,
+    'bucket-c': 0,
+    'bucket-d': 0,
+    'unrated': 0
+  });
+  
+  // Function to fetch candidates from the database
+  useEffect(() => {
+    async function fetchCandidates() {
+      try {
+        setLoading(true);
+        
+        // First fetch CV files with project info
+        const { data: cvFiles, error: cvError } = await supabase
+          .from('cv_files')
+          .select(`
+            id,
+            name,
+            project_id,
+            summary_id,
+            parsed_data,
+            projects (name, id)
+          `);
+        
+        if (cvError) throw cvError;
+        
+        // Fetch summaries for the CVs
+        const summaryIds = cvFiles
+          .filter(file => file.summary_id)
+          .map(file => file.summary_id);
+          
+        let summariesData = {};
+        if (summaryIds.length > 0) {
+          const { data: summaries, error: summariesError } = await supabase
+            .from('summaries')
+            .select('*')
+            .in('id', summaryIds);
+          
+          if (summariesError) throw summariesError;
+          
+          // Create a map of summaries by id for easier lookup
+          summariesData = summaries.reduce((acc, summary) => {
+            acc[summary.id] = summary;
+            return acc;
+          }, {});
+        }
+        
+        // Fetch ratings for these candidates
+        const { data: ratings, error: ratingsError } = await supabase
+          .from('candidate_ratings')
+          .select('*');
+          
+        if (ratingsError) throw ratingsError;
+        
+        // Process the data into the format expected by CandidateTable
+        const processedCandidates = cvFiles.map(file => {
+          // Find rating for this candidate if it exists
+          const rating = ratings?.find(r => r.cv_file_id === file.id);
+          
+          // Determine status based on rating
+          const status = rating ? `bucket-${rating.rating.toLowerCase()}` : undefined;
+          
+          // Get summary data or fallback to parsed_data
+          const summary = file.summary_id ? summariesData[file.summary_id] : null;
+          const candidateData = summary || file.parsed_data || {};
+          
+          // Extract skills
+          const skills = candidateData.skills || [];
+          
+          // Extract experience
+          const experience = candidateData.experience || [];
+          
+          // Extract education
+          const education = candidateData.education || [];
+          
+          return {
+            id: file.id,
+            name: file.name || candidateData.name || 'Unnamed Candidate',
+            role: experience[0] || 'Position Unknown',
+            status,
+            project_id: file.project_id,
+            skills: skills.slice(0, 5),
+            education: education[0] || 'Education Unknown',
+            experience: experience.length ? `${experience.length} experiences` : 'Experience Unknown',
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(file.name || 'Candidate')}&background=random`,
+            rating: rating || null
+          };
+        });
+        
+        // Update the candidates state
+        setCandidates(processedCandidates);
+        
+        // Update bucket counts
+        const counts = {
+          'bucket-a': 0,
+          'bucket-b': 0,
+          'bucket-c': 0,
+          'bucket-d': 0,
+          'unrated': 0
+        };
+        
+        processedCandidates.forEach(candidate => {
+          if (!candidate.status) {
+            counts.unrated++;
+          } else {
+            counts[candidate.status]++;
+          }
+        });
+        
+        setBucketCounts(counts);
+      } catch (error) {
+        console.error('Error fetching candidates:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load candidates. Please try again.',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchCandidates();
+  }, [toast]);
+  
+  // Filter candidates based on search query
+  const filteredCandidates = candidates.filter(candidate => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      candidate.name.toLowerCase().includes(query) ||
+      candidate.role.toLowerCase().includes(query) ||
+      candidate.skills.some((skill: string) => skill.toLowerCase().includes(query))
+    );
+  });
   
   // Define buckets with more positive icons
   const buckets: Bucket[] = [
@@ -33,7 +178,7 @@ const Candidates: React.FC = () => {
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
       icon: <Star className="h-5 w-5 text-amber-500" />,
-      count: 12
+      count: bucketCounts['bucket-a']
     },
     {
       id: 'bucket-b',
@@ -42,7 +187,7 @@ const Candidates: React.FC = () => {
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       icon: <Award className="h-5 w-5 text-blue-500" />,
-      count: 24
+      count: bucketCounts['bucket-b']
     },
     {
       id: 'bucket-c',
@@ -51,7 +196,7 @@ const Candidates: React.FC = () => {
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50',
       icon: <ThumbsUp className="h-5 w-5 text-indigo-500" />,
-      count: 18
+      count: bucketCounts['bucket-c']
     },
     {
       id: 'bucket-d',
@@ -60,68 +205,21 @@ const Candidates: React.FC = () => {
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       icon: <UserCheck className="h-5 w-5 text-purple-500" />,
-      count: 7
+      count: bucketCounts['bucket-d']
     }
   ];
   
-  // Mock data for candidates
-  const candidates = [
-    {
-      id: '1',
-      name: 'Candidate One',
-      role: 'Senior Software Engineer',
-      status: 'bucket-a',
-      score: 92,
-      skills: ['React', 'Node.js', 'Python'],
-      education: 'MSc Computer Science',
-      experience: '8 years',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80'
-    },
-    {
-      id: '2',
-      name: 'Candidate Two',
-      role: 'Product Manager',
-      status: 'bucket-a',
-      score: 89,
-      skills: ['Product Strategy', 'Market Research', 'Agile'],
-      education: 'MBA',
-      experience: '6 years',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80'
-    },
-    {
-      id: '3',
-      name: 'Candidate Three',
-      role: 'UX Designer',
-      status: 'bucket-b',
-      score: 78,
-      skills: ['Figma', 'User Research', 'Prototyping'],
-      education: 'BA Design',
-      experience: '4 years',
-      avatar: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80'
-    },
-    {
-      id: '4',
-      name: 'Candidate Four',
-      role: 'Marketing Specialist',
-      status: 'bucket-c',
-      score: 65,
-      skills: ['Content Strategy', 'SEO', 'Social Media'],
-      education: 'BSc Marketing',
-      experience: '3 years',
-      avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80'
-    },
-    {
-      id: '5',
-      name: 'Candidate Five',
-      role: 'Data Analyst',
-      status: 'bucket-d',
-      score: 45,
-      skills: ['SQL', 'Tableau', 'Python'],
-      education: 'BSc Statistics',
-      experience: '2 years',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80'
-    }
-  ];
+  // Add bucket for unrated candidates
+  buckets.push({
+    id: 'unrated',
+    name: 'Unrated',
+    description: 'Pending Assessment',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-50',
+    icon: <Users className="h-5 w-5 text-gray-500" />,
+    count: bucketCounts['unrated']
+  });
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -145,48 +243,13 @@ const Candidates: React.FC = () => {
             </div>
           </div>
           
-          {/* Candidates & Buckets */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <CandidateTable title="Top Candidates" candidates={candidates} />
-            </div>
-            <div>
-              <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-                <div className="border-b border-gray-100 p-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Candidate Buckets</h2>
-                </div>
-                <div className="p-4">
-                  <div className="space-y-3">
-                    {buckets.map((bucket) => (
-                      <div 
-                        key={bucket.id}
-                        className={cn(
-                          "rounded-lg border transition-all hover:shadow-sm cursor-pointer",
-                          bucket.bgColor
-                        )}
-                      >
-                        <div className="flex items-center justify-between p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-sm">
-                              {bucket.icon}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h3 className={cn("font-medium text-gray-900")}>{bucket.name}</h3>
-                                <span className="text-xs bg-white px-2 py-0.5 rounded-full border">
-                                  {bucket.count}
-                                </span>
-                              </div>
-                              <p className={cn("text-sm", bucket.color)}>{bucket.description}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Candidates */}
+          <div className="w-full">
+            {loading ? (
+              <LoadingAnimation message="Finding top talent..." />
+            ) : (
+              <CandidateTable title="Candidates" candidates={filteredCandidates} />
+            )}
           </div>
         </main>
       </div>

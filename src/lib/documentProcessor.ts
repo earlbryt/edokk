@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import * as pdfjsLib from 'pdfjs-dist';
+import { matchCandidate } from '@/lib/supabase';
 
 // Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -114,6 +115,43 @@ async function processDocument(fileId: string) {
 
     if (processError) {
       console.error('Error processing resume with Edge Function:', processError);
+    } else {
+      try {
+        // Get the project_id from the cv_file
+        const { data: cvFileData, error: cvFileError } = await supabase
+          .from('cv_files')
+          .select('project_id')
+          .eq('id', fileId)
+          .single();
+        
+        if (cvFileError) {
+          console.error('Error getting project_id:', cvFileError);
+        } else if (cvFileData?.project_id) {
+          // Automatically match the candidate to the project after processing
+          console.log('Automatically matching candidate', fileId, 'to project', cvFileData.project_id);
+          const matchResult = await matchCandidate({
+            candidate_id: fileId,
+            project_id: cvFileData.project_id
+          });
+          
+          console.log('Match result:', matchResult);
+          
+          // Update the cv_file status based on the matching result
+          if (matchResult) {
+            await supabase
+              .from('cv_files')
+              .update({ 
+                status: `bucket-${matchResult.rating.toLowerCase()}`,
+                match_status: 'matched'
+              })
+              .eq('id', fileId);
+          }
+        } else {
+          console.log('No project_id found for this CV file, skipping automatic matching');
+        }
+      } catch (matchError) {
+        console.error('Error matching candidate:', matchError);
+      }
     }
 
   } catch (error) {

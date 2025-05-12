@@ -37,7 +37,6 @@ interface Requirement {
   id: string;
   type: 'skill' | 'experience' | 'education' | 'keyword' | 'location';
   value: string;
-  weight: number;
   required: boolean;
 }
 
@@ -234,7 +233,6 @@ const Filters: React.FC = () => {
   
   const handleAddRequirement = async () => {
     if (!user) {
-      console.error("User not authenticated");
       toast({
         title: 'Authentication required',
         description: 'You must be logged in to add requirements',
@@ -244,10 +242,6 @@ const Filters: React.FC = () => {
     }
 
     if (!newRequirementValue.trim() || !selectedGroup) {
-      console.error("Cannot add requirement: empty value or no selected group", { 
-        newRequirementValue, 
-        selectedGroup 
-      });
       toast({
         title: 'Cannot add requirement',
         description: !newRequirementValue.trim() 
@@ -258,24 +252,41 @@ const Filters: React.FC = () => {
       return;
     }
     
-    console.log("Adding requirement:", { 
-      newRequirementType, 
-      newRequirementValue, 
-      selectedGroup,
-      user_id: user.id
-    });
+    // Validate input based on requirement type
+    let validationError = '';
+    switch(newRequirementType) {
+      case 'experience':
+        if (!/\d+/.test(newRequirementValue) && !newRequirementValue.toLowerCase().includes('year')) {
+          validationError = 'Experience should include years (e.g., "3 years Java")';
+        }
+        break;
+      case 'education':
+        // No specific validation for education
+        break;
+      case 'skill':
+        // No specific validation for skill
+        break;
+      case 'location':
+        // No specific validation for location
+        break;
+      case 'keyword':
+        // No specific validation for keyword
+        break;
+    }
+
+    if (validationError) {
+      toast({
+        title: 'Invalid requirement format',
+        description: validationError,
+        variant: 'destructive'
+      });
+      return;
+    }
     
     const requirementId = `filter-${Date.now()}`;
     
     try {
       // Add to database
-      console.log("Inserting requirement into database:", {
-        id: requirementId,
-        filter_group_id: selectedGroup,
-        type: newRequirementType,
-        value: newRequirementValue
-      });
-      
       const { data, error } = await supabase
         .from('filters')
         .insert({
@@ -283,34 +294,36 @@ const Filters: React.FC = () => {
           filter_group_id: selectedGroup,
           type: newRequirementType,
           value: newRequirementValue,
-          weight: 50,
           required: false
+          // weight field is now automatically set to default 50 in the database
         })
         .select();
       
-      console.log("Database response:", { data, error });
-      
       if (error) throw error;
       
-      // Create the new requirement object from the returned data
-      const newRequirement: Requirement = {
+      // Use the returned data if available, otherwise use our generated data
+      const newRequirement: Requirement = data && data[0] ? {
+        id: data[0].id,
+        type: data[0].type as Requirement['type'],
+        value: data[0].value,
+        required: data[0].required
+      } : {
         id: requirementId,
         type: newRequirementType,
         value: newRequirementValue,
-      weight: 50,
-      required: false
-    };
+        required: false
+      };
     
       // Update local state
       setRequirementGroups(prev => prev.map(group => 
-      group.id === selectedGroup 
+        group.id === selectedGroup 
           ? { ...group, filters: [...group.filters, newRequirement] } 
-        : group
-    ));
+          : group
+      ));
     
       setNewRequirementValue('');
     
-    toast({
+      toast({
         title: "Requirement added",
         description: `Added ${newRequirementType} requirement: ${newRequirementValue}`
       });
@@ -369,12 +382,15 @@ const Filters: React.FC = () => {
   const handleUpdateRequirement = async (requirementId: string, updates: Partial<Requirement>) => {
     if (!selectedGroup) return;
     
+    // Remove weight from updates if it exists (for backward compatibility)
+    const { weight, ...filteredUpdates } = updates;
+    
     try {
       // Update in database
       const { error } = await supabase
         .from('filters')
         .update({
-          ...updates,
+          ...filteredUpdates,
           updated_at: new Date().toISOString()
         })
         .eq('id', requirementId);
@@ -383,69 +399,101 @@ const Filters: React.FC = () => {
       
       // Update local state
       setRequirementGroups(prev => prev.map(group => 
-      group.id === selectedGroup 
-        ? { 
-            ...group, 
-              filters: group.filters.map(requirement => 
-                requirement.id === requirementId 
-                  ? { ...requirement, ...updates } 
-                  : requirement
-            ) 
-          } 
-        : group
-    ));
-    } catch (error) {
+        group.id === selectedGroup 
+          ? { 
+              ...group, 
+                filters: group.filters.map(requirement => 
+                  requirement.id === requirementId 
+                    ? { ...requirement, ...filteredUpdates } 
+                    : requirement
+              ) 
+            } 
+          : group
+      ));
+    } catch (error: any) {
       console.error('Error updating requirement:', error);
       toast({
         title: 'Error updating requirement',
-        description: 'There was a problem updating the requirement.',
+        description: error.message || 'There was a problem updating the requirement.',
         variant: 'destructive'
       });
     }
   };
   
   const handleAddGroup = async () => {
-    if (!newGroupName.trim() || !selectedProject) return;
+    if (!user) {
+      toast({
+        title: 'Authentication required',
+        description: 'You must be logged in to create requirement groups',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!newGroupName.trim()) {
+      toast({
+        title: 'Group name required',
+        description: 'Please enter a name for the requirement group',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (!selectedProject) {
+      toast({
+        title: 'Project selection required',
+        description: 'Please select a project for this requirement group',
+        variant: 'destructive'
+      });
+      return;
+    }
     
     const groupId = `filtergroup-${Date.now()}`;
     
     try {
       // Add to database
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('filter_groups')
         .insert({
           id: groupId,
           name: newGroupName,
           project_id: selectedProject,
-          user_id: user?.id,
+          user_id: user.id,
           enabled: true
-        });
+        })
+        .select();
       
       if (error) throw error;
       
-      // Update local state
-      const newGroup: RequirementGroup = {
+      // Use the returned data if available, otherwise use our generated data
+      const newGroup: RequirementGroup = data && data[0] ? {
+        id: data[0].id,
+        name: data[0].name,
+        enabled: data[0].enabled,
+        projectId: data[0].project_id,
+        filters: []
+      } : {
         id: groupId,
-      name: newGroupName,
-      enabled: true,
+        name: newGroupName,
+        enabled: true,
         projectId: selectedProject,
-      filters: []
-    };
+        filters: []
+      };
     
       setRequirementGroups(prev => [newGroup, ...prev]);
       setSelectedGroup(groupId);
-    setNewGroupName('');
-    setIsCreatingGroup(false);
+      setNewGroupName('');
+      setIsCreatingGroup(false);
     
-    toast({
+      toast({
         title: "Requirement group created",
         description: `Created new requirement group: ${newGroupName}`
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating requirement group:', error);
       toast({
         title: 'Error creating requirement group',
-        description: 'There was a problem creating the requirement group.',
+        description: error.message || 'There was a problem creating the requirement group.',
         variant: 'destructive'
       });
     }
@@ -453,10 +501,20 @@ const Filters: React.FC = () => {
   
   const handleDeleteGroup = async (groupId: string) => {
     const group = requirementGroups.find(g => g.id === groupId);
-    if (!group) return;
+    if (!group) {
+      toast({
+        title: 'Error',
+        description: 'Requirement group not found',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Save the group info before deletion for proper feedback
+    const groupName = group.name;
     
     try {
-      // Delete from database
+      // The filters will be automatically deleted via CASCADE constraint in the database
       const { error } = await supabase
         .from('filter_groups')
         .delete()
@@ -467,19 +525,21 @@ const Filters: React.FC = () => {
       // Update local state
       setRequirementGroups(prev => prev.filter(group => group.id !== groupId));
     
-    if (selectedGroup === groupId) {
-        setSelectedGroup(requirementGroups.length > 1 ? requirementGroups.filter(g => g.id !== groupId)[0]?.id : null);
-    }
+      // If the deleted group was selected, select another one if available
+      if (selectedGroup === groupId) {
+        const remainingGroups = requirementGroups.filter(g => g.id !== groupId);
+        setSelectedGroup(remainingGroups.length > 0 ? remainingGroups[0].id : null);
+      }
     
-    toast({
+      toast({
         title: "Requirement group deleted",
-        description: `Deleted requirement group: ${group.name}`
+        description: `Deleted requirement group: ${groupName} and all its requirements`
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting requirement group:', error);
       toast({
         title: 'Error deleting requirement group',
-        description: 'There was a problem deleting the requirement group.',
+        description: error.message || 'There was a problem deleting the requirement group.',
         variant: 'destructive'
       });
     }
@@ -657,7 +717,7 @@ const Filters: React.FC = () => {
                       <div>
                         <CardTitle className="text-xl">{currentGroup.name}</CardTitle>
                         <CardDescription>
-                          These requirements will be applied to all resumes processed for this position
+                          These requirements will be used to sort candidates into categories (A, B, C, D) based on match quality
                         </CardDescription>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -669,6 +729,27 @@ const Filters: React.FC = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
+                      <div className="bg-blue-50 p-4 rounded-md mb-6">
+                        <h3 className="text-sm font-medium text-blue-800 mb-2">How Requirements Work</h3>
+                        <p className="text-sm text-blue-700 mb-2">
+                          Requirements help sort candidates into categories based on how well they match your criteria:
+                        </p>
+                        <ul className="text-sm text-blue-700 list-disc pl-5 mb-2 space-y-1">
+                          <li><span className="font-semibold">Category A</span>: Candidates who match all required criteria and most other criteria</li>
+                          <li><span className="font-semibold">Category B</span>: Candidates who match most required criteria and some other criteria</li>
+                          <li><span className="font-semibold">Category C</span>: Candidates who match some criteria but miss key requirements</li>
+                          <li><span className="font-semibold">Category D</span>: Candidates who match few or no requirements</li>
+                        </ul>
+                        <h4 className="text-sm font-medium text-blue-800 mt-3 mb-1">Requirement Types:</h4>
+                        <ul className="text-sm text-blue-700 list-disc pl-5 space-y-1">
+                          <li><span className="font-semibold">Skills</span>: Technical or soft skills (e.g., "JavaScript", "Project Management")</li>
+                          <li><span className="font-semibold">Experience</span>: Work experience with duration (e.g., "3 years React")</li>
+                          <li><span className="font-semibold">Education</span>: Degrees or certifications (e.g., "Bachelor's in Computer Science")</li>
+                          <li><span className="font-semibold">Keywords</span>: Other important terms to match in resumes</li>
+                          <li><span className="font-semibold">Location</span>: Geographic preferences</li>
+                        </ul>
+                      </div>
+                      
                       <div className="flex flex-col space-y-4 mb-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                           <Select 
@@ -734,31 +815,19 @@ const Filters: React.FC = () => {
                         ) : (
                           <>
                             <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-500 pb-2">
-                              <div className="col-span-3">Type</div>
-                              <div className="col-span-4">Value</div>
-                              <div className="col-span-2">Weight</div>
-                              <div className="col-span-2">Required</div>
+                              <div className="col-span-4">Type</div>
+                              <div className="col-span-6">Value</div>
+                              <div className="col-span-1 text-center">Required</div>
                               <div className="col-span-1"></div>
                             </div>
                             
                             {currentGroup.filters.map(requirement => (
                               <div key={requirement.id} className="grid grid-cols-12 gap-4 items-center py-2 border-b">
-                                <div className="col-span-3">
+                                <div className="col-span-4">
                                   <Badge className="capitalize">{requirement.type}</Badge>
                                 </div>
-                                <div className="col-span-4 font-medium">{requirement.value}</div>
-                                <div className="col-span-2">
-                                  <Slider
-                                    value={[requirement.weight]}
-                                    min={0}
-                                    max={100}
-                                    step={5}
-                                    className="w-full"
-                                    onValueChange={(value) => handleUpdateRequirement(requirement.id, { weight: value[0] })}
-                                  />
-                                  <div className="text-xs text-center mt-1">{requirement.weight}%</div>
-                                </div>
-                                <div className="col-span-2 flex justify-center">
+                                <div className="col-span-6 font-medium">{requirement.value}</div>
+                                <div className="col-span-1 flex justify-center">
                                   <Checkbox 
                                     checked={requirement.required} 
                                     onCheckedChange={(checked) => handleUpdateRequirement(requirement.id, { required: !!checked })}
