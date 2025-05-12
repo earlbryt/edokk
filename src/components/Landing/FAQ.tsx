@@ -86,35 +86,7 @@ const FAQ: React.FC = () => {
           </div>
         </div>
         
-        {/* Contact section */}
-        <div className="mt-16 bg-white border border-gray-100 rounded-xl shadow-sm p-8 max-w-3xl mx-auto">
-          <div className="text-center mb-8">
-            <h3 className="font-display text-2xl font-bold mb-2 text-gray-900">Still have questions?</h3>
-            <p className="text-gray-600">
-              Our team is here to help. Contact us through any of these channels and we'll get back to you promptly.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mx-auto max-w-2xl">
-            <div className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="w-12 h-12 bg-lens-blue/10 rounded-full flex items-center justify-center mb-4">
-                <Mail className="h-6 w-6 text-lens-blue" />
-              </div>
-              <h4 className="font-medium mb-1">Email Us</h4>
-              <p className="text-sm text-gray-500 mb-3">support@lens.com</p>
-              <Button variant="outline" className="border-lens-blue text-lens-blue" onClick={() => window.location.href = '/contact#contact-form'}>Send Email</Button>
-            </div>
-            
-            <div className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="w-12 h-12 bg-lens-green/10 rounded-full flex items-center justify-center mb-4">
-                <Phone className="h-6 w-6 text-lens-green" />
-              </div>
-              <h4 className="font-medium mb-1">Call Us</h4>
-              <p className="text-sm text-gray-500 mb-3">Mon-Fri, 9am-5pm</p>
-              <Button variant="outline" className="border-lens-green text-lens-green">+233 20 343 8668</Button>
-            </div>
-          </div>
-        </div>
+
       </div>
     </section>
   );
