@@ -74,7 +74,7 @@ const Login: React.FC = () => {
             transition={{ delay: 0.5 }}
           >
             <h2 className="mt-8 text-3xl font-bold text-lens-purple">Welcome Back</h2>
-            <p className="mt-2 text-gray-600">Find the perfect candidates with Lens</p>
+            <p className="mt-2 text-gray-600">Resume to results in record time. Access your AI-powered recruitment workspace.</p>
           </motion.div>
         </div>
         <div className="absolute inset-0 bg-gradient-to-br from-lens-purple/20 to-transparent opacity-70 z-0"></div>
@@ -109,9 +109,9 @@ const Login: React.FC = () => {
               <Logo size="lg" className="inline-block mx-auto" />
               <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
               <p className="mt-2 text-sm text-gray-600 mb-2">
-                Or{' '}
+                Access your recruitment dashboard and AI-powered tools{' '}
                 <Link to="/signup" className="font-medium text-lens-purple hover:text-lens-purple/80">
-                  create a new account
+                  or create a new account
                 </Link>
               </p>
             </div>
