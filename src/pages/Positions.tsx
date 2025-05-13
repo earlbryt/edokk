@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
 import CandidateTable from '@/components/Dashboard/CandidateTable';
-import { Briefcase, Search, Users, Folders, FolderOpen, ChevronLeft, ArrowUpRight } from 'lucide-react';
+import { Search, Users, Star, Award, ThumbsUp, UserCheck, ChevronLeft, ArrowUpRight, Download, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +40,7 @@ interface Candidate {
   parsed?: any;
   cvFile?: {
     storage_url?: string;
+    raw_text?: string;
   };
 }
 
@@ -248,7 +249,7 @@ const Positions: React.FC = () => {
       // If no search query, reset to filter by active position
       if (activePosition) {
         const filtered = allCandidates.filter(
-          candidate => candidate.position?.toLowerCase() === activePosition.title?.toLowerCase()
+          candidate => candidate.position.toLowerCase() === activePosition.title.toLowerCase()
         );
         setFilteredCandidates(filtered);
       } else {
@@ -282,9 +283,52 @@ const Positions: React.FC = () => {
   }, [searchQuery, activePosition, allCandidates]);
   
   // Handle view candidate details
-  const handleViewCandidate = (candidate: Candidate) => {
-    setActiveCandidate(candidate);
-    setViewMode('detail');
+  const handleViewCandidate = async (candidate: Candidate) => {
+    setLoading(true);
+    
+    try {
+      // Fetch the full CV file data
+      const { data: cvFile, error: cvError } = await supabase
+        .from('cv_files')
+        .select('*')
+        .eq('id', candidate.id)
+        .single();
+      
+      if (cvError) throw cvError;
+      
+      // Fetch the associated summary if it exists
+      let summaryData = null;
+      if (cvFile.summary_id) {
+        const { data: summary, error: summaryError } = await supabase
+          .from('summaries')
+          .select('*')
+          .eq('id', cvFile.summary_id)
+          .single();
+        
+        if (summaryError) throw summaryError;
+        summaryData = summary;
+      }
+      
+      // Combine the data
+      const fullCandidateData = {
+        ...candidate,
+        cvFile,
+        parsed: summaryData || cvFile.parsed_data || {},
+        summaryData
+      };
+      
+      setActiveCandidate(fullCandidateData as any);
+      setViewMode('detail');
+    } catch (error) {
+      console.error('Error fetching candidate details:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load candidate details. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   // Handle view position candidates
@@ -377,10 +421,10 @@ const Positions: React.FC = () => {
       return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>; // Smile icon
     }
     if (title.includes('product') || title.includes('manager')) {
-      return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>; // Users icon
+      return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 1 0 7.75"/></svg>; // Users icon
     }
     if (title.includes('marketing') || title.includes('sales')) {
-      return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M5 3a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5Z"/><path d="M16 8.5 18 10l-7 8-5-5 1.5-1.5L11 15Z"/></svg>; // Check Square icon
+      return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M5 3a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M16 8.5 18 10l-7 8-5-5 1.5-1.5L11 15Z"/></svg>; // Check Square icon
     }
     // Default icon
     return <Briefcase className="h-5 w-5" />;
@@ -649,69 +693,10 @@ const Positions: React.FC = () => {
   // Updated renderCandidateDetails function to match the one in Candidates.tsx
   const renderCandidateDetails = () => {
     if (!activeCandidate) return null;
-    
-    const { name, skills, role, education, experience, parsed, status, position, confidence } = activeCandidate;
-    const candidateName = parsed?.name || name;
-    
-    // Get bucket counts (hardcoded similar to Candidates.tsx since we don't have real data here)
-    const bucketCounts = { a: 0, b: 0, c: 0, d: 0, unrated: 0 };
-    if (status === 'bucket-a') bucketCounts.a = 1;
-    else if (status === 'bucket-b') bucketCounts.b = 1;
-    else if (status === 'bucket-c') bucketCounts.c = 1;
-    else if (status === 'bucket-d') bucketCounts.d = 1;
-    else bucketCounts.unrated = 1;
 
-    // Handle bucket selection (following Candidates.tsx pattern)
-    const handleBucketChange = async (newBucket: string | null) => {
-      try {
-        setLoading(true);
-        
-        if (!newBucket) return; // No bucket selected
-        
-        // Update the candidate rating in the database
-        const { error } = await supabase
-          .from('candidate_ratings')
-          .upsert({
-            cv_file_id: activeCandidate.id,
-            rating: newBucket.replace('bucket-', '').toUpperCase(),
-            project_id: activeCandidate.project_id,
-          }, { onConflict: 'cv_file_id' });
-        
-        if (error) throw error;
-        
-        // Update local state
-        setActiveCandidate({
-          ...activeCandidate,
-          status: newBucket
-        });
-        
-        // Update in the filtered candidates list
-        const updatedCandidates = filteredCandidates.map(c => 
-          c.id === activeCandidate.id ? { ...c, status: newBucket } : c
-        );
-        setFilteredCandidates(updatedCandidates);
-        
-        // Update in all candidates list
-        const updatedAllCandidates = allCandidates.map(c => 
-          c.id === activeCandidate.id ? { ...c, status: newBucket } : c
-        );
-        setAllCandidates(updatedAllCandidates);
-        
-        toast({
-          title: "Rating updated",
-          description: `Candidate placed in ${newBucket.replace('bucket-', 'Bucket ')}`,
-        });
-      } catch (error) {
-        console.error('Error updating bucket:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update candidate rating.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Access the parsed data which contains the complete CV information
+    const parsed = activeCandidate.parsed || {};
+    const candidateName = parsed.name || activeCandidate.name;
 
     return (
       <div className="space-y-6">
@@ -729,201 +714,343 @@ const Positions: React.FC = () => {
             Back to Candidates
           </Button>
           <h2 className="text-xl font-medium">{candidateName}</h2>
-          <Badge 
-            className={cn(
-              "ml-2",
-              status === 'bucket-a' ? "bg-green-100 text-green-800" : 
-              status === 'bucket-b' ? "bg-blue-100 text-blue-800" :
-              status === 'bucket-c' ? "bg-orange-100 text-orange-800" :
-              status === 'bucket-d' ? "bg-red-100 text-red-800" :
-              "bg-gray-100 text-gray-800"
-            )}
-          >
-            {status === 'bucket-a' ? "Excellent Match" :
-             status === 'bucket-b' ? "Good Match" :
-             status === 'bucket-c' ? "Potential Match" :
-             status === 'bucket-d' ? "Consider Later" :
-             "Unrated"}
-          </Badge>
+          {activeCandidate.status && (
+            <Badge 
+              variant="outline" 
+              className={cn(
+                "ml-2",
+                activeCandidate.status === 'bucket-a' ? "bg-green-50 text-green-700 border-green-200" :
+                activeCandidate.status === 'bucket-b' ? "bg-blue-50 text-blue-700 border-blue-200" :
+                activeCandidate.status === 'bucket-c' ? "bg-orange-50 text-orange-700 border-orange-200" :
+                activeCandidate.status === 'bucket-d' ? "bg-red-50 text-red-700 border-red-200" :
+                "bg-gray-50 text-gray-700 border-gray-200"
+              )}
+            >
+              {activeCandidate.status === 'bucket-a' ? "Excellent Match" :
+               activeCandidate.status === 'bucket-b' ? "Good Match" :
+               activeCandidate.status === 'bucket-c' ? "Potential Match" :
+               activeCandidate.status === 'bucket-d' ? "Not Suitable" :
+               "Unrated"}
+            </Badge>
+          )}
         </div>
 
-        {/* Bucket Selector (now matching Candidates.tsx) */}
-        <BucketSelector 
-          selectedBucket={status} 
-          onBucketChange={handleBucketChange} 
-          counts={bucketCounts}
-        />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column - Basic info */}
-          <div className="space-y-6 lg:col-span-1">
-            {/* Candidate Profile Card */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-medium">
-                  Profile
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center justify-center">
-                    <div className="h-24 w-24 rounded-full overflow-hidden">
-                      <img 
-                        src={activeCandidate.avatar || "/assets/profile/avatar1.avif"} 
-                        alt={candidateName}
-                        className="h-full w-full object-cover"
-                      />
+        <Card>
+          <CardContent className="p-8">
+            <div className="space-y-8">
+              {/* Navigation Sidebar and Main Content */}
+              <div className="grid grid-cols-12 gap-8">
+                {/* Left sidebar navigation */}
+                <div className="col-span-3 space-y-4 h-fit sticky top-6">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-gray-500 mb-3">Quick Navigation</h3>
+                    <nav className="space-y-2">
+                      <a href="#basic-info" className="block text-sm text-lens-purple font-medium hover:text-lens-purple transition-colors">Basic Information</a>
+                      {parsed.skills?.length > 0 && (
+                        <a href="#skills" className="block text-sm text-gray-600 hover:text-lens-purple transition-colors">Skills & Expertise</a>
+                      )}
+                      {parsed.experience?.length > 0 && (
+                        <a href="#experience" className="block text-sm text-gray-600 hover:text-lens-purple transition-colors">Professional Experience</a>
+                      )}
+                      {parsed.education?.length > 0 && (
+                        <a href="#education" className="block text-sm text-gray-600 hover:text-lens-purple transition-colors">Education</a>
+                      )}
+                      {parsed.projects?.length > 0 && (
+                        <a href="#projects" className="block text-sm text-gray-600 hover:text-lens-purple transition-colors">Projects</a>
+                      )}
+                      {parsed.certifications?.length > 0 && (
+                        <a href="#certifications" className="block text-sm text-gray-600 hover:text-lens-purple transition-colors">Certifications</a>
+                      )}
+                      {parsed.languages?.length > 0 && (
+                        <a href="#languages" className="block text-sm text-gray-600 hover:text-lens-purple transition-colors">Languages</a>
+                      )}
+                      {parsed.awards?.length > 0 && (
+                        <a href="#awards" className="block text-sm text-gray-600 hover:text-lens-purple transition-colors">Awards</a>
+                      )}
+                      {parsed.publications?.length > 0 && (
+                        <a href="#publications" className="block text-sm text-gray-600 hover:text-lens-purple transition-colors">Publications</a>
+                      )}
+                      {parsed.volunteer?.length > 0 && (
+                        <a href="#volunteer" className="block text-sm text-gray-600 hover:text-lens-purple transition-colors">Volunteer Experience</a>
+                      )}
+                    </nav>
+                  </div>
+                </div>
+                
+                {/* Main content area */}
+                <div className="col-span-9 space-y-8 divide-y divide-gray-100">
+                  {/* Basic Info Section */}
+                  <div id="basic-info" className="pt-8 first:pt-0">
+                    <div className="text-center pb-6">
+                      <h2 className="text-xl font-bold text-gray-900 mb-2">{parsed.name || candidateName}</h2>
+                      <div className="flex items-center justify-center gap-4 text-gray-600">
+                        {parsed.email && (
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <span>{parsed.email}</span>
+                          </div>
+                        )}
+                        {parsed.phone && (
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                            <span>{parsed.phone}</span>
+                          </div>
+                        )}
+                        {parsed.role && (
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            <span>{parsed.role}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="text-center">
-                    <h3 className="text-lg font-semibold">{candidateName}</h3>
-                    <p className="text-gray-500">{role || position || "No role specified"}</p>
-                  </div>
+                  {/* Skills Section */}
+                  {parsed.skills && parsed.skills.length > 0 && (
+                    <div id="skills" className="pt-6">
+                      <div className="bg-gradient-to-r from-lens-purple/5 to-transparent p-4 rounded-xl">
+                        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          Skills & Expertise
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {parsed.skills.map((skill, index) => (
+                            <Badge 
+                              key={index} 
+                              variant="secondary" 
+                              className="bg-white border border-lens-purple/20 text-lens-purple hover:bg-lens-purple/5 transition-colors"
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
-                  <div className="pt-2 space-y-3">
-                    {position && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Position Match</p>
-                        <div className="flex items-center mt-1">
-                          <div className="flex-1 mr-2">
-                            <div className="h-2 bg-gray-200 rounded-full">
-                              <div 
-                                className={cn(
-                                  "h-2 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500",
-                                  confidence < 40 ? "bg-red-500" : 
-                                  confidence < 70 ? "bg-amber-500" : "bg-green-500"
-                                )}
-                                style={{ width: `${confidence}%` }}
-                              ></div>
+                  {/* Experience Section */}
+                  {parsed.experience && parsed.experience.length > 0 && (
+                    <div id="experience" className="pt-6">
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          Professional Experience
+                        </h3>
+                        <div className="space-y-4">
+                          {parsed.experience.map((job, index) => (
+                            <div key={index} className="border-l-2 border-lens-purple/30 pl-4 py-1">
+                              <div className="flex justify-between items-start mb-1">
+                                <h4 className="text-sm font-medium text-gray-900">{job.title || job.position || job}</h4>
+                                {job.dates && <span className="text-sm text-gray-500">{job.dates}</span>}
+                              </div>
+                              {job.company && <div className="text-xs text-gray-700 mb-1">{job.company}</div>}
+                              {job.description && <div className="text-xs text-gray-600">{job.description}</div>}
                             </div>
-                          </div>
-                          <span className="text-sm font-medium">
-                            {confidence}%
-                          </span>
-                        </div>
-                        <p className="text-sm font-medium mt-1">{position}</p>
-                      </div>
-                    )}
-                    
-                    {activeCandidate.rating && (
-                      <div className="pt-2">
-                        <p className="text-sm font-medium text-gray-500">Rating</p>
-                        <div className="flex items-center mt-1">
-                          <Badge
-                            className={cn(
-                              status === 'bucket-a' ? "bg-green-100 text-green-800" : 
-                              status === 'bucket-b' ? "bg-blue-100 text-blue-800" :
-                              status === 'bucket-c' ? "bg-orange-100 text-orange-800" :
-                              status === 'bucket-d' ? "bg-red-100 text-red-800" :
-                              "bg-gray-100 text-gray-800"
-                            )}
-                          >
-                            {status === 'bucket-a' ? "Excellent Match" :
-                             status === 'bucket-b' ? "Good Match" :
-                             status === 'bucket-c' ? "Potential Match" :
-                             status === 'bucket-d' ? "Consider Later" :
-                             "Unrated"}
-                          </Badge>
+                          ))}
                         </div>
                       </div>
-                    )}
-
-                    {activeCandidate.cvFile?.storage_url && (
-                      <div className="pt-2">
-                        <Button 
-                          variant="outline" 
-                          className="w-full flex items-center justify-center gap-2"
-                          onClick={() => window.open(activeCandidate.cvFile?.storage_url, '_blank')}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15v-2"/><path d="M12 15v-6"/><path d="M15 15v-4"/></svg>
-                          View Resume
-                        </Button>
+                    </div>
+                  )}
+                  
+                  {/* Education Section */}
+                  {parsed.education && parsed.education.length > 0 && (
+                    <div id="education" className="pt-6">
+                      <div className="bg-gradient-to-r from-blue-50 to-transparent p-4 rounded-xl">
+                        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                          Education
+                        </h3>
+                        <div className="space-y-4">
+                          {parsed.education.map((edu, index) => (
+                            <div key={index} className="border-l-2 border-blue-300 pl-4 py-1">
+                              <div className="flex justify-between items-start mb-1">
+                                <h4 className="text-sm font-medium text-gray-900">{edu.degree || edu}</h4>
+                                {edu.dates && <span className="text-sm text-gray-500">{edu.dates}</span>}
+                              </div>
+                              {edu.institution && <div className="text-xs text-gray-700 mb-1">{edu.institution}</div>}
+                              {edu.description && <div className="text-xs text-gray-600">{edu.description}</div>}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                  
+                  {/* Projects Section */}
+                  {parsed.projects && parsed.projects.length > 0 && (
+                    <div id="projects" className="pt-6">
+                      <div className="bg-gradient-to-r from-green-50 to-transparent p-4 rounded-xl">
+                        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                          </svg>
+                          Projects
+                        </h3>
+                        <div className="space-y-4">
+                          {parsed.projects.map((project, index) => (
+                            <div key={index} className="border-l-2 border-green-300 pl-4 py-1">
+                              <h4 className="text-sm font-medium text-gray-900">{project.name || project}</h4>
+                              {project.description && (
+                                <div className="text-sm text-gray-600 mt-1">{project.description}</div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Certifications Section */}
+                  {parsed.certifications && parsed.certifications.length > 0 && (
+                    <div id="certifications" className="pt-6">
+                      <div className="bg-gradient-to-r from-amber-50 to-transparent p-4 rounded-xl">
+                        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-1.946 0.806 3.42 3.42 0 010 4.438 3.42 3.42 0 00.806 1.946 3.42 3.42 0 013.138-3.138 3.42 3.42 0 001.946.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946-.806 3.42 3.42 0 013.138-3.138z" />
+                          </svg>
+                          Certifications
+                        </h3>
+                        <div className="space-y-4">
+                          {parsed.certifications.map((cert, index) => (
+                            <div key={index} className="border-l-2 border-amber-300 pl-4 py-1">
+                              <h4 className="text-sm font-medium text-gray-900">{cert.name || cert}</h4>
+                              {cert.issuer && <div className="text-gray-700">{cert.issuer}</div>}
+                              {cert.date && <div className="text-gray-500 text-sm">{cert.date}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Languages Section */}
+                  {parsed.languages && parsed.languages.length > 0 && (
+                    <div id="languages" className="pt-6">
+                      <div className="bg-gradient-to-r from-cyan-50 to-transparent p-4 rounded-xl">
+                        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                          </svg>
+                          Languages
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {parsed.languages.map((lang, index) => (
+                            <Badge 
+                              key={index} 
+                              variant="secondary"
+                              className="bg-white border border-cyan-200 text-cyan-700 hover:bg-cyan-50 transition-colors"
+                            >
+                              {typeof lang === 'string' ? lang : `${lang.language}: ${lang.proficiency}`}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Awards Section */}
+                  {parsed.awards && parsed.awards.length > 0 && (
+                    <div id="awards" className="pt-6">
+                      <div className="bg-gradient-to-r from-purple-50 to-transparent p-4 rounded-xl">
+                        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                          </svg>
+                          Awards & Achievements
+                        </h3>
+                        <div className="space-y-4">
+                          {parsed.awards.map((award, index) => (
+                            <div key={index} className="border-l-2 border-purple-300 pl-4 py-1">
+                              <h4 className="text-sm font-medium text-gray-900">{award.title || award}</h4>
+                              {award.issuer && <div className="text-gray-700">{award.issuer}</div>}
+                              {award.date && <div className="text-gray-500 text-sm">{award.date}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Publications Section */}
+                  {parsed.publications && parsed.publications.length > 0 && (
+                    <div id="publications" className="pt-6">
+                      <div className="bg-gradient-to-r from-cyan-50 to-transparent p-4 rounded-xl">
+                        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                          </svg>
+                          Publications
+                        </h3>
+                        <div className="space-y-4">
+                          {parsed.publications.map((pub, index) => (
+                            <div key={index} className="border-l-2 border-cyan-300 pl-4 py-1">
+                              <div className="flex justify-between items-start mb-1">
+                                <h4 className="text-sm font-medium text-gray-900">{pub.title || pub}</h4>
+                                {pub.date && <span className="text-sm text-gray-500">{pub.date}</span>}
+                              </div>
+                              {pub.publisher && <div className="text-xs text-gray-700 mb-1">{pub.publisher}</div>}
+                              {pub.description && <div className="text-xs text-gray-600">{pub.description}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Volunteer Experience Section */}
+                  {parsed.volunteer && parsed.volunteer.length > 0 && (
+                    <div id="volunteer" className="pt-6">
+                      <div className="bg-gradient-to-r from-indigo-50 to-transparent p-4 rounded-xl">
+                        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                          </svg>
+                          Volunteer Experience
+                        </h3>
+                        <div className="space-y-4">
+                          {parsed.volunteer.map((vol, index) => (
+                            <div key={index} className="border-l-2 border-indigo-300 pl-4 py-1">
+                              <div className="flex justify-between items-start mb-1">
+                                <h4 className="text-sm font-medium text-gray-900">{vol.role || vol}</h4>
+                                {vol.dates && <span className="text-sm text-gray-500">{vol.dates}</span>}
+                              </div>
+                              {vol.organization && <div className="text-xs text-gray-700 mb-1">{vol.organization}</div>}
+                              {vol.description && <div className="text-xs text-gray-600">{vol.description}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* If no structured data is available, show raw text */}
+                  {!parsed.skills && !parsed.experience && !parsed.education && 
+                   !parsed.projects && !parsed.certifications && !parsed.languages && 
+                   !parsed.awards && !parsed.publications && !parsed.volunteer && 
+                   activeCandidate.cvFile?.raw_text && (
+                    <div className="pt-6">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-4">Resume Text</h2>
+                      <div className="border rounded-lg p-4 whitespace-pre-wrap font-mono text-sm">
+                        {activeCandidate.cvFile.raw_text}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Middle and Right columns - Details */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* Skills */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-medium">
-                  Skills
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {skills && skills.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {skills.map((skill, index) => (
-                      <Badge 
-                        key={index}
-                        variant="secondary"
-                        className="bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 border border-purple-200"
-                      >
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 italic">No skills information available</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Education */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-medium">
-                  Education
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {Array.isArray(education) ? (
-                  <div className="space-y-4">
-                    {education.map((edu, index) => (
-                      <div key={index} className="border-l-2 border-purple-200 pl-4">
-                        <p className="font-medium">{edu}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="border-l-2 border-purple-200 pl-4">
-                    <p>{education || "No education information available"}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Experience */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-medium">
-                  Experience
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {Array.isArray(experience) ? (
-                  <div className="space-y-4">
-                    {experience.map((exp, index) => (
-                      <div key={index} className="border-l-2 border-purple-200 pl-4 py-2">
-                        <p className="font-medium">{exp}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="border-l-2 border-purple-200 pl-4">
-                    <p>{experience || "No experience information available"}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   };
