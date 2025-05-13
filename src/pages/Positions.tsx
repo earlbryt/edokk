@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import LoadingAnimation from '@/components/ui/loading-animation';
+import BucketSelector from '@/components/Dashboard/BucketSelector';
 
 interface Position {
   id: string;
@@ -645,15 +646,73 @@ const Positions: React.FC = () => {
     );
   };
   
-  // Render candidate details view
+  // Updated renderCandidateDetails function to match the one in Candidates.tsx
   const renderCandidateDetails = () => {
     if (!activeCandidate) return null;
     
-    // This is reusing the detailed view from Candidates page
-    // You can render the candidate details similarly to how it's done in the Candidates component
-    const parsed = activeCandidate.parsed || {};
-    const candidateName = parsed.name || activeCandidate.name;
+    const { name, skills, role, education, experience, parsed, status, position, confidence } = activeCandidate;
+    const candidateName = parsed?.name || name;
     
+    // Get bucket counts (hardcoded similar to Candidates.tsx since we don't have real data here)
+    const bucketCounts = { a: 0, b: 0, c: 0, d: 0, unrated: 0 };
+    if (status === 'bucket-a') bucketCounts.a = 1;
+    else if (status === 'bucket-b') bucketCounts.b = 1;
+    else if (status === 'bucket-c') bucketCounts.c = 1;
+    else if (status === 'bucket-d') bucketCounts.d = 1;
+    else bucketCounts.unrated = 1;
+
+    // Handle bucket selection (following Candidates.tsx pattern)
+    const handleBucketChange = async (newBucket: string | null) => {
+      try {
+        setLoading(true);
+        
+        if (!newBucket) return; // No bucket selected
+        
+        // Update the candidate rating in the database
+        const { error } = await supabase
+          .from('candidate_ratings')
+          .upsert({
+            cv_file_id: activeCandidate.id,
+            rating: newBucket.replace('bucket-', '').toUpperCase(),
+            project_id: activeCandidate.project_id,
+          }, { onConflict: 'cv_file_id' });
+        
+        if (error) throw error;
+        
+        // Update local state
+        setActiveCandidate({
+          ...activeCandidate,
+          status: newBucket
+        });
+        
+        // Update in the filtered candidates list
+        const updatedCandidates = filteredCandidates.map(c => 
+          c.id === activeCandidate.id ? { ...c, status: newBucket } : c
+        );
+        setFilteredCandidates(updatedCandidates);
+        
+        // Update in all candidates list
+        const updatedAllCandidates = allCandidates.map(c => 
+          c.id === activeCandidate.id ? { ...c, status: newBucket } : c
+        );
+        setAllCandidates(updatedAllCandidates);
+        
+        toast({
+          title: "Rating updated",
+          description: `Candidate placed in ${newBucket.replace('bucket-', 'Bucket ')}`,
+        });
+      } catch (error) {
+        console.error('Error updating bucket:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update candidate rating.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-2">
@@ -670,100 +729,201 @@ const Positions: React.FC = () => {
             Back to Candidates
           </Button>
           <h2 className="text-xl font-medium">{candidateName}</h2>
-          {activeCandidate.status && (
-            <Badge 
-              variant="outline" 
-              className={cn(
-                "ml-2",
-                activeCandidate.status === 'bucket-a' ? "bg-green-50 text-green-700 border-green-200" :
-                activeCandidate.status === 'bucket-b' ? "bg-blue-50 text-blue-700 border-blue-200" :
-                activeCandidate.status === 'bucket-c' ? "bg-orange-50 text-orange-700 border-orange-200" :
-                activeCandidate.status === 'bucket-d' ? "bg-red-50 text-red-700 border-red-200" :
-                "bg-gray-50 text-gray-700 border-gray-200"
-              )}
-            >
-              {activeCandidate.status === 'bucket-a' ? "Excellent Match" :
-               activeCandidate.status === 'bucket-b' ? "Good Match" :
-               activeCandidate.status === 'bucket-c' ? "Potential Match" :
-               activeCandidate.status === 'bucket-d' ? "Consider Later" :
-               "Unrated"}
-            </Badge>
-          )}
           <Badge 
-            variant="outline" 
-            className="ml-2 bg-purple-50 text-purple-700 border-purple-200"
+            className={cn(
+              "ml-2",
+              status === 'bucket-a' ? "bg-green-100 text-green-800" : 
+              status === 'bucket-b' ? "bg-blue-100 text-blue-800" :
+              status === 'bucket-c' ? "bg-orange-100 text-orange-800" :
+              status === 'bucket-d' ? "bg-red-100 text-red-800" :
+              "bg-gray-100 text-gray-800"
+            )}
           >
-            {activeCandidate.position} ({activeCandidate.confidence}%)
+            {status === 'bucket-a' ? "Excellent Match" :
+             status === 'bucket-b' ? "Good Match" :
+             status === 'bucket-c' ? "Potential Match" :
+             status === 'bucket-d' ? "Consider Later" :
+             "Unrated"}
           </Badge>
         </div>
+
+        {/* Bucket Selector (now matching Candidates.tsx) */}
+        <BucketSelector 
+          selectedBucket={status} 
+          onBucketChange={handleBucketChange} 
+          counts={bucketCounts}
+        />
         
-        <Card>
-          <CardContent className="p-8">
-            <div className="space-y-8">
-              {/* Display candidate details */}
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {candidateName}
-                </h3>
-                <p className="text-gray-600">
-                  {activeCandidate.position} • {activeCandidate.confidence}% Match
-                </p>
-              </div>
-              
-              {/* Skills Section */}
-              {activeCandidate.skills && activeCandidate.skills.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Skills</h4>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left column - Basic info */}
+          <div className="space-y-6 lg:col-span-1">
+            {/* Candidate Profile Card */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-medium">
+                  Profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center justify-center">
+                    <div className="h-24 w-24 rounded-full overflow-hidden">
+                      <img 
+                        src={activeCandidate.avatar || "/assets/profile/avatar1.avif"} 
+                        alt={candidateName}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold">{candidateName}</h3>
+                    <p className="text-gray-500">{role || position || "No role specified"}</p>
+                  </div>
+                  
+                  <div className="pt-2 space-y-3">
+                    {position && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Position Match</p>
+                        <div className="flex items-center mt-1">
+                          <div className="flex-1 mr-2">
+                            <div className="h-2 bg-gray-200 rounded-full">
+                              <div 
+                                className={cn(
+                                  "h-2 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500",
+                                  confidence < 40 ? "bg-red-500" : 
+                                  confidence < 70 ? "bg-amber-500" : "bg-green-500"
+                                )}
+                                style={{ width: `${confidence}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <span className="text-sm font-medium">
+                            {confidence}%
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium mt-1">{position}</p>
+                      </div>
+                    )}
+                    
+                    {activeCandidate.rating && (
+                      <div className="pt-2">
+                        <p className="text-sm font-medium text-gray-500">Rating</p>
+                        <div className="flex items-center mt-1">
+                          <Badge
+                            className={cn(
+                              status === 'bucket-a' ? "bg-green-100 text-green-800" : 
+                              status === 'bucket-b' ? "bg-blue-100 text-blue-800" :
+                              status === 'bucket-c' ? "bg-orange-100 text-orange-800" :
+                              status === 'bucket-d' ? "bg-red-100 text-red-800" :
+                              "bg-gray-100 text-gray-800"
+                            )}
+                          >
+                            {status === 'bucket-a' ? "Excellent Match" :
+                             status === 'bucket-b' ? "Good Match" :
+                             status === 'bucket-c' ? "Potential Match" :
+                             status === 'bucket-d' ? "Consider Later" :
+                             "Unrated"}
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeCandidate.cvFile?.storage_url && (
+                      <div className="pt-2">
+                        <Button 
+                          variant="outline" 
+                          className="w-full flex items-center justify-center gap-2"
+                          onClick={() => window.open(activeCandidate.cvFile?.storage_url, '_blank')}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15v-2"/><path d="M12 15v-6"/><path d="M15 15v-4"/></svg>
+                          View Resume
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Middle and Right columns - Details */}
+          <div className="space-y-6 lg:col-span-2">
+            {/* Skills */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-medium">
+                  Skills
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {skills && skills.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {activeCandidate.skills.map((skill, index) => (
+                    {skills.map((skill, index) => (
                       <Badge 
-                        key={index} 
-                        variant="secondary" 
-                        className="bg-white border border-lens-purple/20 text-lens-purple hover:bg-lens-purple/5 transition-colors"
+                        key={index}
+                        variant="secondary"
+                        className="bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 border border-purple-200"
                       >
                         {skill}
                       </Badge>
                     ))}
                   </div>
-                </div>
-              )}
-              
-              {/* Experience Section */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Experience</h4>
-                <p className="text-sm text-gray-600">
-                  {activeCandidate.experience}
-                </p>
-              </div>
-              
-              {/* Education Section */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Education</h4>
-                <p className="text-sm text-gray-600">
-                  {activeCandidate.education}
-                </p>
-              </div>
-              
-              {/* Position Match Explanation */}
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h4 className="text-sm font-semibold text-purple-900 mb-2">
-                  Position Match: {activeCandidate.position}
-                </h4>
-                <div className="flex items-center mb-2">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-purple-600 h-2 rounded-full" 
-                      style={{ width: `${activeCandidate.confidence}%` }}
-                    ></div>
+                ) : (
+                  <p className="text-gray-500 italic">No skills information available</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Education */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-medium">
+                  Education
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Array.isArray(education) ? (
+                  <div className="space-y-4">
+                    {education.map((edu, index) => (
+                      <div key={index} className="border-l-2 border-purple-200 pl-4">
+                        <p className="font-medium">{edu}</p>
+                      </div>
+                    ))}
                   </div>
-                  <span className="ml-2 text-sm font-medium text-purple-700">
-                    {activeCandidate.confidence}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                ) : (
+                  <div className="border-l-2 border-purple-200 pl-4">
+                    <p>{education || "No education information available"}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Experience */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-medium">
+                  Experience
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Array.isArray(experience) ? (
+                  <div className="space-y-4">
+                    {experience.map((exp, index) => (
+                      <div key={index} className="border-l-2 border-purple-200 pl-4 py-2">
+                        <p className="font-medium">{exp}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border-l-2 border-purple-200 pl-4">
+                    <p>{experience || "No experience information available"}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     );
   };
