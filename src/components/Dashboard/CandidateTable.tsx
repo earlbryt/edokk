@@ -4,10 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, ArrowUpRight, CheckCircle, Clock, AlertTriangle, XCircle, BarChart, Filter, User } from 'lucide-react';
+import { Eye, ArrowUpRight, CheckCircle, Clock, AlertTriangle, XCircle, BarChart, Filter, User, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { matchCandidate, MatchCandidateResult } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import BucketSelector from './BucketSelector';
 
 type Candidate = {
@@ -30,15 +38,18 @@ type Candidate = {
 interface CandidateTableProps {
   title: string;
   candidates: Candidate[];
+  onViewCandidate?: (candidate: Candidate) => void;
 }
 
 const CandidateTable: React.FC<CandidateTableProps> = ({
   title,
-  candidates
+  candidates,
+  onViewCandidate
 }) => {
   const [processingCandidates, setProcessingCandidates] = useState<Record<string, boolean>>({});
   const [candidatesMap, setCandidatesMap] = useState<Record<string, Candidate>>({});
   const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
+  const [openDialogId, setOpenDialogId] = useState<string | null>(null);
   const { toast } = useToast();
   
   // Convert candidates array to map for easier updates
@@ -91,50 +102,62 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
       supabase.removeChannel(subscription);
     };
   }, [candidatesMap, toast]);
+  
   // Function to handle rating a candidate
   const handleRateCandidate = async (candidate: Candidate) => {
-    if (!candidate.project_id) {
-      toast({
-        title: "Error",
-        description: "Candidate must be associated with a project to be rated",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (processingCandidates[candidate.id]) return;
     
     setProcessingCandidates(prev => ({ ...prev, [candidate.id]: true }));
     
     try {
-      const result = await matchCandidate({
+      // Use the matchCandidate utility function instead of direct RPC
+      const ratingData = await matchCandidate({
         candidate_id: candidate.id,
         project_id: candidate.project_id
       });
       
-      if (result) {
-        toast({
-          title: "Candidate Rated",
-          description: `${candidate.name} has been rated as Category ${result.rating}`,
-        });
-        
-        // Update the candidate with the rating result
-        candidate.rating = result;
-        candidate.status = `bucket-${result.rating.toLowerCase()}`;
-      } else {
-        toast({
-          title: "Rating Failed",
-          description: "Could not rate the candidate. Please try again.",
-          variant: "destructive"
-        });
+      if (!ratingData) {
+        throw new Error("Failed to rate candidate");
       }
-    } catch (error) {
-      console.error("Error rating candidate:", error);
+      
+      // Update UI
+      setCandidatesMap(prev => {
+        const updated = { ...prev };
+        if (updated[candidate.id]) {
+          updated[candidate.id] = {
+            ...updated[candidate.id],
+            rating: ratingData,
+            status: ratingData?.rating ? `bucket-${ratingData.rating.toLowerCase()}` : undefined
+          };
+        }
+        return updated;
+      });
+      
+      // Update rating in database
+      await supabase
+        .from('cv_files')
+        .update({
+          status: ratingData?.rating ? `bucket-${ratingData.rating.toLowerCase()}` : 'completed',
+        })
+        .eq('id', candidate.id);
+      
       toast({
-        title: "Rating Failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive"
+        title: 'Candidate Rated',
+        description: `${candidate.name} has been rated and categorized`
+      });
+    } catch (error) {
+      console.error('Error rating candidate:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to rate candidate. Please try again.',
+        variant: 'destructive'
       });
     } finally {
-      setProcessingCandidates(prev => ({ ...prev, [candidate.id]: false }));
+      setProcessingCandidates(prev => {
+        const updated = { ...prev };
+        delete updated[candidate.id];
+        return updated;
+      });
     }
   };
 
@@ -257,6 +280,7 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
               <div 
                 key={candidate.id} 
                 className="p-4 border rounded-lg cursor-pointer hover:border-lens-purple transition-colors"
+                onClick={() => onViewCandidate && onViewCandidate(candidate)}
               >
                 <div className="flex items-center mb-3">
                   <div className={`mr-3 p-2 rounded-lg ${getBucketColor(candidate.status)}`}>
@@ -286,11 +310,69 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
                           <BarChart className="h-4 w-4" />
                         </Button>
                         
+                        {candidate.rating && candidate.rating.rating_reason && (
+                          <Dialog open={openDialogId === candidate.id} onOpenChange={(open) => {
+                            if (open) {
+                              setOpenDialogId(candidate.id);
+                            } else {
+                              setOpenDialogId(null);
+                            }
+                          }}>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="h-8 w-8 rounded-full"
+                                title="Rating Reason"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <Info className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
+                              <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2">
+                                  <span className="text-lens-purple">Rating Explanation</span>
+                                  {candidate.status && (
+                                    <Badge 
+                                      variant="outline" 
+                                      className={cn(
+                                        candidate.status === 'bucket-a' ? "bg-green-50 text-green-700 border-green-200" :
+                                        candidate.status === 'bucket-b' ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                        candidate.status === 'bucket-c' ? "bg-orange-50 text-orange-700 border-orange-200" :
+                                        candidate.status === 'bucket-d' ? "bg-red-50 text-red-700 border-red-200" :
+                                        "bg-gray-50 text-gray-700 border-gray-200"
+                                      )}
+                                    >
+                                      {candidate.status === 'bucket-a' ? "A" :
+                                      candidate.status === 'bucket-b' ? "B" :
+                                      candidate.status === 'bucket-c' ? "C" :
+                                      candidate.status === 'bucket-d' ? "D" : ""}
+                                    </Badge>
+                                  )}
+                                </DialogTitle>
+                                <DialogDescription>
+                                  Explanation for why this candidate was rated as they were.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="p-4 bg-gray-50 rounded-md border border-gray-100 max-h-[60vh] overflow-y-auto">
+                                <p className="text-sm whitespace-pre-line">{candidate.rating.rating_reason}</p>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                        
                         <Button 
                           variant="ghost" 
                           size="icon"
                           className="h-8 w-8 rounded-full"
                           title="View Candidate"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewCandidate && onViewCandidate(candidate);
+                          }}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
