@@ -110,11 +110,7 @@ const Sidebar: React.FC = () => {
       label: 'Resume Upload', 
       to: '/dashboard/parser' 
     },
-    { 
-      icon: <Filter size={22} />, 
-      label: 'Requirements', 
-      to: '/dashboard/filters' 
-    },
+    // Requirements tab removed - functionality integrated into Positions page
   ];
   
   const bottomMenuItems: MenuItem[] = [];
