@@ -294,25 +294,95 @@ const Positions: React.FC = () => {
   
   // Function to get a color for a position (used for folder styling)
   const getPositionColor = (position: Position, index: number) => {
-    // Colors for folders - premium gradient colors
+    // Premium gradient colors with improved visual contrast
     const colors = [
-      'from-purple-50 to-purple-100 text-purple-700 border-purple-200',
-      'from-blue-50 to-blue-100 text-blue-700 border-blue-200',
-      'from-emerald-50 to-emerald-100 text-emerald-700 border-emerald-200',
-      'from-amber-50 to-amber-100 text-amber-700 border-amber-200',
-      'from-rose-50 to-rose-100 text-rose-700 border-rose-200',
-      'from-indigo-50 to-indigo-100 text-indigo-700 border-indigo-200',
+      {
+        gradient: 'from-purple-50 via-purple-100 to-white',
+        accentGradient: 'from-purple-600 to-purple-400',
+        text: 'text-purple-800',
+        lightText: 'text-purple-700',
+        border: 'border-purple-200',
+        iconBg: 'bg-purple-100',
+        badgeBg: 'bg-purple-50',
+        hoverBg: 'hover:bg-purple-50'
+      },
+      {
+        gradient: 'from-blue-50 via-blue-100 to-white',
+        accentGradient: 'from-blue-600 to-blue-400',
+        text: 'text-blue-800',
+        lightText: 'text-blue-700',
+        border: 'border-blue-200',
+        iconBg: 'bg-blue-100',
+        badgeBg: 'bg-blue-50',
+        hoverBg: 'hover:bg-blue-50'
+      },
+      {
+        gradient: 'from-emerald-50 via-emerald-100 to-white',
+        accentGradient: 'from-emerald-600 to-emerald-400',
+        text: 'text-emerald-800',
+        lightText: 'text-emerald-700',
+        border: 'border-emerald-200',
+        iconBg: 'bg-emerald-100',
+        badgeBg: 'bg-emerald-50',
+        hoverBg: 'hover:bg-emerald-50'
+      },
+      {
+        gradient: 'from-amber-50 via-amber-100 to-white',
+        accentGradient: 'from-amber-600 to-amber-400',
+        text: 'text-amber-800',
+        lightText: 'text-amber-700',
+        border: 'border-amber-200',
+        iconBg: 'bg-amber-100',
+        badgeBg: 'bg-amber-50',
+        hoverBg: 'hover:bg-amber-50'
+      },
+      {
+        gradient: 'from-rose-50 via-rose-100 to-white',
+        accentGradient: 'from-rose-600 to-rose-400',
+        text: 'text-rose-800',
+        lightText: 'text-rose-700',
+        border: 'border-rose-200',
+        iconBg: 'bg-rose-100',
+        badgeBg: 'bg-rose-50',
+        hoverBg: 'hover:bg-rose-50'
+      },
+      {
+        gradient: 'from-indigo-50 via-indigo-100 to-white',
+        accentGradient: 'from-indigo-600 to-indigo-400',
+        text: 'text-indigo-800',
+        lightText: 'text-indigo-700',
+        border: 'border-indigo-200',
+        iconBg: 'bg-indigo-100',
+        badgeBg: 'bg-indigo-50',
+        hoverBg: 'hover:bg-indigo-50'
+      },
     ];
     
     // Use modulo to cycle through colors
     return colors[index % colors.length];
   };
   
-  // Render folder icon for positions
-  const renderFolderIcon = (active: boolean) => {
-    return active ? 
-      <FolderOpen className="h-6 w-6" /> : 
-      <Folders className="h-6 w-6" />;
+  // Position-specific icons instead of generic folders
+  const getPositionIcon = (position: Position) => {
+    const title = position.title.toLowerCase();
+    
+    if (title.includes('engineer') || title.includes('developer')) {
+      return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>; // Code icon
+    }
+    if (title.includes('data') || title.includes('scientist') || title.includes('analyst')) {
+      return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>; // Chart icon
+    }
+    if (title.includes('design') || title.includes('ux') || title.includes('ui')) {
+      return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>; // Smile icon
+    }
+    if (title.includes('product') || title.includes('manager')) {
+      return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>; // Users icon
+    }
+    if (title.includes('marketing') || title.includes('sales')) {
+      return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M5 3a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5Z"/><path d="M16 8.5 18 10l-7 8-5-5 1.5-1.5L11 15Z"/></svg>; // Check Square icon
+    }
+    // Default icon
+    return <Briefcase className="h-5 w-5" />;
   };
   
   // Render the positions view (folders)
@@ -378,42 +448,95 @@ const Positions: React.FC = () => {
           <Card 
             key={position.id} 
             className={cn(
-              "cursor-pointer overflow-hidden border transition-all hover:shadow-md",
-              position.candidate_count > 0 ? "opacity-100" : "opacity-70"
+              "cursor-pointer overflow-hidden border transition-all hover:shadow-lg relative",
+              position.candidate_count > 0 ? "opacity-100" : "opacity-85"
             )}
             onClick={() => handleViewPosition(position)}
           >
+            {/* Position color scheme */}
+            {position.candidate_count > 0 && (
+              <div className={cn(
+                "absolute top-0 left-0 h-1 w-full bg-gradient-to-r",
+                getPositionColor(position, index).accentGradient
+              )} />
+            )}
+            
             <div className={cn(
               "h-full flex flex-col bg-gradient-to-br",
-              getPositionColor(position, index)
+              getPositionColor(position, index).gradient
             )}>
-              <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
+              <CardHeader className="p-5 pb-3 flex flex-row items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {renderFolderIcon(false)}
-                  <CardTitle className="text-lg font-semibold">{position.title}</CardTitle>
+                  <div className={cn(
+                    "rounded-full p-2 flex items-center justify-center",
+                    getPositionColor(position, index).iconBg
+                  )}>
+                    {getPositionIcon(position)}
+                  </div>
+                  <div>
+                    <CardTitle className={cn(
+                      "text-lg font-semibold",
+                      getPositionColor(position, index).text
+                    )}>
+                      {position.title}
+                    </CardTitle>
+                    {position.candidate_count > 0 && (
+                      <p className={cn(
+                        "text-xs font-medium mt-1",
+                        getPositionColor(position, index).lightText
+                      )}>
+                        {position.candidate_count} {position.candidate_count === 1 ? 'Candidate' : 'Candidates'}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <Badge variant="outline" className={cn(
-                  "bg-white/70 backdrop-blur-sm",
-                  position.candidate_count > 0 ? "" : "text-gray-500"
+                  "bg-white/80 backdrop-blur-sm",
+                  position.candidate_count > 0 
+                    ? getPositionColor(position, index).text
+                    : "text-gray-500"
                 )}>
-                  {position.candidate_count} {position.candidate_count === 1 ? 'Candidate' : 'Candidates'}
+                  {position.candidate_count > 0 ? "Active" : "No Candidates"}
                 </Badge>
               </CardHeader>
-              <CardContent className="p-4 pt-2 h-full flex flex-col">
-                <p className="text-sm mb-3 flex-1">{position.description}</p>
+              
+              <CardContent className="p-5 pt-0 h-full flex flex-col">
+                <p className={cn(
+                  "text-sm mb-4 flex-1 leading-relaxed",
+                  position.candidate_count > 0
+                    ? "text-gray-700"
+                    : "text-gray-500"
+                )}>
+                  {position.description}
+                </p>
                 
-                <div className="text-xs space-y-2">
+                <div className="text-xs space-y-3">
                   {position.key_skills.length > 0 && (
                     <div>
-                      <strong>Key Skills:</strong> 
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <p className={cn(
+                        "font-medium mb-2",
+                        getPositionColor(position, index).text
+                      )}>
+                        Key Skills
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
                         {position.key_skills.slice(0, 5).map((skill, i) => (
-                          <span key={i} className="bg-white/50 backdrop-blur-sm px-2 py-0.5 rounded-full text-xs">
+                          <span 
+                            key={i} 
+                            className={cn(
+                              "px-2 py-1 rounded-md text-xs font-medium", 
+                              getPositionColor(position, index).badgeBg,
+                              getPositionColor(position, index).text
+                            )}
+                          >
                             {skill}
                           </span>
                         ))}
                         {position.key_skills.length > 5 && (
-                          <span className="bg-white/50 backdrop-blur-sm px-2 py-0.5 rounded-full text-xs">
+                          <span className={cn(
+                            "px-2 py-1 rounded-md text-xs font-medium",
+                            "bg-gray-100 text-gray-700"
+                          )}>
                             +{position.key_skills.length - 5} more
                           </span>
                         )}
@@ -422,19 +545,32 @@ const Positions: React.FC = () => {
                   )}
                 </div>
                 
-                {position.candidate_count > 0 && (
+                <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
                   <Button 
-                    variant="ghost" 
+                    variant={position.candidate_count > 0 ? "default" : "outline"}
                     size="sm" 
-                    className="mt-3 self-end bg-white/50 hover:bg-white/80 backdrop-blur-sm"
+                    className={cn(
+                      position.candidate_count > 0
+                        ? "bg-gradient-to-r shadow-sm"
+                        : "",
+                      getPositionColor(position, index).accentGradient,
+                      position.candidate_count > 0 ? "text-white" : getPositionColor(position, index).text
+                    )}
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent the card's onClick from also firing
                       handleViewPosition(position);
                     }}
                   >
-                    View Candidates <ArrowUpRight className="h-3 w-3 ml-1" />
+                    {position.candidate_count > 0 
+                      ? <>
+                          View Candidates <ArrowUpRight className="h-3.5 w-3.5 ml-1.5" />
+                        </>
+                      : <>
+                          View Position
+                        </>
+                    }
                   </Button>
-                )}
+                </div>
               </CardContent>
             </div>
           </Card>
@@ -467,8 +603,8 @@ const Positions: React.FC = () => {
             variant="outline" 
             className={cn(
               "ml-2",
-              getPositionColor(activePosition, 0).split(' ')[0],
-              getPositionColor(activePosition, 0).split(' ')[2]
+              getPositionColor(activePosition, 0).badgeBg,
+              getPositionColor(activePosition, 0).text
             )}
           >
             {filteredCandidates.length} {filteredCandidates.length === 1 ? 'Candidate' : 'Candidates'}
