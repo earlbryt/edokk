@@ -1,61 +1,121 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Landing from './pages/Landing';
-import Features from './pages/Features';
-import Pricing from './pages/Pricing';
-import Contact from './pages/Contact';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
-import Positions from './pages/Positions';
-import Filters from './pages/Filters';
-import CVParser from './pages/CVParser';
-import NotFound from './pages/NotFound';
-import { useAuth } from './context/AuthContext';
-import ScrollToTop from './components/shared/ScrollToTop';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import ScrollToTop from "@/components/shared/ScrollToTop";
+import { AuthProvider } from "./context/AuthContext";
+import Landing from "./pages/Landing";
+import Dashboard from "./pages/Dashboard";
+import CVParser from "./pages/CVParser";
+import Filters from "./pages/Filters";
+import Candidates from "./pages/Candidates";
+import Positions from "./pages/Positions";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Pricing from "./pages/Pricing";
+import Features from "./pages/Features";
+import Contact from "./pages/Contact";
+import NotFound from "./pages/NotFound";
+import { useAuth } from "./context/AuthContext";
 
-function App() {
-  const { authState } = useAuth();
-  const isLoggedIn = authState.isAuthenticated;
+const queryClient = new QueryClient();
 
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/features" element={<Features />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard/positions" element={<Positions />} />
-          <Route path="/dashboard/filters" element={<Filters />} />
-          <Route path="/dashboard/parser" element={<CVParser />} />
-          {/* Candidates route removed */}
-        </Route>
-        
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <ScrollToTop />
-      <Toaster />
-    </Router>
-  );
-}
-
-// ProtectedRoute component
-function ProtectedRoute({ children }: { children?: React.ReactNode }) {
-  const { authState } = useAuth();
-  const isLoggedIn = authState.isAuthenticated;
-
-  if (!isLoggedIn) {
-    return <Navigate to="/login" />;
+// Protected route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="h-screen flex items-center justify-center">Loading...</div>;
   }
-
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
   return <>{children}</>;
-}
+};
+
+const AppRoutes = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/features" element={<Features />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route 
+        path="/dashboard" 
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/:section" 
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/parser" 
+        element={
+          <ProtectedRoute>
+            <CVParser />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/filters" 
+        element={
+          <ProtectedRoute>
+            <Filters />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/candidates" 
+        element={
+          <ProtectedRoute>
+            <Candidates />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/positions" 
+        element={
+          <ProtectedRoute>
+            <Positions />
+          </ProtectedRoute>
+        } 
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
+// Separate the AuthProvider into its own component to avoid the circular dependency
+const AuthenticatedApp = () => (
+  <BrowserRouter>
+    <ScrollToTop />
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <AppRoutes />
+    </TooltipProvider>
+  </BrowserRouter>
+);
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <AuthenticatedApp />
+    </AuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;

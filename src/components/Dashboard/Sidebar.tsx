@@ -3,8 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
+  Users,
   FileText,
   Filter,
+  CheckSquare,
   LogOut,
   Briefcase
 } from 'lucide-react';
@@ -98,6 +100,11 @@ const Sidebar: React.FC = () => {
       icon: <LayoutDashboard size={22} />, 
       label: 'Dashboard', 
       to: '/dashboard' 
+    },
+    { 
+      icon: <Users size={22} />, 
+      label: 'Candidates', 
+      to: '/dashboard/candidates'
     },
     { 
       icon: <Briefcase size={22} />, 
