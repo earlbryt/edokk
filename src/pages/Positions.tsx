@@ -226,7 +226,22 @@ const Positions: React.FC = () => {
     }
   }, [activePosition, allCandidates]);
   
-  // Filter by search query
+  // Search in positions view
+  const getFilteredPositions = () => {
+    if (!searchQuery.trim()) {
+      return positions;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    return positions.filter(position => 
+      position.title.toLowerCase().includes(query) ||
+      position.description.toLowerCase().includes(query) ||
+      position.key_skills.some((skill: string) => skill.toLowerCase().includes(query)) ||
+      position.qualifications.some((qual: string) => qual.toLowerCase().includes(query))
+    );
+  };
+
+  // Filter by search query for candidates
   useEffect(() => {
     if (!searchQuery.trim()) {
       // If no search query, reset to filter by active position
@@ -254,8 +269,12 @@ const Positions: React.FC = () => {
     // Then apply the search filter
     filtered = filtered.filter(candidate => 
       candidate.name.toLowerCase().includes(query) ||
-      candidate.position.toLowerCase().includes(query) ||
-      candidate.skills.some(skill => skill.toLowerCase().includes(query))
+      (candidate.position && candidate.position.toLowerCase().includes(query)) ||
+      (candidate.skills && Array.isArray(candidate.skills) && candidate.skills.some(skill => 
+        typeof skill === 'string' && skill.toLowerCase().includes(query)
+      )) ||
+      (candidate.education && candidate.education.toLowerCase().includes(query)) ||
+      (candidate.experience && candidate.experience.toLowerCase().includes(query))
     );
     
     setFilteredCandidates(filtered);
@@ -324,16 +343,45 @@ const Positions: React.FC = () => {
       );
     }
     
+    // Get filtered positions based on search query
+    const filteredPositions = getFilteredPositions();
+    
+    // Show empty state if no matching positions after filtering
+    if (filteredPositions.length === 0) {
+      return (
+        <div className="text-center py-12 border rounded-lg border-dashed">
+          <div className="rounded-full bg-gray-50 p-3 mx-auto w-fit">
+            <Search className="h-6 w-6 text-gray-400" />
+          </div>
+          <div className="text-xl font-medium text-gray-900 mt-4">
+            No positions found
+          </div>
+          <p className="text-gray-500 mt-2">
+            No positions match your search. Try different keywords.
+          </p>
+          {searchQuery && (
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={() => setSearchQuery('')}
+            >
+              Clear search
+            </Button>
+          )}
+        </div>
+      );
+    }
+    
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {positions.map((position, index) => (
+        {filteredPositions.map((position, index) => (
           <Card 
             key={position.id} 
             className={cn(
               "cursor-pointer overflow-hidden border transition-all hover:shadow-md",
               position.candidate_count > 0 ? "opacity-100" : "opacity-70"
             )}
-            onClick={() => position.candidate_count > 0 && handleViewPosition(position)}
+            onClick={() => handleViewPosition(position)}
           >
             <div className={cn(
               "h-full flex flex-col bg-gradient-to-br",
@@ -427,11 +475,36 @@ const Positions: React.FC = () => {
           </Badge>
         </div>
         
-        <CandidateTable 
-          title={`Candidates for ${activePosition.title}`}
-          candidates={filteredCandidates}
-          onViewCandidate={handleViewCandidate}
-        />
+        {filteredCandidates.length > 0 ? (
+          <CandidateTable 
+            title={`Candidates for ${activePosition.title}`}
+            candidates={filteredCandidates}
+            onViewCandidate={handleViewCandidate}
+          />
+        ) : (
+          <Card className="mt-6">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <div className="rounded-full bg-gray-50 p-6 mb-4">
+                <Briefcase className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-medium text-gray-900 mb-2">
+                No candidates found for {activePosition.title}
+              </h3>
+              <p className="text-gray-500 text-center max-w-md mb-6">
+                There are currently no candidates matching this position. Upload new resumes to find potential matches or check back later.
+              </p>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setActivePosition(null);
+                  setViewMode('positions');
+                }}
+              >
+                Back to all positions
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   };
