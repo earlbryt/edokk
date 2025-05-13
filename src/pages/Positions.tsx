@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
 import CandidateTable from '@/components/Dashboard/CandidateTable';
-import { Search, Users, Star, Award, ThumbsUp, UserCheck, ChevronLeft, ArrowUpRight, Download, User } from 'lucide-react';
+import { Search, Users, Star, Award, ThumbsUp, UserCheck, ChevronLeft, ArrowUpRight, Download, User, Filter, Plus, X, Save, Tag, Briefcase } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from "@/lib/utils";
 import { supabase } from '@/lib/supabase';
@@ -14,6 +14,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import LoadingAnimation from '@/components/ui/loading-animation';
 import BucketSelector from '@/components/Dashboard/BucketSelector';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Position {
   id: string;
@@ -22,6 +25,22 @@ interface Position {
   key_skills: string[];
   qualifications: string[];
   candidate_count: number;
+}
+
+interface Requirement {
+  id: string;
+  type: 'skill' | 'experience' | 'education' | 'location' | 'keyword';
+  value: string;
+  required: boolean;
+}
+
+interface RequirementGroup {
+  id: string;
+  name: string;
+  filters: Requirement[];
+  enabled: boolean;
+  projectId: string;
+  positionId: string;
 }
 
 interface Candidate {
@@ -55,6 +74,123 @@ const Positions: React.FC = () => {
   const [viewMode, setViewMode] = useState<'positions' | 'candidates' | 'detail'>('positions');
   const [activePosition, setActivePosition] = useState<Position | null>(null);
   const [activeCandidate, setActiveCandidate] = useState<Candidate | null>(null);
+  
+  // Requirements management state
+  const [activeTab, setActiveTab] = useState('candidates');
+  const [requirementGroup, setRequirementGroup] = useState<RequirementGroup | null>(null);
+  const [loadingRequirements, setLoadingRequirements] = useState(false);
+  const [newRequirementType, setNewRequirementType] = useState<Requirement['type']>('skill');
+  const [newRequirementValue, setNewRequirementValue] = useState('');
+  
+  // Position-specific common skills - comprehensive map covering more position titles and variations
+  const positionSkillsMap: {[key: string]: string[]} = {
+    // Software Developer skills and variations
+    'Software Developer': [
+      'JavaScript', 'React', 'TypeScript', 'Python', 'Java', 'C#', 'Node.js',
+      'SQL', 'AWS', 'Docker', 'Kubernetes', 'HTML', 'CSS', 'Git', 'Agile',
+      'REST API', 'GraphQL', 'MongoDB', 'Redis', 'CI/CD', 'DevOps'
+    ],
+    'Software Engineer': [
+      'JavaScript', 'React', 'TypeScript', 'Python', 'Java', 'C#', 'Node.js',
+      'SQL', 'AWS', 'Docker', 'Kubernetes', 'HTML', 'CSS', 'Git', 'Agile',
+      'REST API', 'GraphQL', 'MongoDB', 'Redis', 'CI/CD', 'DevOps'
+    ],
+    'Frontend Developer': [
+      'HTML', 'CSS', 'JavaScript', 'TypeScript', 'React', 'Vue', 'Angular', 'Redux',
+      'Responsive Design', 'Webpack', 'Jest', 'CSS-in-JS', 'Web Accessibility',
+      'Web Performance', 'Browser APIs', 'UI/UX', 'SASS/LESS'
+    ],
+    'Backend Developer': [
+      'Node.js', 'Python', 'Java', 'C#', '.NET', 'Spring', 'Django', 'Express',
+      'SQL', 'NoSQL', 'PostgreSQL', 'MongoDB', 'Redis', 'API Design', 'AWS', 'Azure',
+      'Microservices', 'Docker', 'Kubernetes'
+    ],
+    'Full Stack Developer': [
+      'JavaScript', 'TypeScript', 'React', 'Node.js', 'Python', 'Java',
+      'HTML', 'CSS', 'SQL', 'NoSQL', 'Git', 'AWS', 'Docker', 'REST API',
+      'GraphQL', 'Redux', 'Express', 'MongoDB', 'PostgreSQL'
+    ],
+    
+    // Data Science skills and variations
+    'Data Scientist': [
+      'Python', 'R', 'SQL', 'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch',
+      'Pandas', 'NumPy', 'SciPy', 'scikit-learn', 'Big Data', 'Spark', 'Hadoop',
+      'Statistics', 'A/B Testing', 'Data Visualization', 'NLP', 'Computer Vision'
+    ],
+    'Machine Learning Engineer': [
+      'Python', 'TensorFlow', 'PyTorch', 'Scikit-learn', 'Deep Learning', 'Computer Vision',
+      'NLP', 'Reinforcement Learning', 'MLOps', 'Docker', 'Kubernetes', 'AWS',
+      'Distributed Computing', 'Data Pipeline', 'Model Deployment', 'Model Optimization'
+    ],
+    'Data Engineer': [
+      'Python', 'SQL', 'Spark', 'Hadoop', 'AWS', 'Azure', 'ETL', 'Data Warehouse',
+      'Data Pipeline', 'Airflow', 'Kafka', 'Docker', 'Kubernetes', 'NoSQL',
+      'Data Modeling', 'Snowflake', 'BigQuery', 'Redshift'
+    ],
+    'Data Analyst': [
+      'SQL', 'Python', 'R', 'Excel', 'Power BI', 'Tableau', 'Data Visualization',
+      'Statistics', 'A/B Testing', 'Data Cleaning', 'ETL', 'Google Analytics',
+      'Data Modeling', 'Dashboard Design', 'Business Intelligence'
+    ],
+    
+    // Product roles
+    'Product Manager': [
+      'Product Roadmap', 'User Stories', 'Market Research', 'Competitive Analysis',
+      'User Experience', 'Agile', 'Scrum', 'JIRA', 'Product Strategy', 'Prioritization',
+      'Stakeholder Management', 'User Testing', 'KPIs', 'Product Analytics', 'A/B Testing'
+    ],
+    'Project Manager': [
+      'Agile', 'Scrum', 'Kanban', 'JIRA', 'Project Planning', 'Risk Management',
+      'Budget Management', 'Stakeholder Management', 'Communication', 'Microsoft Project',
+      'Timeline Management', 'Resource Planning', 'PMP', 'Critical Path'
+    ],
+    
+    // Design roles
+    'UX Designer': [
+      'Figma', 'Sketch', 'Adobe XD', 'User Research', 'Wireframing', 'Prototyping',
+      'Usability Testing', 'Information Architecture', 'User Flows', 'UI Design',
+      'Design Systems', 'Accessibility', 'Design Thinking', 'User Personas'
+    ],
+    'UI Designer': [
+      'Figma', 'Sketch', 'Adobe XD', 'InVision', 'Illustrator', 'Photoshop',
+      'Visual Design', 'Color Theory', 'Typography', 'Design Systems', 'Responsive Design',
+      'Micro-interactions', 'Design Principles', 'Animation', 'Brand Guidelines'
+    ],
+    'UI/UX Designer': [
+      'Figma', 'Sketch', 'Adobe XD', 'User Research', 'Wireframing', 'Prototyping',
+      'Usability Testing', 'Visual Design', 'Typography', 'Color Theory', 'Responsive Design',
+      'Design Systems', 'Accessibility', 'User Flows', 'Design Thinking'
+    ],
+    
+    // DevOps roles
+    'DevOps Engineer': [
+      'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'Terraform', 'Ansible', 'Jenkins',
+      'CI/CD', 'Linux', 'Scripting', 'Monitoring', 'Git', 'Infrastructure as Code',
+      'Prometheus', 'Grafana', 'ELK Stack', 'Security', 'Networking'
+    ],
+    'Site Reliability Engineer': [
+      'Linux', 'AWS', 'GCP', 'Azure', 'Kubernetes', 'Docker', 'Terraform', 'Prometheus',
+      'Grafana', 'CI/CD', 'Automation', 'Monitoring', 'Alerting', 'Incident Response',
+      'High Availability', 'Scalability', 'Performance Tuning', 'Networking'
+    ],
+    'Cloud Engineer': [
+      'AWS', 'Azure', 'GCP', 'Terraform', 'CloudFormation', 'Kubernetes', 'Docker',
+      'CI/CD', 'Infrastructure as Code', 'Serverless', 'Cloud Security', 'Networking',
+      'Monitoring', 'Cost Optimization', 'Multi-cloud', 'Microservices'
+    ],
+    
+    // Marketing roles
+    'Marketing Manager': [
+      'Digital Marketing', 'Content Marketing', 'SEO', 'SEM', 'Social Media Marketing',
+      'Email Marketing', 'Marketing Analytics', 'Campaign Management', 'Brand Strategy',
+      'Marketing Automation', 'CRM', 'Google Analytics', 'Adobe Analytics'
+    ],
+    'Digital Marketer': [
+      'SEO', 'SEM', 'Google Ads', 'Facebook Ads', 'Content Marketing', 'Social Media',
+      'Email Marketing', 'Analytics', 'Landing Page Optimization', 'A/B Testing',
+      'Marketing Automation', 'CRM', 'Google Analytics', 'Tag Manager'
+    ]
+  };
   
   // Function to fetch positions and candidates
   const fetchPositionsAndCandidates = async () => {
@@ -335,6 +471,334 @@ const Positions: React.FC = () => {
   const handleViewPosition = (position: Position) => {
     setActivePosition(position);
     setViewMode('candidates');
+    
+    // Load requirements for this position when viewing it
+    findOrCreatePositionRequirementGroup(position);
+  };
+  
+  // Function to find or create a requirement group for a position
+  const findOrCreatePositionRequirementGroup = async (position: Position) => {
+    if (!user || !position) return;
+    
+    setLoadingRequirements(true);
+    
+    try {
+      // Get all the projects first to ensure we have a valid project_id to use
+      const { data: projects, error: projectsError } = await supabase
+        .from('projects')
+        .select('*')
+        .limit(1);
+      
+      if (projectsError) throw projectsError;
+      
+      // Use first project or fallback
+      const defaultProjectId = projects && projects.length > 0 ? projects[0].id : 'default-project';
+      
+      // First, try to find an existing requirement group for this position
+      const { data: existingGroups, error: findError } = await supabase
+        .from('filter_groups')
+        .select('*')
+        .eq('position_id', position.id)
+        .eq('user_id', user.id);
+      
+      if (findError) throw findError;
+      
+      let groupId: string;
+      
+      // If a group exists, use it
+      if (existingGroups && existingGroups.length > 0) {
+        groupId = existingGroups[0].id;
+      } else {
+        // No group exists, so create one
+        groupId = `group-${Date.now()}`;
+        const positionTitle = position.title || 'Position';
+        const groupName = `${positionTitle} Requirements`;
+        
+        const projectId = existingGroups && existingGroups.length > 0 
+          ? existingGroups[0].project_id 
+          : defaultProjectId;
+        
+        const { error } = await supabase
+          .from('filter_groups')
+          .insert({
+            id: groupId,
+            name: groupName,
+            user_id: user.id,
+            project_id: projectId,
+            position_id: position.id,
+            enabled: true
+          });
+        
+        if (error) throw error;
+      }
+      
+      // Load the requirements for this group
+      await loadRequirements(groupId, position.id);
+    } catch (error: any) {
+      console.error('Error with position requirement group:', error);
+      toast({
+        title: 'Error setting up requirements',
+        description: error.message || 'There was a problem setting up requirements for this position.',
+        variant: 'destructive'
+      });
+      
+      // Set a minimal requirementGroup to avoid UI issues
+      if (position) {
+        setRequirementGroup({
+          id: `temp-${Date.now()}`,
+          name: `${position.title} Requirements`,
+          projectId: 'default-project',
+          positionId: position.id,
+          enabled: true,
+          filters: []
+        });
+      }
+    } finally {
+      setLoadingRequirements(false);
+    }
+  };
+  
+  // Load requirements for a group
+  const loadRequirements = async (groupId: string, positionId: string) => {
+    try {
+      const { data: requirementsData, error: requirementsError } = await supabase
+        .from('filters')
+        .select('*')
+        .eq('filter_group_id', groupId)
+        .order('created_at', { ascending: true });
+      
+      if (requirementsError) throw requirementsError;
+      
+      // Get the position info
+      const position = positions.find(p => p.id === positionId);
+      
+      // Create the requirement group object
+      setRequirementGroup({
+        id: groupId,
+        name: position ? `${position.title} Requirements` : 'Position Requirements',
+        projectId: 'default-project', // Using a default value since we might not have the project ID
+        positionId: positionId,
+        enabled: true,
+        filters: requirementsData ? requirementsData.map(requirement => ({
+          id: requirement.id,
+          type: requirement.type as Requirement['type'],
+          value: requirement.value,
+          required: requirement.required
+        })) : []
+      });
+    } catch (error) {
+      console.error('Error loading requirements:', error);
+      toast({
+        title: 'Error loading requirements',
+        description: 'There was a problem loading requirements for this position.',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Get common skills for the selected position with smart matching
+  const getCommonSkills = () => {
+    if (!activePosition) return [];
+    
+    // Direct match case - position title is exactly in our map
+    if (positionSkillsMap[activePosition.title]) {
+      return positionSkillsMap[activePosition.title];
+    }
+    
+    // Partial match case - find if position title contains any key in our map
+    // For example "Senior Software Engineer" contains "Software Engineer"
+    for (const key of Object.keys(positionSkillsMap)) {
+      if (activePosition.title.toLowerCase().includes(key.toLowerCase())) {
+        return positionSkillsMap[key];
+      }
+    }
+    
+    // Keyword match case - look for common job categories
+    const titleLower = activePosition.title.toLowerCase();
+    
+    // Software development related titles
+    if (titleLower.includes('developer') || titleLower.includes('engineer') || 
+        titleLower.includes('programmer') || titleLower.includes('coding')) {
+      return positionSkillsMap['Software Developer'];
+    }
+    
+    // Data science related titles
+    if (titleLower.includes('data') || titleLower.includes('machine learning') || 
+        titleLower.includes('ai') || titleLower.includes('analytics')) {
+      return positionSkillsMap['Data Scientist'];
+    }
+    
+    // Design related titles
+    if (titleLower.includes('design') || titleLower.includes('ux') || 
+        titleLower.includes('ui') || titleLower.includes('user experience')) {
+      return positionSkillsMap['UX Designer'];
+    }
+    
+    // DevOps related titles
+    if (titleLower.includes('devops') || titleLower.includes('sre') || 
+        titleLower.includes('operations') || titleLower.includes('infrastructure')) {
+      return positionSkillsMap['DevOps Engineer'];
+    }
+    
+    // Marketing related titles
+    if (titleLower.includes('market') || titleLower.includes('brand') || 
+        titleLower.includes('content') || titleLower.includes('seo')) {
+      return positionSkillsMap['Marketing Manager'];
+    }
+    
+    // Product related titles
+    if (titleLower.includes('product') || titleLower.includes('project') || 
+        titleLower.includes('program') || titleLower.includes('manager')) {
+      return positionSkillsMap['Product Manager'];
+    }
+    
+    // If no match is found, return generic professional skills as fallback
+    return [
+      'Communication', 'Teamwork', 'Problem Solving', 'Critical Thinking',
+      'Adaptability', 'Time Management', 'Leadership', 'Attention to Detail',
+      'Project Management', 'Collaboration', 'Research', 'Presentation',
+      'Writing', 'Microsoft Office', 'Google Workspace', 'Remote Work'
+    ];
+  };
+  
+  // Add a new requirement
+  const handleAddRequirement = async () => {
+    if (!user || !requirementGroup) {
+      toast({
+        title: 'Cannot add requirement',
+        description: !user ? 'You must be logged in' : 'No position selected',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (!newRequirementValue.trim()) {
+      toast({
+        title: 'Cannot add requirement',
+        description: 'Please enter a requirement value',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    const requirementId = `filter-${Date.now()}`;
+    
+    try {
+      // Add to database
+      const { data, error } = await supabase
+        .from('filters')
+        .insert({
+          id: requirementId,
+          filter_group_id: requirementGroup.id,
+          type: newRequirementType,
+          value: newRequirementValue,
+          required: false
+        })
+        .select();
+      
+      if (error) throw error;
+      
+      // Use the returned data if available, otherwise use our generated data
+      const newRequirement: Requirement = data && data[0] ? {
+        id: data[0].id,
+        type: data[0].type as Requirement['type'],
+        value: data[0].value,
+        required: data[0].required
+      } : {
+        id: requirementId,
+        type: newRequirementType,
+        value: newRequirementValue,
+        required: false
+      };
+    
+      // Update local state
+      setRequirementGroup(prev => prev ? {
+        ...prev,
+        filters: [...prev.filters, newRequirement]
+      } : null);
+    
+      setNewRequirementValue('');
+    
+      toast({
+        title: "Requirement added",
+        description: `Added ${newRequirementType} requirement: ${newRequirementValue}`
+      });
+    } catch (error: any) {
+      console.error('Error adding requirement:', error);
+      toast({
+        title: 'Error adding requirement',
+        description: error.message || 'There was a problem adding the requirement.',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Remove a requirement
+  const handleRemoveRequirement = async (requirementId: string) => {
+    if (!requirementGroup) return;
+    
+    try {
+      // Delete from database
+      const { error } = await supabase
+        .from('filters')
+        .delete()
+        .eq('id', requirementId);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setRequirementGroup(prev => prev ? {
+        ...prev,
+        filters: prev.filters.filter(requirement => requirement.id !== requirementId)
+      } : null);
+      
+      toast({
+        title: "Requirement removed",
+        description: "The requirement has been removed"
+      });
+    } catch (error) {
+      console.error('Error removing requirement:', error);
+      toast({
+        title: 'Error removing requirement',
+        description: 'There was a problem removing the requirement.',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Update a requirement (e.g., toggle required)
+  const handleUpdateRequirement = async (requirementId: string, updates: Partial<Requirement>) => {
+    if (!requirementGroup) return;
+    
+    try {
+      // Update in database
+      const { error } = await supabase
+        .from('filters')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', requirementId);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setRequirementGroup(prev => prev ? {
+        ...prev,
+        filters: prev.filters.map(requirement => 
+          requirement.id === requirementId 
+            ? { ...requirement, ...updates } 
+            : requirement
+        )
+      } : null);
+    } catch (error: any) {
+      console.error('Error updating requirement:', error);
+      toast({
+        title: 'Error updating requirement',
+        description: error.message || 'There was a problem updating the requirement.',
+        variant: 'destructive'
+      });
+    }
   };
   
   // Function to get a color for a position (used for folder styling)
@@ -656,36 +1120,201 @@ const Positions: React.FC = () => {
           </Badge>
         </div>
         
-        {filteredCandidates.length > 0 ? (
-          <CandidateTable 
-            title={`Candidates for ${activePosition.title}`}
-            candidates={filteredCandidates}
-            onViewCandidate={handleViewCandidate}
-          />
-        ) : (
-          <Card className="mt-6">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <div className="rounded-full bg-gray-50 p-6 mb-4">
-                <Briefcase className="h-10 w-10 text-gray-400" />
-              </div>
-              <h3 className="text-xl font-medium text-gray-900 mb-2">
-                No candidates found for {activePosition.title}
-              </h3>
-              <p className="text-gray-500 text-center max-w-md mb-6">
-                There are currently no candidates matching this position. Upload new resumes to find potential matches or check back later.
-              </p>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setActivePosition(null);
-                  setViewMode('positions');
-                }}
-              >
-                Back to all positions
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        <Tabs defaultValue="candidates" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="candidates" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Candidates
+            </TabsTrigger>
+            <TabsTrigger value="requirements" className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Requirements
+            </TabsTrigger>
+          </TabsList>
+          
+          {/* Candidates Tab */}
+          <TabsContent value="candidates">
+            {filteredCandidates.length > 0 ? (
+              <CandidateTable 
+                title={`Candidates for ${activePosition.title}`}
+                candidates={filteredCandidates}
+                onViewCandidate={handleViewCandidate}
+              />
+            ) : (
+              <Card className="mt-2">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <div className="rounded-full bg-gray-50 p-6 mb-4">
+                    <Briefcase className="h-10 w-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-medium text-gray-900 mb-2">
+                    No candidates found for {activePosition.title}
+                  </h3>
+                  <p className="text-gray-500 text-center max-w-md mb-6">
+                    There are currently no candidates matching this position. Upload new resumes to find potential matches or check back later.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          {/* Requirements Tab */}
+          <TabsContent value="requirements">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                  <Filter className="h-5 w-5 text-lens-purple" />
+                  Requirements
+                </CardTitle>
+                <CardDescription>
+                  Define the requirements candidates must meet for this position
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent className="space-y-6">
+                {loadingRequirements ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-lens-purple"></div>
+                    <span className="ml-3 text-gray-600">Loading requirements...</span>
+                  </div>
+                ) : (
+                  <>
+                    {/* Common skills section */}
+                    <div className="bg-white border border-gray-100 shadow-sm rounded-lg p-4 mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-medium text-gray-600">Common Skills</h3>
+                        <Badge variant="secondary" className="bg-lens-purple/10 text-lens-purple border-0 text-xs">
+                          Click to add
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {getCommonSkills().map(skill => (
+                          <Badge 
+                            key={skill} 
+                            variant="outline" 
+                            className="py-1.5 px-3 cursor-pointer bg-white hover:bg-lens-purple/5 hover:border-lens-purple/30 transition-all duration-150 font-medium"
+                            onClick={() => {
+                              setNewRequirementType('skill');
+                              setNewRequirementValue(skill);
+                            }}
+                          >
+                            {skill}
+                          </Badge>
+                        ))}
+                        
+                        {getCommonSkills().length === 0 && (
+                          <p className="text-sm text-gray-500 italic py-2">No common skills available for this position</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Add requirement form */}
+                    <div className="flex gap-3">
+                      <div className="w-1/4">
+                        <label className="block text-sm font-semibold text-gray-800 mb-2">
+                          Requirement Type
+                        </label>
+                        <div className="relative">
+                          <select
+                            className="w-full h-10 bg-white border border-input pl-3 pr-10 py-2 rounded-md text-sm font-medium shadow-sm focus:ring-2 focus:ring-lens-purple/40 focus:border-lens-purple transition-colors cursor-pointer"
+                            value={newRequirementType}
+                            onChange={(e) => setNewRequirementType(e.target.value as Requirement['type'])}
+                          >
+                            <option value="skill">Skill</option>
+                            <option value="experience">Experience</option>
+                            <option value="education">Education</option>
+                            <option value="location">Location</option>
+                            <option value="keyword">Keyword</option>
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                            <svg className="h-4 w-4 text-lens-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <label className="block text-sm font-semibold text-gray-800 mb-2">
+                          Requirement Value
+                        </label>
+                        <div className="flex">
+                          <Input
+                            value={newRequirementValue}
+                            onChange={(e) => setNewRequirementValue(e.target.value)}
+                            placeholder={`Enter ${newRequirementType} requirement`}
+                            className="rounded-r-none"
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddRequirement()}
+                          />
+                          <Button
+                            onClick={handleAddRequirement}
+                            className="bg-lens-purple hover:bg-lens-purple/90 rounded-l-none"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Separator className="my-4" />
+                    
+                    {/* Requirements list */}
+                    <div className="space-y-4">
+                      {requirementGroup && requirementGroup.filters.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <Filter className="h-12 w-12 mx-auto opacity-20 mb-2" />
+                          <p>No requirements added yet</p>
+                          <p className="text-sm">Start by adding requirements above</p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-500 pb-2">
+                            <div className="col-span-4">Type</div>
+                            <div className="col-span-6">Value</div>
+                            <div className="col-span-1 text-center">Required</div>
+                            <div className="col-span-1"></div>
+                          </div>
+                          
+                          {requirementGroup && requirementGroup.filters.map(requirement => (
+                            <div key={requirement.id} className="grid grid-cols-12 gap-4 items-center py-2 border-b">
+                              <div className="col-span-4">
+                                <Badge className="capitalize bg-gray-100 text-gray-700 hover:bg-gray-200 border-0">{requirement.type}</Badge>
+                              </div>
+                              <div className="col-span-6 font-medium">{requirement.value}</div>
+                              <div className="col-span-1 flex justify-center">
+                                <Checkbox 
+                                  checked={requirement.required} 
+                                  onCheckedChange={(checked) => handleUpdateRequirement(requirement.id, { required: !!checked })}
+                                />
+                              </div>
+                              <div className="col-span-1 flex justify-center">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  onClick={() => handleRemoveRequirement(requirement.id)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </CardContent>
+              
+              <CardFooter>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Tag className="h-4 w-4 mr-2 text-lens-purple" />
+                  Requirements are automatically saved and used to match candidates with this position
+                </div>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     );
   };
@@ -1062,7 +1691,7 @@ const Positions: React.FC = () => {
       
       <div className="pl-64 pt-16">
         <main className="p-6">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Positions</h1>
               <p className="text-gray-500">
@@ -1070,15 +1699,7 @@ const Positions: React.FC = () => {
               </p>
             </div>
             
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search positions or candidates..."
-                className="pl-10 w-64"
-              />
-            </div>
+            {/* Search box removed */}
           </div>
           
           {/* Display different views based on the current mode */}

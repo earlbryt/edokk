@@ -21,7 +21,7 @@ const Dashboard: React.FC = () => {
   });
   const [monthlyData, setMonthlyData] = useState<{ name: string; value: number }[]>([]);
   const [bucketData, setBucketData] = useState<{ name: string; value: number }[]>([]);
-  const [topSkills, setTopSkills] = useState<{ name: string; value: number }[]>([]);
+  const [topSkills, setTopSkills] = useState<{ name: string; value: number; percentage: number }[]>([]);
   
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
         if (!user) return;
         
         // Get total candidates count
-        const { count: totalCandidates, error: candidatesError } = await supabase
+        const { count: cvCount, error: candidatesError } = await supabase
           .from('cv_files')
           .select('*', { count: 'exact', head: true });
         
@@ -158,28 +158,52 @@ const Dashboard: React.FC = () => {
         
         if (summariesError) throw summariesError;
         
+        // More advanced skill normalization and counting
         const skillCounts: Record<string, number> = {};
+        const totalCandidates = summaries?.length || 0;
         
         if (summaries) {
+          // First pass - normalize and count skills
           summaries.forEach(summary => {
             if (summary.skills && Array.isArray(summary.skills)) {
+              const processedSkills = new Set<string>(); // Prevent double-counting same skill in one resume
+              
               summary.skills.forEach((skill: string) => {
-                if (skill) {
-                  skillCounts[skill.toLowerCase()] = (skillCounts[skill.toLowerCase()] || 0) + 1;
+                if (!skill) return;
+                
+                // Normalize skill: trim, lowercase, and handle common variations
+                const normalizedSkill = skill.trim().toLowerCase()
+                  // Handle programming languages and frameworks consistently
+                  .replace(/^js$/, 'javascript')
+                  .replace(/^py$/, 'python')
+                  .replace(/^ts$/, 'typescript')
+                  .replace(/^react\.?js$/i, 'react')
+                  .replace(/^node\.?js$/i, 'nodejs')
+                  .replace(/^vue\.?js$/i, 'vue');
+                
+                // Only count each skill once per candidate
+                if (!processedSkills.has(normalizedSkill)) {
+                  processedSkills.add(normalizedSkill);
+                  skillCounts[normalizedSkill] = (skillCounts[normalizedSkill] || 0) + 1;
                 }
               });
             }
           });
         }
         
+        // Get top 15 skills for a more comprehensive view
         const sortedSkills = Object.entries(skillCounts)
           .sort((a, b) => b[1] - a[1])
-          .slice(0, 8)
-          .map(([name, value]) => ({ name, value }));
+          .slice(0, 15)
+          .map(([name, value]) => ({ 
+            name: name.charAt(0).toUpperCase() + name.slice(1), // Capitalize skill names
+            value, 
+            percentage: Math.round((value / totalCandidates) * 100) // Calculate percentage of candidates with this skill
+          }));
         
         // Update state with fetched data
         setStats({
-          totalCandidates: totalCandidates || 0,
+          totalCandidates: cvCount || 0,
           processedToday: processedToday || 0,
           activeProjects: activeProjects || 0,
           pendingReview: pendingReview || 0,
@@ -263,12 +287,23 @@ const Dashboard: React.FC = () => {
               
               {/* Skills Distribution */}
               <div className="mb-8">
-                <ChartCard 
-                  title="Top Skills in Candidate Pool"
-                  subtitle="Most frequently mentioned skills in resumes"
-                  data={topSkills}
-                  type="bar"
-                />
+                <div className="bg-white rounded-lg shadow overflow-hidden">
+                  <div className="px-6 py-4">
+                    <h3 className="text-lg font-medium text-gray-900">Top Skills in Candidate Pool</h3>
+                    <p className="text-sm text-gray-500">Most frequently mentioned skills across all candidate resumes</p>
+                  </div>
+                  
+                  <div className="px-6 pb-6">
+                    <ChartCard 
+                      title=""
+                      subtitle=""
+                      data={topSkills}
+                      type="bar"
+                    />
+                    
+
+                  </div>
+                </div>
               </div>
             </>
           )}

@@ -32,8 +32,8 @@ Deno.serve(async (req) => {
     }
 
     // Parse the request body
-    const { candidate_id, project_id, filter_group_id } = await req.json();
-    console.log('Received request to match candidate:', { candidate_id, project_id, filter_group_id });
+    const { candidate_id, project_id, filter_group_id, position_id } = await req.json();
+    console.log('Received request to match candidate:', { candidate_id, project_id, filter_group_id, position_id });
 
     if (!candidate_id || !project_id) {
       return new Response(
@@ -77,10 +77,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Step 1: Get the resume text
+    // Step 1: Get the resume text and candidate information
     const { data: cvFiles, error: cvError } = await supabase
       .from('cv_files')
-      .select('raw_text, project_id')
+      .select('id, raw_text, project_id, summary_id')
       .eq('id', candidate_id);
 
     if (cvError) {
@@ -109,8 +109,45 @@ Deno.serve(async (req) => {
       );
     }
     
+    // Get the candidate's suggested positions and parsed data
     const cvFile = cvFiles[0];
-
+    let candidatePositions = [];
+    let candidateSkills = [];
+    
+    // If summary_id exists, get the parsed data and skills
+    if (cvFile.summary_id) {
+      const { data: summaryData, error: summaryError } = await supabase
+        .from('summaries')
+        .select('skills, suggested_positions')
+        .eq('id', cvFile.summary_id)
+        .single();
+        
+      if (!summaryError && summaryData) {
+        candidateSkills = summaryData.skills || [];
+        if (summaryData.suggested_positions) {
+          candidatePositions = summaryData.suggested_positions;
+        }
+      }
+    }
+    
+    // Also check the candidate_positions table (which is the primary record of positions)
+    if (candidatePositions.length === 0) {
+      const { data: positions, error: posError } = await supabase
+        .from('candidate_positions')
+        .select('position, confidence')
+        .eq('cv_file_id', candidate_id)
+        .order('confidence', { ascending: false });
+        
+      if (!posError && positions && positions.length > 0) {
+        candidatePositions = positions.map(p => ({
+          position: p.position,
+          confidence: p.confidence
+        }));
+      }
+    }
+    
+    console.log('Candidate suggested positions:', candidatePositions);
+    
     if (!cvFile.raw_text) {
       return new Response(
         JSON.stringify({
@@ -127,10 +164,49 @@ Deno.serve(async (req) => {
     const resumeText = cvFile.raw_text;
     console.log('Resume text length:', resumeText.length);
 
-    // Step 2: Get the requirements
+    // Step 2: Determine which requirements to use based on position
+    let targetPositionId = position_id;
+    let targetPositionName = '';
+    let requirementContext = '';
+    
+    // If no position_id was provided but we have suggested positions,
+    // use the most relevant suggested position
+    if (!targetPositionId && candidatePositions.length > 0) {
+      // Find the position with highest confidence
+      const topPosition = candidatePositions[0];
+      targetPositionName = topPosition.position;
+      
+      // Try to find the position ID in the database based on title
+      const { data: positionData, error: posError } = await supabase
+        .from('positions')
+        .select('id, title, description, key_skills, qualifications')
+        .eq('title', targetPositionName)
+        .eq('project_id', project_id);
+      
+      if (!posError && positionData && positionData.length > 0) {
+        targetPositionId = positionData[0].id;
+        requirementContext = `\nPosition: ${positionData[0].title}\n`;
+        if (positionData[0].description) {
+          requirementContext += `Description: ${positionData[0].description}\n`;
+        }
+        if (positionData[0].key_skills && positionData[0].key_skills.length > 0) {
+          requirementContext += `Key Skills: ${positionData[0].key_skills.join(', ')}\n`;
+        }
+        if (positionData[0].qualifications && positionData[0].qualifications.length > 0) {
+          requirementContext += `Qualifications: ${positionData[0].qualifications.join(', ')}\n`;
+        }
+      }
+    }
+    
+    console.log('Target position ID:', targetPositionId);
+    console.log('Target position name:', targetPositionName);
+
+    // Step 3: Get the requirements
     let requirements = [];
+    let filterGroupInfo = null;
+    
     if (filter_group_id) {
-      // Get requirements from the specified filter group
+      // Case 1: A specific filter group was requested
       const { data: filterGroups, error: filterGroupError } = await supabase
         .from('filter_groups')
         .select('*, filters(*)')
@@ -163,10 +239,41 @@ Deno.serve(async (req) => {
         );
       }
       
-      const filterGroup = filterGroups[0];
-      requirements = filterGroup.filters;
-    } else {
-      // Get all enabled filter groups for the project
+      filterGroupInfo = filterGroups[0];
+      requirements = filterGroupInfo.filters || [];
+    }
+    else if (targetPositionId) {
+      // Case 2: We have a position ID, so get position-specific filter groups
+      const { data: positionFilterGroups, error: posFilterError } = await supabase
+        .from('filter_groups')
+        .select('*, filters(*)')
+        .eq('position_id', targetPositionId)
+        .eq('project_id', project_id)
+        .eq('enabled', true);
+      
+      if (!posFilterError && positionFilterGroups && positionFilterGroups.length > 0) {
+        // Use the first position-specific filter group
+        filterGroupInfo = positionFilterGroups[0];
+        requirements = filterGroupInfo.filters || [];
+      }
+      
+      // If no position-specific requirements, fall back to project requirements
+      if (requirements.length === 0) {
+        const { data: projectFilterGroups, error: projFilterError } = await supabase
+          .from('filter_groups')
+          .select('*, filters(*)')
+          .is('position_id', null) // Only get filter groups not tied to a position
+          .eq('project_id', project_id)
+          .eq('enabled', true);
+        
+        if (!projFilterError && projectFilterGroups && projectFilterGroups.length > 0) {
+          filterGroupInfo = projectFilterGroups[0];
+          requirements = filterGroupInfo.filters || [];
+        }
+      }
+    }
+    else {
+      // Case 3: No specific position or filter group, use all project requirements
       const { data: filterGroups, error: filterGroupsError } = await supabase
         .from('filter_groups')
         .select('*, filters(*)')
@@ -176,8 +283,11 @@ Deno.serve(async (req) => {
       if (filterGroupsError) {
         throw new Error(`Error fetching filter groups: ${filterGroupsError.message}`);
       }
-      // Combine all filters from all enabled groups
-      requirements = filterGroups.flatMap(group => group.filters || []);
+      
+      if (filterGroups && filterGroups.length > 0) {
+        filterGroupInfo = filterGroups[0];
+        requirements = filterGroups.flatMap(group => group.filters || []);
+      }
     }
 
     if (requirements.length === 0) {
@@ -192,6 +302,12 @@ Deno.serve(async (req) => {
         return `${req.type}: ${req.value}${req.required ? ' (REQUIRED)' : ''}`;
       })
       .join('\n');
+      
+    // Add candidate skills context to help LLM
+    let skillsContext = '';
+    if (candidateSkills && candidateSkills.length > 0) {
+      skillsContext = `\nExtracted candidate skills: ${candidateSkills.join(', ')}\n`;
+    }
 
     // Prepare the system message and user prompt
     const messages = [
@@ -216,9 +332,11 @@ Be objective and fair in your assessment. The rating must be based solely on how
         role: "user",
         content: `Please evaluate this candidate's resume against the following job requirements:
 
+${targetPositionName ? `POSITION: ${targetPositionName}\n` : ''}
+${requirementContext}
 REQUIREMENTS:
 ${formattedRequirements}
-
+${skillsContext}
 RESUME:
 ${resumeText}`
       }
@@ -283,15 +401,34 @@ ${resumeText}`
       throw new Error('Invalid rating in LLM response');
     }
 
+    // Create a requirement_scores object to store how well the candidate matched each requirement
+    const requirementScores = {};
+    if (requirements && requirements.length > 0) {
+      requirements.forEach(req => {
+        // Default score is 0.5 (neutral match)
+        requirementScores[req.id] = {
+          type: req.type,
+          value: req.value,
+          required: req.required,
+          // We don't have individual scores from the LLM, so use rating as a proxy
+          score: parsedData.rating === 'A' ? 1.0 : 
+                 parsedData.rating === 'B' ? 0.75 : 
+                 parsedData.rating === 'C' ? 0.5 : 0.25
+        };
+      });
+    }
+    
     // Insert into candidate_ratings table
     const { data: rating, error: insertError } = await supabase
       .from('candidate_ratings')
       .insert({
         cv_file_id: candidate_id,
         project_id: project_id,
-        filter_group_id: filter_group_id || null,
+        filter_group_id: filterGroupInfo?.id || null,
+        position_id: targetPositionId || null,  // Store the position this rating is for
         rating: parsedData.rating,
-        rating_reason: parsedData.reason
+        rating_reason: parsedData.reason,
+        requirement_scores: requirementScores  // Store detailed requirement matching
       })
       .select()
       .single();
@@ -301,10 +438,16 @@ ${resumeText}`
       throw insertError;
     }
 
+    // Include extra information in the response
     return new Response(
       JSON.stringify({
         success: true,
-        data: rating
+        data: rating,
+        position_info: {
+          position_id: targetPositionId,
+          position_name: targetPositionName,
+          suggested_positions: candidatePositions
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

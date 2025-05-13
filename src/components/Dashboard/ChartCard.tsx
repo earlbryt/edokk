@@ -35,15 +35,31 @@ const ChartCard: React.FC<ChartCardProps> = ({
   const renderChart = () => {
     switch (type) {
       case "bar":
+        // Modify long skill names for better display
+        const processedData = data.map(item => ({
+          ...item,
+          // Truncate long names and add ellipsis
+          displayName: item.name.length > 10 ? `${item.name.substring(0, 9)}...` : item.name
+        }));
+        
         return (
           <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <BarChart 
+              data={processedData} 
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              barSize={36} // Increase the width of the bars
+              barGap={1} // Reduce the gap between bars
+            >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis 
-                dataKey="name" 
+                dataKey="displayName" 
                 axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 12, fill: '#6B7280' }}
+                tickLine={false}
+                tick={{ fontSize: 10, fill: '#6B7280' }}
+                interval={0} // Force display all labels
+                height={50} // Increase height for labels
+                angle={-45} // Angle text to prevent overlap
+                textAnchor="end" // Align text for angled labels
               />
               <YAxis 
                 axisLine={false} 
@@ -56,7 +72,11 @@ const ChartCard: React.FC<ChartCardProps> = ({
                   borderRadius: '8px', 
                   boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -1px rgba(0, 0, 0, 0.06)',
                   border: 'none'
-                }} 
+                }}
+                // Show original (non-truncated) name in tooltip
+                formatter={(value, name, props) => [
+                  value, props.payload.name
+                ]}
               />
               <Bar dataKey="value" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
             </BarChart>
