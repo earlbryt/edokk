@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -17,6 +17,16 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import BucketSelector from './BucketSelector';
+
+// Available profile pictures
+const PROFILE_PICTURES = [
+  '/assets/profile/androgynous-avatar-non-binary-queer-person.jpg',
+  '/assets/profile/avatar1.avif',
+  '/assets/profile/androgynous-avatar-non-binary-queer-person_23-2151100279.png',
+  '/assets/profile/3d-cartoon-portrait-person-practicing-law-related-profession_23-2151419551.png',
+  '/assets/profile/memoji-african-american-man-white-background-emoji_826801-6856.png',
+  '/assets/profile/memoji-african-american-man-white-background-emoji_826801-6857.png'
+];
 
 type Candidate = {
   id: string;
@@ -283,8 +293,12 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
                 onClick={() => onViewCandidate && onViewCandidate(candidate)}
               >
                 <div className="flex items-center mb-3">
-                  <div className={`mr-3 p-2 rounded-lg ${getBucketColor(candidate.status)}`}>
-                    {getBucketIcon(candidate.status, candidate)}
+                  <div className="mr-3 h-12 w-12 rounded-full overflow-hidden border-2 flex-shrink-0" style={{ borderColor: getBucketBorderColor(candidate.status) }}>
+                    <img 
+                      src={getProfilePicture(candidate.id)}
+                      alt="Profile" 
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                   
                   <div className="flex-1">
@@ -445,7 +459,44 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
   );
 };
 
+  // Helper function to get border color based on status (for profile picture)
+  const getBucketBorderColor = (status?: string) => {
+    if (!status) return '#d1d5db'; // gray-300
+    
+    switch(status) {
+      case 'bucket-a':
+        return '#10b981'; // green-500
+      case 'bucket-b':
+        return '#3b82f6'; // blue-500
+      case 'bucket-c':
+        return '#f97316'; // orange-500
+      case 'bucket-d':
+        return '#ef4444'; // red-500
+      default:
+        return '#d1d5db'; // gray-300
+    }
+  };
+  
+  // Helper function to deterministically select a profile picture based on the candidate ID
+  const getProfilePicture = (candidateId: string) => {
+    // Create a more diverse hash from the entire ID
+    // Use the sum of character codes to create a better distribution
+    let charSum = 0;
+    for (let i = 0; i < candidateId.length; i++) {
+      charSum += candidateId.charCodeAt(i);
+    }
+    
+    // Add the length of the ID to further improve distribution
+    charSum += candidateId.length + candidateId.charCodeAt(0) + candidateId.charCodeAt(candidateId.length - 1);
+    
+    // Use the entire ID's hash to select a picture
+    const pictureIndex = Math.abs(charSum) % PROFILE_PICTURES.length;
+    
+    return PROFILE_PICTURES[pictureIndex];
+  };
+  
   // Helper function to get the background color based on status
+  // Keep this for other parts of the UI that might need it
   const getBucketColor = (status?: string) => {
     if (!status) return 'bg-gray-100';
     
@@ -460,33 +511,6 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
         return 'bg-red-100';
       default:
         return 'bg-gray-100';
-    }
-  };
-  
-  // Helper function to get the icon based on status
-  const getBucketIcon = (status?: string, candidate?: Candidate) => {
-    if (!status) {
-      // Check if candidate was recently uploaded
-      const isRecentlyUploaded = candidate && 
-        candidate.upload_date && 
-        (new Date().getTime() - new Date(candidate.upload_date).getTime() < 5 * 60 * 1000); // 5 minutes
-      
-      return isRecentlyUploaded ? 
-        <Clock className="h-6 w-6 text-purple-600" /> : 
-        <User className="h-6 w-6 text-gray-600" />;
-    }
-    
-    switch(status) {
-      case 'bucket-a':
-        return <CheckCircle className="h-6 w-6 text-green-600" />;
-      case 'bucket-b':
-        return <Clock className="h-6 w-6 text-blue-600" />;
-      case 'bucket-c':
-        return <AlertTriangle className="h-6 w-6 text-orange-600" />;
-      case 'bucket-d':
-        return <XCircle className="h-6 w-6 text-red-600" />;
-      default:
-        return <User className="h-6 w-6 text-gray-600" />;
     }
   };
 
