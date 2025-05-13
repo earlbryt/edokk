@@ -463,8 +463,50 @@ const CVParser: React.FC = () => {
           : file
       ));
       
-      // Add the file to the processing queue
-      addToProcessingQueue(fileId);
+      // Determine file type and process accordingly
+      const fileExtension = fileData.name.toLowerCase().split('.').pop() || '';
+      
+      if (fileExtension === 'pdf') {
+        // Use the processing queue for PDF files
+        addToProcessingQueue(fileId);
+      } else if (fileExtension === 'docx' || fileExtension === 'doc') {
+        // For Word documents, use client-side processing directly
+        try {
+          // Process the Word document in the browser
+          const result = await processDocumentInBrowser(fileId, file);
+          
+          if (!result.success) {
+            console.error('Error processing Word document:', result.error);
+            toast({
+              title: "Processing error",
+              description: result.error || 'Failed to process document',
+              variant: "destructive"
+            });
+          }
+        } catch (processError) {
+          console.error('Error in client-side Word processing:', processError);
+          toast({
+            title: "Processing error",
+            description: processError.message || 'Failed to process Word document',
+            variant: "destructive"
+          });
+        }
+      } else {
+        // Unsupported file type
+        await supabase
+          .from('cv_files')
+          .update({
+            status: 'failed',
+            error: `Unsupported file type: ${fileExtension}. Please upload a PDF, DOCX, or DOC file.`
+          })
+          .eq('id', fileId);
+        
+        toast({
+          title: "Unsupported file type",
+          description: `Please upload a PDF, DOCX, or DOC file.`,
+          variant: "destructive"
+        });
+      }
       
     } catch (error: any) {
       console.error('Error uploading file:', error);

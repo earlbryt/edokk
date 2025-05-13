@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import LoadingAnimation from '@/components/ui/loading-animation';
 
 // Define bucket types
-type BucketType = 'bucket-a' | 'bucket-b' | 'bucket-c' | 'bucket-d';
+type BucketType = 'bucket-a' | 'bucket-b' | 'bucket-c' | 'bucket-d' | 'unrated';
 
 interface Bucket {
   id: BucketType;
@@ -24,11 +24,24 @@ interface Bucket {
   count: number;
 }
 
+interface Candidate {
+  id: string;
+  name: string;
+  role: string;
+  status?: string;
+  project_id: string;
+  skills: string[];
+  education: string;
+  experience: string;
+  avatar: string;
+  rating: any;
+}
+
 const Candidates: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  const [candidates, setCandidates] = useState<any[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [bucketCounts, setBucketCounts] = useState({
     'bucket-a': 0,
@@ -39,123 +52,170 @@ const Candidates: React.FC = () => {
   });
   
   // Function to fetch candidates from the database
-  useEffect(() => {
-    async function fetchCandidates() {
-      try {
-        setLoading(true);
-        
-        // First fetch CV files with project info
-        const { data: cvFiles, error: cvError } = await supabase
-          .from('cv_files')
-          .select(`
-            id,
-            name,
-            project_id,
-            summary_id,
-            parsed_data,
-            projects (name, id)
-          `);
-        
-        if (cvError) throw cvError;
-        
-        // Fetch summaries for the CVs
-        const summaryIds = cvFiles
-          .filter(file => file.summary_id)
-          .map(file => file.summary_id);
-          
-        let summariesData = {};
-        if (summaryIds.length > 0) {
-          const { data: summaries, error: summariesError } = await supabase
-            .from('summaries')
-            .select('*')
-            .in('id', summaryIds);
-          
-          if (summariesError) throw summariesError;
-          
-          // Create a map of summaries by id for easier lookup
-          summariesData = summaries.reduce((acc, summary) => {
-            acc[summary.id] = summary;
-            return acc;
-          }, {});
-        }
-        
-        // Fetch ratings for these candidates
-        const { data: ratings, error: ratingsError } = await supabase
-          .from('candidate_ratings')
-          .select('*');
-          
-        if (ratingsError) throw ratingsError;
-        
-        // Process the data into the format expected by CandidateTable
-        const processedCandidates = cvFiles.map(file => {
-          // Find rating for this candidate if it exists
-          const rating = ratings?.find(r => r.cv_file_id === file.id);
-          
-          // Determine status based on rating
-          const status = rating ? `bucket-${rating.rating.toLowerCase()}` : undefined;
-          
-          // Get summary data or fallback to parsed_data
-          const summary = file.summary_id ? summariesData[file.summary_id] : null;
-          const candidateData = summary || file.parsed_data || {};
-          
-          // Extract skills
-          const skills = candidateData.skills || [];
-          
-          // Extract experience
-          const experience = candidateData.experience || [];
-          
-          // Extract education
-          const education = candidateData.education || [];
-          
-          return {
-            id: file.id,
-            name: file.name || candidateData.name || 'Unnamed Candidate',
-            role: experience[0] || 'Position Unknown',
-            status,
-            project_id: file.project_id,
-            skills: skills.slice(0, 5),
-            education: education[0] || 'Education Unknown',
-            experience: experience.length ? `${experience.length} experiences` : 'Experience Unknown',
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(file.name || 'Candidate')}&background=random`,
-            rating: rating || null
-          };
-        });
-        
-        // Update the candidates state
-        setCandidates(processedCandidates);
-        
-        // Update bucket counts
-        const counts = {
-          'bucket-a': 0,
-          'bucket-b': 0,
-          'bucket-c': 0,
-          'bucket-d': 0,
-          'unrated': 0
-        };
-        
-        processedCandidates.forEach(candidate => {
-          if (!candidate.status) {
-            counts.unrated++;
-          } else {
-            counts[candidate.status]++;
-          }
-        });
-        
-        setBucketCounts(counts);
-      } catch (error) {
-        console.error('Error fetching candidates:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load candidates. Please try again.',
-          variant: 'destructive'
-        });
-      } finally {
+  const fetchCandidates = async () => {
+    try {
+      setLoading(true);
+      
+      // Only fetch CV files that have completed the full processing pipeline
+      // This means they either have a rating or they're marked as completed
+      const { data: cvFiles, error: cvError } = await supabase
+        .from('cv_files')
+        .select(`
+          id,
+          name,
+          status,
+          project_id,
+          summary_id,
+          parsed_data,
+          projects (name, id)
+        `)
+        .or('status.eq.completed,status.like.bucket-%');
+      
+      if (cvError) throw cvError;
+      
+      if (!cvFiles || cvFiles.length === 0) {
+        setCandidates([]);
         setLoading(false);
+        return;
       }
+      
+      // Fetch summaries for the CVs
+      const summaryIds = cvFiles
+        .filter(file => file.summary_id)
+        .map(file => file.summary_id);
+        
+      let summariesData = {};
+      if (summaryIds.length > 0) {
+        const { data: summaries, error: summariesError } = await supabase
+          .from('summaries')
+          .select('*')
+          .in('id', summaryIds);
+        
+        if (summariesError) throw summariesError;
+        
+        // Create a map of summaries by id for easier lookup
+        summariesData = summaries.reduce((acc, summary) => {
+          acc[summary.id] = summary;
+          return acc;
+        }, {});
+      }
+      
+      // Fetch ratings for these candidates
+      const { data: ratings, error: ratingsError } = await supabase
+        .from('candidate_ratings')
+        .select('*');
+        
+      if (ratingsError) throw ratingsError;
+      
+      // Process the data into the format expected by CandidateTable
+      const processedCandidates = cvFiles.map(file => {
+        // Find rating for this candidate if it exists
+        const rating = ratings?.find(r => r.cv_file_id === file.id);
+        
+        // Determine status based on rating
+        const status = rating ? `bucket-${rating.rating.toLowerCase()}` : undefined;
+        
+        // Get summary data or fallback to parsed_data
+        const summary = file.summary_id ? summariesData[file.summary_id] : null;
+        const candidateData = summary || file.parsed_data || {};
+        
+        // Extract skills
+        const skills = candidateData.skills || [];
+        
+        // Extract experience
+        const experience = candidateData.experience || [];
+        
+        // Extract education
+        const education = candidateData.education || [];
+        
+        return {
+          id: file.id,
+          name: file.name || candidateData.name || 'Unnamed Candidate',
+          role: experience[0] || 'Position Unknown',
+          status,
+          project_id: file.project_id,
+          skills: skills.slice(0, 5),
+          education: education[0] || 'Education Unknown',
+          experience: experience.length ? `${experience.length} experiences` : 'Experience Unknown',
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(file.name || 'Candidate')}&background=random`,
+          rating: rating || null
+        };
+      });
+      
+      // Filter out any candidates that don't have complete information
+      const fullyProcessedCandidates = processedCandidates.filter(candidate => {
+        // Ensure the candidate has essential information
+        const hasBasicInfo = candidate.name !== 'Unnamed Candidate' && 
+                           candidate.skills.length > 0 &&
+                           candidate.education !== 'Education Unknown' &&
+                           candidate.experience !== 'Experience Unknown';
+        
+        // Either it's rated (has a status) or it's marked as completed
+        const isProcessed = !!candidate.status;
+        
+        return hasBasicInfo && isProcessed;
+      });
+      
+      // Update the candidates state with only fully processed candidates
+      setCandidates(fullyProcessedCandidates);
+      
+      // Update bucket counts
+      const counts = {
+        'bucket-a': 0,
+        'bucket-b': 0,
+        'bucket-c': 0,
+        'bucket-d': 0,
+        'unrated': 0
+      };
+      
+      fullyProcessedCandidates.forEach(candidate => {
+        if (!candidate.status) {
+          counts.unrated++;
+        } else {
+          counts[candidate.status]++;
+        }
+      });
+      
+      setBucketCounts(counts);
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load candidates. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
     }
-    
+  };
+  
+  // Initial data fetch
+  useEffect(() => {
     fetchCandidates();
-  }, [toast]);
+  }, []);
+  
+  // Set up a real-time subscription to update when new candidates are processed
+  useEffect(() => {
+    // Set up a subscription to listen for changes to cv_files
+    const subscription = supabase
+      .channel('candidates-changes')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'cv_files',
+        filter: `status=eq.completed OR status=like.bucket-%`
+      }, (payload) => {
+        console.log('CV file updated:', payload);
+        // Refresh the candidates list when a document completes processing
+        fetchCandidates();
+      })
+      .subscribe();
+      
+    // Clean up subscription when component unmounts
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
   
   // Filter candidates based on search query
   const filteredCandidates = candidates.filter(candidate => {
@@ -169,7 +229,7 @@ const Candidates: React.FC = () => {
     );
   });
   
-  // Define buckets with more positive icons
+  // Define buckets with descriptive icons
   const buckets: Bucket[] = [
     {
       id: 'bucket-a',
@@ -206,20 +266,17 @@ const Candidates: React.FC = () => {
       bgColor: 'bg-purple-50',
       icon: <UserCheck className="h-5 w-5 text-purple-500" />,
       count: bucketCounts['bucket-d']
+    },
+    {
+      id: 'unrated',
+      name: 'Unrated',
+      description: 'Pending Assessment',
+      color: 'text-gray-600',
+      bgColor: 'bg-gray-50',
+      icon: <Users className="h-5 w-5 text-gray-500" />,
+      count: bucketCounts['unrated']
     }
   ];
-  
-  // Add bucket for unrated candidates
-  buckets.push({
-    id: 'unrated',
-    name: 'Unrated',
-    description: 'Pending Assessment',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50',
-    icon: <Users className="h-5 w-5 text-gray-500" />,
-    count: bucketCounts['unrated']
-  });
-
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -247,6 +304,11 @@ const Candidates: React.FC = () => {
           <div className="w-full">
             {loading ? (
               <LoadingAnimation message="Finding top talent..." />
+            ) : candidates.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-500">No fully processed candidates found yet.</p>
+                <p className="text-gray-400 text-sm mt-2">Candidates will appear here after document processing is complete.</p>
+              </div>
             ) : (
               <CandidateTable title="Candidates" candidates={filteredCandidates} />
             )}

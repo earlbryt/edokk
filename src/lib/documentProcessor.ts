@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import * as pdfjsLib from 'pdfjs-dist';
 import { matchCandidate } from '@/lib/supabase';
+import { processDocumentInBrowser } from '@/lib/browserDocumentProcessor';
 
 // Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -43,6 +44,23 @@ async function processNextInQueue() {
 }
 
 /**
+ * Determines the file type based on filename
+ */
+function getFileType(fileName: string): 'pdf' | 'docx' | 'doc' | 'unsupported' {
+  const lowerFileName = fileName.toLowerCase();
+  
+  if (lowerFileName.endsWith('.pdf')) {
+    return 'pdf';
+  } else if (lowerFileName.endsWith('.docx')) {
+    return 'docx';
+  } else if (lowerFileName.endsWith('.doc')) {
+    return 'doc';
+  }
+  
+  return 'unsupported';
+}
+
+/**
  * Process a single document
  */
 async function processDocument(fileId: string) {
@@ -66,8 +84,33 @@ async function processDocument(fileId: string) {
     if (fileError) throw fileError;
     if (!fileData) throw new Error('File not found');
     if (!fileData.storage_path) throw new Error('No storage path found for file');
+    
+    // Determine the file type based on the filename
+    const fileType = getFileType(fileData.name);
+    
+    if (fileType === 'unsupported') {
+      throw new Error(`Unsupported file type: ${fileData.name}. Only PDF, DOCX, and DOC files are supported.`);
+    }
+    
+    // Only process PDF files on the server for now
+    // For non-PDF files, update status to indicate they should be processed client-side
+    if (fileType !== 'pdf') {
+      // Update the status to indicate non-PDF file
+      await supabase
+        .from('cv_files')
+        .update({
+          status: 'completed',
+          progress: 100,
+          text_extracted: false,
+          extraction_error: 'Non-PDF files must be processed using client-side extraction.'
+        })
+        .eq('id', fileId);
+      
+      console.log(`Skipping server-side processing for non-PDF file: ${fileData.name}`);
+      return;
+    }
 
-    // Download file from storage
+    // Download file from storage (only for PDFs)
     const { data: fileContent, error: downloadError } = await supabase.storage
       .from('lens')
       .download(fileData.storage_path);
@@ -80,17 +123,24 @@ async function processDocument(fileId: string) {
 
     // Convert file to ArrayBuffer
     const arrayBuffer = await fileContent.arrayBuffer();
-
-    // Load PDF document
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     
-    // Extract text from all pages
+    // Variable to store extracted text
     let fullText = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item: any) => item.str).join(' ');
-      fullText += pageText + '\n';
+    
+    try {
+      // Load PDF document
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      
+      // Extract text from all pages
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
+    } catch (pdfError) {
+      console.error('PDF processing error:', pdfError);
+      throw new Error(`Failed to process PDF file: ${pdfError.message}`);
     }
 
     // Update database with extracted text and status
