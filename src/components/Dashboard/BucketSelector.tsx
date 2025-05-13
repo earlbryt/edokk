@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, Clock, AlertTriangle, XCircle } from 'lucide-react';
+import { Star, Medal, Award, Badge as BadgeIcon, Bookmark } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BucketSelectorProps {
@@ -24,7 +24,7 @@ const BucketSelector: React.FC<BucketSelectorProps> = ({
       id: 'bucket-a',
       label: 'Bucket A',
       description: 'Excellent Match',
-      icon: <CheckCircle className="h-4 w-4 mr-2 text-green-600" />,
+      icon: <Star className="h-4 w-4 mr-2 text-green-600" />,
       count: counts.a,
       borderColor: 'border-green-200',
       hoverColor: 'hover:border-green-300',
@@ -35,7 +35,7 @@ const BucketSelector: React.FC<BucketSelectorProps> = ({
       id: 'bucket-b',
       label: 'Bucket B',
       description: 'Good Match',
-      icon: <Clock className="h-4 w-4 mr-2 text-blue-600" />,
+      icon: <Medal className="h-4 w-4 mr-2 text-blue-600" />,
       count: counts.b,
       borderColor: 'border-blue-200',
       hoverColor: 'hover:border-blue-300',
@@ -46,7 +46,7 @@ const BucketSelector: React.FC<BucketSelectorProps> = ({
       id: 'bucket-c',
       label: 'Bucket C',
       description: 'Potential Match',
-      icon: <AlertTriangle className="h-4 w-4 mr-2 text-orange-600" />,
+      icon: <Award className="h-4 w-4 mr-2 text-orange-600" />,
       count: counts.c,
       borderColor: 'border-orange-200',
       hoverColor: 'hover:border-orange-300',
@@ -56,8 +56,8 @@ const BucketSelector: React.FC<BucketSelectorProps> = ({
     {
       id: 'bucket-d',
       label: 'Bucket D',
-      description: 'Not Suitable',
-      icon: <XCircle className="h-4 w-4 mr-2 text-red-600" />,
+      description: 'Consider Later',
+      icon: <BadgeIcon className="h-4 w-4 mr-2 text-red-600" />,
       count: counts.d,
       borderColor: 'border-red-200',
       hoverColor: 'hover:border-red-300',

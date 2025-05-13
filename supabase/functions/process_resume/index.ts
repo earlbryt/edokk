@@ -33,15 +33,62 @@ Deno.serve(async (req) => {
     console.log(`Processing resume with ID: ${resume.id}`);
     console.log('Raw text length:', resume.raw_text.length);
 
+    // First, fetch available positions from the database
+    const { data: positions, error: positionsError } = await supabase
+      .from('positions')
+      .select('title, key_skills, qualifications');
+    
+    if (positionsError) {
+      console.error('Error fetching positions:', positionsError);
+      // Continue with regular parsing even if positions can't be fetched
+    }
+    
+    // Create a string representation of available positions for the prompt
+    let positionsContext = '';
+    if (positions && positions.length > 0) {
+      positionsContext = 'Available positions with key skills and qualifications:\n';
+      positions.forEach(position => {
+        positionsContext += `Position: ${position.title}\n`;
+        positionsContext += `Key Skills: ${position.key_skills.join(', ')}\n`;
+        positionsContext += `Qualifications: ${position.qualifications.join(', ')}\n\n`;
+      });
+    }
+
     // Prepare the system message and user prompt
     const messages = [
       {
         role: "system",
-        content: "You are a resume parser that extracts structured information from resumes. You will return ONLY a JSON object with the following structure:\n{\n  \"name\": \"candidate's name\",\n  \"email\": \"email address\",\n  \"phone\": \"phone number\",\n  \"skills\": [\"skill1\", \"skill2\", ...],\n  \"experience\": [\"detailed experience 1\", \"detailed experience 2\", ...],\n  \"education\": [\"education entry 1\", \"education entry 2\", ...],\n  \"projects\": [\"project 1 details\", \"project 2 details\", ...],\n  \"awards\": [\"award 1 details\", \"award 2 details\", ...],\n  \"certifications\": [\"certification 1\", \"certification 2\", ...],\n  \"languages\": [\"language 1\", \"language 2\", ...],\n  \"publications\": [\"publication 1\", \"publication 2\", ...],\n  \"volunteer\": [\"volunteer experience 1\", \"volunteer experience 2\", ...]\n}\nOnly include fields that are present in the resume. Omit fields that are not found."
+        content: `You are a resume parser that extracts structured information from resumes and infers potential job positions. You will return ONLY a JSON object with the following structure:
+{
+  "name": "candidate's name",
+  "email": "email address",
+  "phone": "phone number",
+  "skills": ["skill1", "skill2", ...],
+  "experience": ["detailed experience 1", "detailed experience 2", ...],
+  "education": ["education entry 1", "education entry 2", ...],
+  "projects": ["project 1 details", "project 2 details", ...],
+  "awards": ["award 1 details", "award 2 details", ...],
+  "certifications": ["certification 1", "certification 2", ...],
+  "languages": ["language 1", "language 2", ...],
+  "publications": ["publication 1", "publication 2", ...],
+  "volunteer": ["volunteer experience 1", "volunteer experience 2", ...],
+  "suggested_positions": [
+    {
+      "position": "Position Title",
+      "confidence": 85, // A number between 0-100 indicating confidence level
+      "reason": "Brief explanation of why this position is a good match"
+    },
+    {...} // Up to 3 positions total, ordered by confidence
+  ]
+}
+
+For the suggested_positions field, analyze the candidate's skills, experience, and education to determine which positions they would be best qualified for. Only include positions with a confidence level of 70% or higher. Limit to a maximum of 3 positions, prioritizing those with the highest confidence.
+
+Only include fields that are present in the resume. Omit fields that are not found.`
       },
       {
         role: "user",
-        content: `Extract information from this resume:\n\n${resume.raw_text}`
+        content: `Extract information from this resume and suggest potential positions:\n\n${positionsContext}\n\nRESUME:\n${resume.raw_text}`
       }
     ];
 
@@ -99,25 +146,31 @@ Deno.serve(async (req) => {
 
     console.log('Successfully parsed response:', parsedData);
 
-    // Start a transaction to update both tables
+    // Extract suggested positions from the parsed data
+    const suggestedPositions = parsedData.suggested_positions || [];
+    console.log('Suggested positions:', suggestedPositions);
+
+    // Store the parsed data in Supabase
     const { data: summaryData, error: summaryError } = await supabase
       .from('summaries')
       .insert({
         cv_file_id: resume.id,
+        extracted_data: parsedData,
+        summary: null, // We're not generating a summary text at this point
         name: parsedData.name,
         email: parsedData.email,
         phone: parsedData.phone,
-        skills: parsedData.skills,
-        experience: parsedData.experience,
-        education: parsedData.education,
-        projects: parsedData.projects,
-        awards: parsedData.awards,
-        certifications: parsedData.certifications,
-        languages: parsedData.languages,
-        publications: parsedData.publications,
-        volunteer: parsedData.volunteer,
+        skills: parsedData.skills || [],
+        experience: parsedData.experience || [],
+        education: parsedData.education || [],
+        projects: parsedData.projects || [],
+        awards: parsedData.awards || [],
+        certifications: parsedData.certifications || [],
+        languages: parsedData.languages || [],
+        publications: parsedData.publications || [],
+        volunteer: parsedData.volunteer || [],
         raw_text: resume.raw_text,
-        created_at: new Date().toISOString()
+        suggested_positions: suggestedPositions
       })
       .select()
       .single();
@@ -127,14 +180,32 @@ Deno.serve(async (req) => {
       throw summaryError;
     }
 
-    // Update the cv_files table
+    // Store the inferred positions in the candidate_positions table
+    if (suggestedPositions && suggestedPositions.length > 0) {
+      console.log('Storing candidate positions...');
+      const positionInserts = suggestedPositions.map(pos => ({
+        cv_file_id: resume.id,
+        position: pos.position,
+        confidence: pos.confidence,
+      }));
+
+      const { error: positionsError } = await supabase
+        .from('candidate_positions')
+        .insert(positionInserts);
+
+      if (positionsError) {
+        console.error('Error storing candidate positions:', positionsError);
+        // Continue with the process even if storing positions fails
+      }
+    }
+
+    // Update the cv_file with parsed_data and summary_id
     const { error: updateError } = await supabase
       .from('cv_files')
       .update({
         parsed_data: parsedData,
         status: 'completed',
-        progress: 100,
-        summary_id: summaryData.id // Link to the created summary
+        summary_id: summaryData?.id
       })
       .eq('id', resume.id);
 

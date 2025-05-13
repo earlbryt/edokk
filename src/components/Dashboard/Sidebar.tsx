@@ -7,7 +7,8 @@ import {
   FileText,
   Filter,
   CheckSquare,
-  LogOut
+  LogOut,
+  Briefcase
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -104,6 +105,11 @@ const Sidebar: React.FC = () => {
       icon: <Users size={22} />, 
       label: 'Candidates', 
       to: '/dashboard/candidates'
+    },
+    { 
+      icon: <Briefcase size={22} />, 
+      label: 'Positions', 
+      to: '/dashboard/positions'
     },
     { 
       icon: <FileText size={22} />, 

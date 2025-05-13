@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, ArrowUpRight, CheckCircle, Clock, AlertTriangle, XCircle, BarChart, Filter, User, Info } from 'lucide-react';
+import { Eye, ArrowUpRight, CheckCircle, Clock, Star, Medal, Award, Badge as BadgeIcon, Bookmark, BarChart, Filter, User, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { matchCandidate, MatchCandidateResult } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
@@ -188,7 +188,7 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
       } else {
         return (
           <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-            Unrated
+            <Bookmark className="h-3 w-3 mr-1 text-gray-600" /> Review
           </Badge>
         );
       }
@@ -202,22 +202,22 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
       case 'bucket-a':
         badgeClass = 'bg-green-50 text-green-700 border-green-200';
         label = 'A';
-        icon = <CheckCircle className="h-3 w-3 mr-1 text-green-600" />;
+        icon = <Star className="h-3 w-3 mr-1 text-green-600" />;
         break;
       case 'bucket-b':
         badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
         label = 'B';
-        icon = <Clock className="h-3 w-3 mr-1 text-blue-600" />;
+        icon = <Medal className="h-3 w-3 mr-1 text-blue-600" />;
         break;
       case 'bucket-c':
         badgeClass = 'bg-orange-50 text-orange-700 border-orange-200';
         label = 'C';
-        icon = <AlertTriangle className="h-3 w-3 mr-1 text-orange-600" />;
+        icon = <Award className="h-3 w-3 mr-1 text-orange-600" />;
         break;
       case 'bucket-d':
         badgeClass = 'bg-red-50 text-red-700 border-red-200';
         label = 'D';
-        icon = <XCircle className="h-3 w-3 mr-1 text-red-600" />;
+        icon = <BadgeIcon className="h-3 w-3 mr-1 text-red-600" />;
         break;
       default:
         badgeClass = 'bg-gray-50 text-gray-700 border-gray-200';

@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import CVParser from "./pages/CVParser";
 import Filters from "./pages/Filters";
 import Candidates from "./pages/Candidates";
+import Positions from "./pages/Positions";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Pricing from "./pages/Pricing";
@@ -81,6 +82,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Candidates />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/dashboard/positions" 
+        element={
+          <ProtectedRoute>
+            <Positions />
           </ProtectedRoute>
         } 
       />
