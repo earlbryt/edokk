@@ -160,11 +160,24 @@ const ConsultationsPage: React.FC = () => {
       <div className="flex-1 ml-64">
         <TopBar />
         <main className="p-8 overflow-y-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold">Consultations Management</h1>
-            <p className="text-gray-600">
-              Manage all patient consultation requests
-            </p>
+          <div className="flex flex-wrap items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold">Consultations Management</h1>
+              <p className="text-gray-600">
+                Manage all patient consultation requests
+              </p>
+            </div>
+            
+            {/* Search in Top Right */}
+            <div className="relative w-64 mt-2 sm:mt-0">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Input 
+                placeholder="Search consultations..." 
+                className="pl-10 h-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Stats Overview */}
@@ -210,19 +223,6 @@ const ConsultationsPage: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
-
-          {/* Search in Top Right */}
-          <div className="flex justify-end mb-4">
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input 
-                placeholder="Search consultations..." 
-                className="pl-10 h-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
           </div>
 
           {/* Consultations Table */}
