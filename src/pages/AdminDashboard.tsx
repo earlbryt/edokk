@@ -93,7 +93,21 @@ const AdminDashboard: React.FC = () => {
           .order('created_at', { ascending: false })
           .limit(10);
         
-        if (recentUsersError) throw recentUsersError;
+        if (recentUsersError) {
+          console.error('Error fetching recent users:', recentUsersError);
+          setRecentUsers([]);
+        } else if (recentUsersData) {
+          // Type safety - ensure we have the correct data structure
+          const typedUserData = recentUsersData.map(user => ({
+            id: String(user.id || ''),
+            name: String(user.name || ''),
+            email: String(user.email || ''),
+            created_at: String(user.created_at || new Date().toISOString())
+          }));
+          setRecentUsers(typedUserData);
+        } else {
+          setRecentUsers([]);
+        }
         
         // Get consultations by type
         const { data: consultationTypes, error: typesError } = await supabase
@@ -209,9 +223,9 @@ const AdminDashboard: React.FC = () => {
       <Sidebar />
       <div className="flex-1 ml-64">
         <TopBar />
-        <main className="p-6">
+        <main className="p-8 overflow-y-auto">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
+            <h1 className="text-2xl font-bold">
               {user?.name ? `Welcome, ${user.name.split(' ')[0]}` : 'Admin Dashboard'}
             </h1>
             <p className="text-gray-600">

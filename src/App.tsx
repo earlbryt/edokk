@@ -14,12 +14,13 @@ import Candidates from "./pages/Candidates";
 import Positions from "./pages/Positions";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Profile from "./pages/Profile";
+import NotFound from "./pages/NotFound";
+import Consultations from "./pages/Consultations";
+import ConsultationsPage from "./pages/ConsultationsPage";
 import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
 import Contact from "./pages/Contact";
-import NotFound from "./pages/NotFound";
-import Consultations from "./pages/Consultations";
-import Profile from "./pages/Profile";
 import { useAuth } from "./context/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
@@ -161,6 +162,14 @@ const AppRoutes = () => {
         element={
           <AdminRoute>
             <Positions />
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/consultations" 
+        element={
+          <AdminRoute>
+            <ConsultationsPage />
           </AdminRoute>
         } 
       />

@@ -36,48 +36,42 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     }
   };
 
-  // Update the sidebar links array to include the consultations link
+  // Define sidebar links
   const sidebarLinks = [
-    { 
-      name: 'Dashboard', 
-      icon: LayoutDashboard, 
-      href: '/dashboard', 
-      section: null 
-    },
-    { 
-      name: 'Consultations', 
-      icon: Calendar, 
-      href: '/consultations', 
-      section: null 
+    {
+      name: "Dashboard",
+      href: "/admin",
+      icon: LayoutDashboard,
     },
     {
-      name: 'CV Parser',
-      icon: FileSearch,
-      href: '/dashboard/parser',
-      section: null
+      name: "Consultations",
+      href: "/admin/consultations",
+      icon: Calendar,
     },
     {
-      name: 'Filters',
-      icon: Sliders,
-      href: '/dashboard/filters',
-      section: null
-    },
-    {
-      name: 'Positions',
-      icon: Briefcase,
-      href: '/dashboard/positions',
-      section: null
-    },
-    {
-      name: 'Candidates',
+      name: "Candidates",
+      href: "/admin/candidates",
       icon: Users,
-      href: '/dashboard/candidates',
-      section: null
+    },
+    {
+      name: "Positions",
+      href: "/admin/positions",
+      icon: Briefcase,
+    },
+    {
+      name: "Job Parser",
+      href: "/admin/parser",
+      icon: FileSearch,
+    },
+    {
+      name: "Filters",
+      href: "/admin/filters",
+      icon: Sliders,
     },
   ];
 
   return (
-    <div className={cn("w-64 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900 dark:border-gray-800 py-4 h-screen fixed", className)}>
+    <div className={cn("w-64 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900 dark:border-gray-800 py-4 h-screen fixed overflow-y-auto", className)}>
       <div className="space-y-4">
         <div className="px-3 py-2">
           <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
@@ -102,6 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             ))}
           </div>
         </div>
+
         <div className="mt-auto border-t border-gray-200 dark:border-gray-700 px-3 py-2">
           <Button asChild variant="ghost" className="w-full justify-start font-normal">
             <Link to="/account-settings" className="flex items-center">
