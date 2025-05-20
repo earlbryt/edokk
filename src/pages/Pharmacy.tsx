@@ -1,26 +1,19 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Layout/Navbar";
 import Footer from "@/components/Layout/Footer";
+import { motion } from "framer-motion";
 
-// Types for pharmacy products
-type ProductCategory = "Antibiotics" | "Pain Relief" | "Supplements" | "First Aid";
+// Custom Pharmacy Components
+import ProductCard from "@/components/Pharmacy/ProductCard";
+import CartDrawer from "@/components/Pharmacy/CartDrawer";
+import CheckoutModal from "@/components/Pharmacy/CheckoutModal";
 
-interface PharmacyProduct {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  startingPrice?: number;
-  category: ProductCategory;
-  image: string;
-  backgroundColor: string;
-}
+// Cart Context
+import { CartProvider, useCart, ProductCategory, Product } from "@/context/CartContext";
 
 // Product data
-const products: PharmacyProduct[] = [
+const products: Product[] = [
   {
     id: "1",
     name: "Antibiotics",
@@ -66,154 +59,99 @@ const products: PharmacyProduct[] = [
 // Filter options
 const categories: ProductCategory[] = ["Antibiotics", "Pain Relief", "Supplements", "First Aid"];
 
-const Pharmacy = () => {
-  const { toast } = useToast();
-  const [cart, setCart] = useState<{productId: string, quantity: number}[]>([]);
+// Pharmacy content component (separated from main component to use CartContext)
+const PharmacyContent = () => {
   const [activeCategory, setActiveCategory] = useState<ProductCategory | "All">("All");
+  const { cartCount } = useCart();
   
+  // Filter products by category
   const filteredProducts = activeCategory === "All" 
     ? products 
     : products.filter(product => product.category === activeCategory);
-  
-  const addToCart = (productId: string) => {
-    const existingItem = cart.find(item => item.productId === productId);
-    
-    if (existingItem) {
-      setCart(cart.map(item => 
-        item.productId === productId 
-          ? { ...item, quantity: item.quantity + 1 } 
-          : item
-      ));
-    } else {
-      setCart([...cart, { productId, quantity: 1 }]);
-    }
-    
-    toast({
-      title: "Added to cart",
-      description: "Product has been added to your cart",
-    });
-  };
   
   return (
     <div className="min-h-screen">
       <Navbar />
       <div className="container mx-auto py-24 px-4 sm:px-6 lg:px-8">
-        <div className="space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        <div className="space-y-12">
+          {/* Hero Section */}
+          <motion.div 
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900">
               E-Pharmacy
             </h1>
-            <p className="mt-4 text-lg text-gray-500">
-              Browse our selection of medications and health products
+            <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+              Browse our selection of high-quality medications and health products with fast delivery
             </p>
-          </div>
+          </motion.div>
           
           {/* Category filters */}
-          <div className="flex flex-wrap justify-center gap-2">
+          <motion.div 
+            className="flex flex-wrap justify-center gap-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             <Button
               variant={activeCategory === "All" ? "default" : "outline"}
               onClick={() => setActiveCategory("All")}
-              className="rounded-full"
+              className="rounded-full bg-lens-purple hover:bg-lens-purple-light"
             >
-              All
+              All Products
             </Button>
-            {categories.map(category => (
+            {categories.map((category, index) => (
               <Button
                 key={category}
                 variant={activeCategory === category ? "default" : "outline"}
                 onClick={() => setActiveCategory(category)}
-                className="rounded-full"
+                className={`rounded-full ${activeCategory === category ? 'bg-lens-purple hover:bg-lens-purple-light' : ''}`}
               >
                 {category}
               </Button>
             ))}
-          </div>
+          </motion.div>
           
           {/* Products grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredProducts.map((product) => (
-              <Card 
-                key={product.id} 
-                className={`overflow-hidden transition-all hover:shadow-lg ${product.backgroundColor}`}
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 gap-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            {filteredProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 * index }}
               >
-                <div className="flex flex-col md:flex-row">
-                  <div className="flex-1 p-6">
-                    <CardHeader className="p-0">
-                      <h3 className="text-2xl font-bold text-gray-900">{product.name}</h3>
-                    </CardHeader>
-                    <CardContent className="p-0 mt-2">
-                      <p className="text-gray-600">{product.description}</p>
-                      <div className="mt-4">
-                        <p className="text-sm text-gray-500">Starting</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          GH₵{product.startingPrice?.toFixed(2)}
-                        </p>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="p-0 mt-4">
-                      <Button onClick={() => addToCart(product.id)} className="w-full md:w-auto">
-                        Add to cart
-                      </Button>
-                    </CardFooter>
-                  </div>
-                  <div className="flex items-center justify-center p-6 md:w-2/5">
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="h-52 w-auto object-contain transition-transform hover:scale-105"
-                    />
-                  </div>
-                </div>
-              </Card>
+                <ProductCard product={product} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
           
-          {/* Cart summary */}
-          {cart.length > 0 && (
-            <div className="mt-12 p-6 border rounded-lg shadow-sm bg-white">
-              <h2 className="text-xl font-bold mb-4">Your Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)</h2>
-              <ul className="divide-y">
-                {cart.map(item => {
-                  const product = products.find(p => p.id === item.productId);
-                  if (!product) return null;
-                  
-                  return (
-                    <li key={item.productId} className="py-4 flex justify-between">
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                      </div>
-                      <p className="font-medium">GH₵{(product.price * item.quantity).toFixed(2)}</p>
-                    </li>
-                  );
-                })}
-              </ul>
-              <div className="mt-4 pt-4 border-t flex justify-between">
-                <span className="font-bold">Total:</span>
-                <span className="font-bold">
-                  GH₵{cart.reduce((sum, item) => {
-                    const product = products.find(p => p.id === item.productId);
-                    return sum + (product?.price || 0) * item.quantity;
-                  }, 0).toFixed(2)}
-                </span>
-              </div>
-              <div className="mt-6">
-                <Button className="w-full" onClick={() => {
-                  toast({
-                    title: "Order placed",
-                    description: "Your order has been successfully placed!",
-                  });
-                  setCart([]);
-                }}>
-                  Checkout
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* Checkout is now exclusively available in the cart drawer */}
         </div>
       </div>
+      
+      {/* Cart Drawer (includes checkout functionality) */}
+      <CartDrawer />
+      
       <Footer />
     </div>
+  );
+};
+
+// Main Pharmacy component with CartProvider
+const Pharmacy = () => {
+  return (
+    <CartProvider>
+      <PharmacyContent />
+    </CartProvider>
   );
 };
 
