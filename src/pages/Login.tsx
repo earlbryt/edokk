@@ -14,7 +14,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -33,9 +33,20 @@ const Login: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      await login(email, password);
-      // Direct all users to dashboard after login
-      navigate('/dashboard');
+      // Login and get user data with role
+      const userData = await login(email, password);
+      
+      // Check the role from the returned user data
+      if (userData && userData.role === 'admin') {
+        toast({
+          title: "Welcome back, Admin",
+          description: "You've been redirected to the admin dashboard."
+        });
+        navigate('/admin');
+      } else {
+        // Regular users go to their profile
+        navigate('/profile');
+      }
     } catch (error) {
       console.error('Login failed:', error);
       // Error is handled within the login function

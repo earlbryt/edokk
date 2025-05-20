@@ -46,9 +46,12 @@ const Signup: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      await signup(name, email, password);
-      // Direct all users to dashboard after signup
-      navigate('/dashboard');
+      // Signup and get user data with role
+      const userData = await signup(name, email, password);
+      
+      // New users are always directed to their profile page
+      // since they're assigned the 'user' role by default
+      navigate('/profile');
     } catch (error) {
       console.error('Signup failed:', error);
       // Error is handled within the signup function

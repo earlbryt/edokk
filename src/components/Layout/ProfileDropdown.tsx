@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Settings, LogOut } from 'lucide-react';
+import { User, Settings, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 
@@ -59,6 +59,14 @@ const ProfileDropdown: React.FC = () => {
                 <span>My Profile</span>
               </Link>
             </DropdownMenuItem>
+            {user?.role === 'admin' && (
+              <DropdownMenuItem asChild>
+                <Link to="/admin" className="flex cursor-pointer items-center">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  <span>Admin Dashboard</span>
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem asChild>
               <Link to="/settings" className="flex cursor-pointer items-center">
                 <Settings className="mr-2 h-4 w-4" />

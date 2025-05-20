@@ -8,13 +8,14 @@ interface User {
   id: string;
   name: string;
   email: string;
+  role?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
+  signup: (name: string, email: string, password: string) => Promise<User | null>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -38,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Get user profile data
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('name')
+          .select('name, role')
           .eq('id', session.user.id)
           .single();
         
@@ -47,6 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             id: session.user.id,
             email: session.user.email || '',
             name: profile.name || '',
+            role: profile.role || 'user',
           });
         }
       }
@@ -60,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Get user profile data
             const { data: profile, error } = await supabase
               .from('profiles')
-              .select('name')
+              .select('name, role')
               .eq('id', session.user.id)
               .single();
             
@@ -69,6 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 id: session.user.id,
                 email: session.user.email || '',
                 name: profile.name || '',
+                role: profile.role || 'user',
               });
             }
           } else if (event === 'SIGNED_OUT') {
@@ -101,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Get user profile data
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('name')
+          .select('name, role')
           .eq('id', data.user.id)
           .single();
         
@@ -109,10 +112,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.error('Error fetching profile:', profileError);
         }
         
+        // Handle the role safely to avoid type errors
+        // The role might not exist in the database yet since we're adding it
+        let userRole = 'user';
+        if (profile && 'role' in profile) {
+          userRole = profile.role as string || 'user';
+        }
+        
         const userData = {
           id: data.user.id,
           email: data.user.email || '',
           name: profile?.name || email.split('@')[0],
+          role: userRole,
         };
         
         setUser(userData);
@@ -121,7 +132,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           title: "Login successful",
           description: `Welcome back, ${userData.name}!`,
         });
+        
+        // Return the user data for redirection purposes
+        return userData;
       }
+      
+      return null;
     } catch (error) {
       console.error('Login error:', error);
       toast({
@@ -157,7 +173,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userData = {
           id: data.user.id,
           email: data.user.email || '',
-          name
+          name,
+          role: 'user' // New users are regular users by default
         };
         
         setUser(userData);
@@ -166,7 +183,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           title: "Account created",
           description: "Your account has been successfully created.",
         });
+        
+        // Return the user data for redirection purposes
+        return userData;
       }
+      
+      return null;
     } catch (error) {
       console.error('Signup error:', error);
       toast({
