@@ -101,8 +101,8 @@ const ConsultationsPage: React.FC = () => {
     setFilteredConsultations(filtered);
   };
 
-  // Update consultation status
-  const updateConsultationStatus = async (id: string, status: 'confirmed' | 'cancelled' | 'completed' | 'pending') => {
+  // Update consultation status (only allow confirming pending consultations)
+  const updateConsultationStatus = async (id: string, status: 'confirmed') => {
     try {
       setIsLoading(true);
       
@@ -143,10 +143,6 @@ const ConsultationsPage: React.FC = () => {
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
       case 'confirmed':
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Confirmed</Badge>;
-      case 'cancelled':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Cancelled</Badge>;
-      case 'completed':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Completed</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -172,7 +168,7 @@ const ConsultationsPage: React.FC = () => {
           </div>
 
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
             <Card className="bg-white shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4">
@@ -214,20 +210,6 @@ const ConsultationsPage: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-
-            <Card className="bg-white shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-red-50 rounded-full">
-                    <X className="h-5 w-5 text-red-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Cancelled</p>
-                    <p className="text-2xl font-bold">{countByStatus('cancelled')}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Search in Top Right */}
@@ -250,12 +232,10 @@ const ConsultationsPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-5 mb-6">
-                  <TabsTrigger value="all">All ({countByStatus(null)})</TabsTrigger>
-                  <TabsTrigger value="pending">Pending ({countByStatus('pending')})</TabsTrigger>
-                  <TabsTrigger value="confirmed">Confirmed ({countByStatus('confirmed')})</TabsTrigger>
-                  <TabsTrigger value="completed">Completed ({countByStatus('completed')})</TabsTrigger>
-                  <TabsTrigger value="cancelled">Cancelled ({countByStatus('cancelled')})</TabsTrigger>
+                <TabsList className="w-full max-w-md mx-auto mb-6" style={{ background: 'rgba(125, 94, 234, 0.05)', borderColor: 'rgba(125, 94, 234, 0.2)' }}>
+                  <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:text-violet-700 data-[state=active]:shadow-sm">All <span className="ml-1 text-xs">({countByStatus(null)})</span></TabsTrigger>
+                  <TabsTrigger value="pending" className="data-[state=active]:bg-white data-[state=active]:text-violet-700 data-[state=active]:shadow-sm">Pending <span className="ml-1 text-xs">({countByStatus('pending')})</span></TabsTrigger>
+                  <TabsTrigger value="confirmed" className="data-[state=active]:bg-white data-[state=active]:text-violet-700 data-[state=active]:shadow-sm">Confirmed <span className="ml-1 text-xs">({countByStatus('confirmed')})</span></TabsTrigger>
                 </TabsList>
 
                 {/* Table Content - Same for all tabs, filtering done in JS */}
@@ -276,96 +256,135 @@ const ConsultationsPage: React.FC = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Patient</TableHead>
-                            <TableHead>Date & Time</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Symptoms</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredConsultations.map((consultation) => (
-                            <TableRow key={consultation.id}>
-                              <TableCell>
-                                <div>
-                                  <p className="font-medium">{consultation.full_name}</p>
-                                  <p className="text-sm text-gray-500">{consultation.email}</p>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div>
-                                  <p className="font-medium">{formatDate(consultation.preferred_date)}</p>
-                                  <p className="text-sm text-gray-500">{consultation.preferred_time}</p>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge className="capitalize">{consultation.consultation_type.replace('_', ' ')}</Badge>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex flex-wrap gap-1">
-                                  {consultation.symptoms.slice(0, 2).map((symptom, index) => (
-                                    <Badge key={index} variant="outline">{symptom}</Badge>
-                                  ))}
-                                  {consultation.symptoms.length > 2 && (
-                                    <Badge variant="outline">+{consultation.symptoms.length - 2} more</Badge>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                {getStatusBadge(consultation.status)}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex gap-1">
-                                  {consultation.status === 'pending' && (
-                                    <>
+                    <div className="space-y-4">
+                      {filteredConsultations.map((consultation) => {
+                        // Calculate border color based on status
+                        const getBorderColor = (status: string) => {
+                          switch(status) {
+                            case 'confirmed':
+                              return '#10b981'; // green-500
+                            case 'pending':
+                              return '#f59e0b'; // amber-500
+                            default:
+                              return '#d1d5db'; // gray-300
+                          }
+                        };
+                        
+                        // Random profile pictures (would be replaced with actual patient photos in a real app)
+                        const PROFILE_PICTURES = [
+                          '/assets/profile/avatar1.avif',
+                          '/assets/profile/androgynous-avatar-non-binary-queer-person.jpg',
+                          '/assets/profile/androgynous-avatar-non-binary-queer-person_23-2151100279.png',
+                          '/assets/profile/3d-cartoon-portrait-person-practicing-law-related-profession_23-2151419551.png',
+                          '/assets/profile/memoji-african-american-man-white-background-emoji_826801-6856.png',
+                          '/assets/profile/memoji-african-american-man-white-background-emoji_826801-6857.png'
+                        ];
+                        
+                        // Deterministically select a profile picture based on the patient email
+                        const getProfilePicture = (email: string) => {
+                          let charSum = 0;
+                          for (let i = 0; i < email.length; i++) {
+                            charSum += email.charCodeAt(i);
+                          }
+                          const pictureIndex = Math.abs(charSum) % PROFILE_PICTURES.length;
+                          return PROFILE_PICTURES[pictureIndex];
+                        };
+                        
+                        return (
+                          <div 
+                            key={consultation.id} 
+                            className="p-4 border rounded-lg hover:border-blue-400 transition-colors bg-white"
+                          >
+                            <div className="flex items-center mb-3">
+                              <div className="mr-3 h-12 w-12 rounded-full overflow-hidden border-2 flex-shrink-0" 
+                                style={{ borderColor: getBorderColor(consultation.status) }}>
+                                <img 
+                                  src={getProfilePicture(consultation.email)}
+                                  alt={consultation.full_name}
+                                  className="h-full w-full object-cover"
+                                  onError={(e) => {
+                                    // Fallback to first letter of name if image fails to load
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.parentElement!.innerHTML = `<div class="h-full w-full flex items-center justify-center bg-gray-100 text-gray-800 font-bold text-xl">${consultation.full_name.charAt(0)}</div>`;
+                                  }}
+                                />
+                              </div>
+                              
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium">{consultation.full_name}</span>
+                                    {getStatusBadge(consultation.status)}
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2">
+                                    {consultation.status === 'pending' && (
                                       <Button
                                         size="sm"
                                         variant="outline"
                                         className="text-green-600 border-green-200 hover:bg-green-50"
                                         onClick={() => updateConsultationStatus(consultation.id, 'confirmed')}
                                       >
+                                        <Check className="h-3.5 w-3.5 mr-1" />
                                         Confirm
                                       </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="text-red-600 border-red-200 hover:bg-red-50"
-                                        onClick={() => updateConsultationStatus(consultation.id, 'cancelled')}
-                                      >
-                                        Cancel
-                                      </Button>
-                                    </>
-                                  )}
-                                  {consultation.status === 'confirmed' && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                                      onClick={() => updateConsultationStatus(consultation.id, 'completed')}
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {consultation.email}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4 mt-2">
+                              {/* Date and Time Column */}
+                              <div>
+                                <div className="text-xs font-semibold text-gray-600 mb-1">Appointment Time</div>
+                                <div className="text-xs text-gray-700 flex items-center">
+                                  <Calendar className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
+                                  {formatDate(consultation.preferred_date)}
+                                  <span className="mx-1">•</span>
+                                  <Clock className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
+                                  {consultation.preferred_time}
+                                </div>
+                                <div className="mt-1.5 flex items-center">
+                                  <Badge className="text-xs capitalize">{consultation.consultation_type.replace('_', ' ')}</Badge>
+                                </div>
+                              </div>
+                              
+                              {/* Symptoms Column */}
+                              <div>
+                                <div className="text-xs font-semibold text-gray-600 mb-1">Symptoms</div>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {consultation.symptoms.slice(0, 3).map((symptom, i) => (
+                                    <span 
+                                      key={i}
+                                      className="bg-gray-100 text-gray-700 border border-gray-200 text-xs px-2.5 py-0.5 rounded-md font-medium"
                                     >
-                                      Mark Complete
-                                    </Button>
-                                  )}
-                                  {consultation.status === 'cancelled' && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => updateConsultationStatus(consultation.id, 'pending')}
-                                    >
-                                      Reactivate
-                                    </Button>
+                                      {symptom}
+                                    </span>
+                                  ))}
+                                  {consultation.symptoms.length > 3 && (
+                                    <span className="bg-blue-50 text-blue-600 border border-blue-200 border-opacity-30 text-xs px-2.5 py-0.5 rounded-md font-medium">
+                                      +{consultation.symptoms.length - 3} more
+                                    </span>
                                   )}
                                 </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                              </div>
+                            </div>
+                            
+                            {consultation.additional_notes && (
+                              <div className="mt-3 pt-3 border-t border-gray-100">
+                                <div className="text-xs font-semibold text-gray-600 mb-1">Additional Notes</div>
+                                <p className="text-xs text-gray-600 line-clamp-2">{consultation.additional_notes}</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </TabsContent>
