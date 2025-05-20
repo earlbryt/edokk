@@ -10,6 +10,9 @@ import { Calendar, CheckCircle, Clock, FileText, Mail, MapPin, Phone, User, X } 
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import Navbar from '@/components/Layout/Navbar';
+import Footer from '@/components/Layout/Footer';
+import ConsultationDialog from '@/components/Consultations/ConsultationDialog';
 
 // Define the consultation type
 interface Consultation {
@@ -31,6 +34,7 @@ const Profile = () => {
   const [isLoadingConsultations, setIsLoadingConsultations] = useState(true);
   const [profileData, setProfileData] = useState<any>({});
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [showConsultationDialog, setShowConsultationDialog] = useState(false);
   const { toast } = useToast();
 
   // Get user initials for avatar fallback
@@ -122,8 +126,10 @@ const Profile = () => {
   };
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-24 md:py-32">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="container max-w-7xl mx-auto px-4 py-24 md:py-32">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left column - User profile info */}
         <div className="md:col-span-1 space-y-6">
           <Card>
@@ -277,7 +283,7 @@ const Profile = () => {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold">Your Consultations</h2>
-                  <Button className="bg-lens-purple hover:bg-lens-purple-light" onClick={() => document.dispatchEvent(new Event('open-consultation-dialog'))}>
+                  <Button className="bg-lens-purple hover:bg-lens-purple-light" onClick={() => setShowConsultationDialog(true)}>
                     Book New Consultation
                   </Button>
                 </div>
@@ -304,7 +310,7 @@ const Profile = () => {
                       </div>
                       <Button 
                         className="bg-lens-purple hover:bg-lens-purple-light" 
-                        onClick={() => document.dispatchEvent(new Event('open-consultation-dialog'))}
+                        onClick={() => setShowConsultationDialog(true)}
                       >
                         Book Consultation
                       </Button>
@@ -439,6 +445,14 @@ const Profile = () => {
           </Tabs>
         </div>
       </div>
+      </div>
+      <Footer />
+      
+      {/* Consultation Dialog */}
+      <ConsultationDialog 
+        open={showConsultationDialog} 
+        onOpenChange={setShowConsultationDialog} 
+      />
     </div>
   );
 };

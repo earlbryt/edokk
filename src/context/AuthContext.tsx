@@ -9,6 +9,7 @@ interface User {
   name: string;
   email: string;
   role?: string;
+  photoUrl?: string;
 }
 
 interface AuthContextType {
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Get user profile data
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('name, role')
+          .select('name, role, photo_url')
           .eq('id', session.user.id)
           .single();
         
@@ -49,6 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             email: session.user.email || '',
             name: profile.name || '',
             role: profile.role || 'user',
+            photoUrl: profile.photo_url || undefined,
           });
         }
       }
@@ -62,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Get user profile data
             const { data: profile, error } = await supabase
               .from('profiles')
-              .select('name, role')
+              .select('name, role, photo_url')
               .eq('id', session.user.id)
               .single();
             
@@ -72,6 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 email: session.user.email || '',
                 name: profile.name || '',
                 role: profile.role || 'user',
+                photoUrl: profile.photo_url || undefined,
               });
             }
           } else if (event === 'SIGNED_OUT') {
@@ -204,15 +207,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      // First clear local React state
+      setUser(null);
+      
+      // Then sign out from Supabase
+      const { error } = await supabase.auth.signOut({
+        scope: 'global' // This clears all sessions, not just the current one
+      });
+      
       if (error) throw error;
       
-      setUser(null);
+      // Clear any local storage/cookies for extra safety
+      localStorage.removeItem('supabase.auth.token');
       
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
+      
+      // Force refresh the page to ensure a complete logout
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
       toast({
