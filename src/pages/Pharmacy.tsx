@@ -146,7 +146,7 @@ const Pharmacy = () => {
                       <div className="mt-4">
                         <p className="text-sm text-gray-500">Starting</p>
                         <p className="text-2xl font-bold text-gray-900">
-                          ${product.startingPrice?.toFixed(2)}
+                          GH₵{product.startingPrice?.toFixed(2)}
                         </p>
                       </div>
                     </CardContent>
@@ -160,7 +160,7 @@ const Pharmacy = () => {
                     <img 
                       src={product.image} 
                       alt={product.name}
-                      className="h-40 w-auto object-contain"
+                      className="h-52 w-auto object-contain transition-transform hover:scale-105"
                     />
                   </div>
                 </div>
@@ -183,7 +183,7 @@ const Pharmacy = () => {
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                       </div>
-                      <p className="font-medium">${(product.price * item.quantity).toFixed(2)}</p>
+                      <p className="font-medium">GH₵{(product.price * item.quantity).toFixed(2)}</p>
                     </li>
                   );
                 })}
@@ -191,7 +191,7 @@ const Pharmacy = () => {
               <div className="mt-4 pt-4 border-t flex justify-between">
                 <span className="font-bold">Total:</span>
                 <span className="font-bold">
-                  ${cart.reduce((sum, item) => {
+                  GH₵{cart.reduce((sum, item) => {
                     const product = products.find(p => p.id === item.productId);
                     return sum + (product?.price || 0) * item.quantity;
                   }, 0).toFixed(2)}
