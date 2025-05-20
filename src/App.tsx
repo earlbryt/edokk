@@ -19,6 +19,7 @@ import Features from "./pages/Features";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import Consultations from "./pages/Consultations";
+import Profile from "./pages/Profile";
 import { useAuth } from "./context/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
@@ -102,6 +103,14 @@ const AppRoutes = () => {
         element={
           <UserRoute>
             <Consultations />
+          </UserRoute>
+        } 
+      />
+      <Route 
+        path="/profile" 
+        element={
+          <UserRoute>
+            <Profile />
           </UserRoute>
         } 
       />

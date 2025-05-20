@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from 'lucide-react';
 import { AnimatePresence, motion } from "framer-motion";
 import Logo from "@/components/shared/Logo";
+import ProfileDropdown from "./ProfileDropdown";
+import { useAuth } from "@/context/AuthContext";
 
 const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   
   // Close mobile menu when route changes
   useEffect(() => {
@@ -38,7 +41,6 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center gap-8">
             <div className="hidden md:flex space-x-8">
               <Link to="/" className="text-gray-700 hover:text-lens-purple transition-colors">Home</Link>
-              <Link to="/consultation" className="text-gray-700 hover:text-lens-purple transition-colors">Consultation</Link>
               <Link to="/pharmacy" className="text-gray-700 hover:text-lens-purple transition-colors">E-Pharmacy</Link>
               <Link to="/dietetics" className="text-gray-700 hover:text-lens-purple transition-colors">Dietetics</Link>
               <Link to="/mental-health" className="text-gray-700 hover:text-lens-purple transition-colors">Mental Health</Link>
@@ -47,12 +49,18 @@ const Navbar: React.FC = () => {
           </div>
           
           <div className="hidden md:flex items-center gap-4">
-            <Link to="/login">
-              <Button variant="outline" className="rounded-full">Log In</Button>
-            </Link>
-            <Link to="/signup">
-              <Button className="rounded-full bg-lens-purple hover:bg-lens-purple-light">Get Started</Button>
-            </Link>
+            {isAuthenticated ? (
+              <ProfileDropdown />
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="outline" className="rounded-full">Log In</Button>
+                </Link>
+                <Link to="/signup">
+                  <Button className="rounded-full bg-lens-purple hover:bg-lens-purple-light">Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
           
           {/* Mobile Menu Button */}
@@ -117,7 +125,6 @@ const Navbar: React.FC = () => {
               >
                 <div className="flex flex-col gap-3">
                   <NavLink to="/">Home</NavLink>
-                  <NavLink to="/consultation">Consultation</NavLink>
                   <NavLink to="/pharmacy">E-Pharmacy</NavLink>
                   <NavLink to="/dietetics">Dietetics</NavLink>
                   <NavLink to="/mental-health">Mental Health</NavLink>
@@ -126,16 +133,24 @@ const Navbar: React.FC = () => {
                   <div className="h-px bg-gray-100 my-3" />
                   
                   <div className="flex flex-col gap-3 pt-2">
-                    <Link to="/login" className="w-full">
-                      <Button variant="outline" className="w-full rounded-full border-lens-purple text-lens-purple hover:bg-lens-purple/5">
-                        Log In
-                      </Button>
-                    </Link>
-                    <Link to="/signup" className="w-full">
-                      <Button className="w-full rounded-full bg-lens-purple hover:bg-lens-purple-light">
-                        Get Started
-                      </Button>
-                    </Link>
+                    {isAuthenticated ? (
+                      <div className="flex items-center justify-center p-2">
+                        <ProfileDropdown />
+                      </div>
+                    ) : (
+                      <>
+                        <Link to="/login" className="w-full">
+                          <Button variant="outline" className="w-full rounded-full border-lens-purple text-lens-purple hover:bg-lens-purple/5">
+                            Log In
+                          </Button>
+                        </Link>
+                        <Link to="/signup" className="w-full">
+                          <Button className="w-full rounded-full bg-lens-purple hover:bg-lens-purple-light">
+                            Get Started
+                          </Button>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
               </motion.div>
