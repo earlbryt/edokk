@@ -14,6 +14,7 @@ import { CalendarIcon, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import SymptomSelector from './SymptomSelector';
 import { cn } from '@/lib/utils';
+import { FormEvent } from 'react';
 
 // Generate time slots from 8 AM to 8 PM
 const generateTimeSlots = () => {
@@ -29,7 +30,12 @@ const generateTimeSlots = () => {
 
 const TIME_SLOTS = generateTimeSlots();
 
-const ConsultationForm: React.FC = () => {
+interface ConsultationFormProps {
+  onSubmit?: (data: any) => void;
+  isDialog?: boolean;
+}
+
+const ConsultationForm: React.FC<ConsultationFormProps> = ({ onSubmit, isDialog = false }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,24 +78,41 @@ const ConsultationForm: React.FC = () => {
       return;
     }
     
+    // Format date and time for the database
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    
+    // Extract hour and minute from time string (e.g., "2:30 PM" -> "14:30")
+    const timeParts = time.split(' ')[0].split(':');
+    let hour = parseInt(timeParts[0]);
+    const minute = parseInt(timeParts[1]);
+    const period = time.split(' ')[1];
+    
+    // Convert to 24-hour format
+    if (period === 'PM' && hour < 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    
+    const formattedTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    
+    // If we're in dialog mode, pass the data to the parent
+    if (isDialog && onSubmit) {
+      onSubmit({
+        fullName,
+        email,
+        consultationType,
+        date,
+        time,
+        formattedDate,
+        formattedTime,
+        symptoms,
+        notes,
+      });
+      return;
+    }
+    
+    // Otherwise handle as standalone form
     setIsSubmitting(true);
     
     try {
-      // Format date and time for the database
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      
-      // Extract hour and minute from time string (e.g., "2:30 PM" -> "14:30")
-      const timeParts = time.split(' ')[0].split(':');
-      let hour = parseInt(timeParts[0]);
-      const minute = parseInt(timeParts[1]);
-      const period = time.split(' ')[1];
-      
-      // Convert to 24-hour format
-      if (period === 'PM' && hour < 12) hour += 12;
-      if (period === 'AM' && hour === 12) hour = 0;
-      
-      const formattedTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      
       // Create consultation record
       const { data, error } = await supabase
         .from('consultations')
@@ -133,134 +156,152 @@ const ConsultationForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <Label htmlFor="fullName">Full Name</Label>
-          <Input
-            id="fullName"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <Label>Consultation Type</Label>
-        <RadioGroup
-          value={consultationType}
-          onValueChange={(value) => setConsultationType(value as 'virtual' | 'in_person')}
-          className="flex gap-4"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="virtual" id="virtual" />
-            <Label htmlFor="virtual" className="cursor-pointer">Virtual</Label>
+    <form onSubmit={handleSubmit} className="space-y-4 w-full">
+      {/* Mobile: Portrait layout | Desktop: Landscape layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+        {/* Left column - personal info */}
+        <div className="space-y-4 lg:col-span-1">
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Full Name</Label>
+            <Input
+              id="fullName"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
           </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="in_person" id="in_person" />
-            <Label htmlFor="in_person" className="cursor-pointer">In-Person</Label>
+          
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
-        </RadioGroup>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <Label>Preferred Date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : "Select date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-                disabled={(date) => date < new Date()}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        
-        <div className="space-y-2">
-          <Label>Preferred Time</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !time && "text-muted-foreground"
-                )}
-              >
-                <Clock className="mr-2 h-4 w-4" />
-                {time || "Select time"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 p-0">
-              <div className="max-h-72 overflow-y-auto p-2">
-                {TIME_SLOTS.map((timeSlot) => (
-                  <Button
-                    key={timeSlot}
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start",
-                      timeSlot === time && "bg-accent text-accent-foreground"
-                    )}
-                    onClick={() => {
-                      setTime(timeSlot);
-                      document.body.click(); // Close the popover
-                    }}
-                  >
-                    {timeSlot}
-                  </Button>
-                ))}
+
+          <div className="space-y-2">
+            <Label>Consultation Type</Label>
+            <RadioGroup
+              value={consultationType}
+              onValueChange={(value) => setConsultationType(value as 'virtual' | 'in_person')}
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="virtual" id="virtual" />
+                <Label htmlFor="virtual" className="cursor-pointer">Virtual</Label>
               </div>
-            </PopoverContent>
-          </Popover>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="in_person" id="in_person" />
+                <Label htmlFor="in_person" className="cursor-pointer">In-Person</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </div>
+        
+        {/* Middle column - date/time */}
+        <div className="space-y-4 lg:col-span-1">
+          <div className="space-y-2">
+            <Label>Preferred Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : "Select date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  initialFocus
+                  disabled={(date) => date < new Date()}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Preferred Time</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !time && "text-muted-foreground"
+                  )}
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  {time || "Select time"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-0">
+                <div className="max-h-72 overflow-y-auto p-2">
+                  {TIME_SLOTS.map((timeSlot) => (
+                    <Button
+                      key={timeSlot}
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start",
+                        timeSlot === time && "bg-accent text-accent-foreground"
+                      )}
+                      onClick={() => {
+                        setTime(timeSlot);
+                        document.body.click(); // Close the popover
+                      }}
+                    >
+                      {timeSlot}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          {/* Submit button moved here on mobile, visible on mobile only */}
+          <div className="lg:hidden pt-2">
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Booking..." : "Book Consultation"}
+            </Button>
+          </div>
+        </div>
+        
+        {/* Right column - symptoms and notes */}
+        <div className="space-y-4 lg:col-span-1">
+          <div className="space-y-2">
+            <Label>Symptoms</Label>
+            <SymptomSelector value={symptoms} onChange={setSymptoms} />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="notes">Additional Notes (Optional)</Label>
+            <Textarea
+              id="notes"
+              rows={4}
+              placeholder="Describe your symptoms or concerns in more detail..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
         </div>
       </div>
       
-      <div className="space-y-2">
-        <Label>Symptoms</Label>
-        <SymptomSelector value={symptoms} onChange={setSymptoms} />
+      {/* Submit button at the bottom, only visible on desktop */}
+      <div className="hidden lg:block pt-2">
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Booking..." : "Book Consultation"}
+        </Button>
       </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="notes">Additional Notes (Optional)</Label>
-        <Textarea
-          id="notes"
-          rows={4}
-          placeholder="Describe your symptoms or concerns in more detail..."
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
-      </div>
-      
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Booking..." : "Book Consultation"}
-      </Button>
     </form>
   );
 };

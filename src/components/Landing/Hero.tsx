@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Heart, Brain, Pill, Apple, Flower } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ConsultationDialog from "@/components/Consultations/ConsultationDialog";
 
 const Hero: React.FC = () => {
+  const [showConsultationDialog, setShowConsultationDialog] = useState(false);
   return (
     <section className="relative pt-16 pb-16 md:pt-24 md:pb-20 lg:py-32 overflow-hidden">
       {/* Enhanced Background Elements */}
@@ -60,8 +62,12 @@ const Hero: React.FC = () => {
               <Button asChild size="lg" className="bg-lens-purple hover:bg-lens-purple-light text-white">
                 <Link to="/signup">Get Started</Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/consultations">Book Consultation</Link>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                onClick={() => setShowConsultationDialog(true)}
+              >
+                Book Consultation
               </Button>
             </motion.div>
             
@@ -236,6 +242,12 @@ const Hero: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Consultation Dialog */}
+      <ConsultationDialog 
+        open={showConsultationDialog} 
+        onOpenChange={setShowConsultationDialog} 
+      />
     </section>
   );
 };
