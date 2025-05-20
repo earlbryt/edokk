@@ -59,6 +59,7 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ onSubmit, isDialog 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submission started');
     
     if (!date || !time) {
       toast({
@@ -80,6 +81,7 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ onSubmit, isDialog 
     
     // Format date and time for the database
     const formattedDate = format(date, 'yyyy-MM-dd');
+    console.log('Formatted date:', formattedDate);
     
     // Extract hour and minute from time string (e.g., "2:30 PM" -> "14:30")
     const timeParts = time.split(' ')[0].split(':');
@@ -92,9 +94,11 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ onSubmit, isDialog 
     if (period === 'AM' && hour === 12) hour = 0;
     
     const formattedTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    console.log('Formatted time:', formattedTime);
     
     // If we're in dialog mode, pass the data to the parent
     if (isDialog && onSubmit) {
+      console.log('Using dialog mode, passing data to parent');
       onSubmit({
         fullName,
         email,
@@ -111,25 +115,36 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ onSubmit, isDialog 
     
     // Otherwise handle as standalone form
     setIsSubmitting(true);
+    console.log('Starting direct submission to database');
     
     try {
+      // Prepare the consultation data
+      const consultationData = {
+        user_id: user?.id,
+        full_name: fullName,
+        email,
+        consultation_type: consultationType,
+        preferred_date: formattedDate,
+        preferred_time: formattedTime,
+        symptoms,
+        additional_notes: notes,
+        status: 'pending' as 'pending' | 'confirmed' | 'cancelled' | 'completed'
+      };
+      
+      console.log('Consultation data to submit:', consultationData);
+      
       // Create consultation record
       const { data, error } = await supabase
         .from('consultations')
-        .insert({
-          user_id: user?.id,
-          full_name: fullName,
-          email,
-          consultation_type: consultationType,
-          preferred_date: formattedDate,
-          preferred_time: formattedTime,
-          symptoms,
-          additional_notes: notes,
-          status: 'pending'
-        })
+        .insert(consultationData)
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Consultation successfully saved:', data);
       
       toast({
         title: "Consultation Booked",
@@ -143,11 +158,12 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ onSubmit, isDialog 
       setSymptoms([]);
       setNotes('');
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error booking consultation:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       toast({
         title: "Booking Failed",
-        description: "There was an error booking your consultation. Please try again.",
+        description: error.message || "There was an error booking your consultation. Please try again.",
         variant: "destructive"
       });
     } finally {

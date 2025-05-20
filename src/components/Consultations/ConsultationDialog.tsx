@@ -46,27 +46,44 @@ const ConsultationDialog: React.FC<ConsultationDialogProps> = ({
   };
 
   const handleConfirm = async () => {
-    if (!formData || !user) return;
+    if (!formData || !user) {
+      console.error('Missing form data or user information');
+      return;
+    }
+    
+    console.log('Starting consultation booking process in dialog');
+    console.log('User ID:', user.id);
+    console.log('Form data:', formData);
     
     setIsSubmitting(true);
     try {
+      // Prepare consultation data for insertion
+      const consultationData = {
+        user_id: user.id,
+        full_name: formData.fullName,
+        email: formData.email,
+        consultation_type: formData.consultationType,
+        preferred_date: formData.formattedDate, 
+        preferred_time: formData.formattedTime,
+        symptoms: formData.symptoms,
+        additional_notes: formData.notes,
+        status: 'pending' as 'pending' | 'confirmed' | 'cancelled' | 'completed'
+      };
+      
+      console.log('Consultation data to submit:', consultationData);
+      
       // Create consultation record
       const { data, error } = await supabase
         .from('consultations')
-        .insert({
-          user_id: user?.id,
-          full_name: formData.fullName,
-          email: formData.email,
-          consultation_type: formData.consultationType,
-          preferred_date: formData.formattedDate,
-          preferred_time: formData.formattedTime,
-          symptoms: formData.symptoms,
-          additional_notes: formData.notes,
-          status: 'pending'
-        })
+        .insert(consultationData)
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Consultation successfully booked:', data);
       
       toast({
         title: "Consultation Booked",
@@ -75,11 +92,12 @@ const ConsultationDialog: React.FC<ConsultationDialogProps> = ({
       
       // Advance to success step
       setStep(2);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error booking consultation:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       toast({
         title: "Booking Failed",
-        description: "There was an error booking your consultation. Please try again.",
+        description: error.message || "There was an error booking your consultation. Please try again.",
         variant: "destructive"
       });
     } finally {

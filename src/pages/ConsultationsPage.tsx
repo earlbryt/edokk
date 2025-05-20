@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
+import { sendConsultationConfirmationEmail } from '@/utils/email';
 
 // Define the consultation type
 interface Consultation {
@@ -106,6 +107,14 @@ const ConsultationsPage: React.FC = () => {
     try {
       setIsLoading(true);
       
+      // Find the consultation to be updated
+      const consultationToUpdate = consultations.find(c => c.id === id);
+      
+      if (!consultationToUpdate) {
+        throw new Error('Consultation not found');
+      }
+      
+      // Update the status in the database
       const { error } = await supabase
         .from('consultations')
         .update({ status })
@@ -120,15 +129,68 @@ const ConsultationsPage: React.FC = () => {
         )
       );
       
-      toast({
-        title: `Consultation ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-        description: `The consultation has been ${status} successfully.`,
-      });
+      // Send confirmation email if status is changed to confirmed
+      if (status === 'confirmed') {
+        console.log('Confirmed consultation, preparing to send email notification...');
+        try {
+          // Format date and time for email
+          const formattedDate = formatDate(consultationToUpdate.preferred_date);
+          const formattedTime = consultationToUpdate.preferred_time;
+          
+          console.log('Email data prepared:', {
+            email: consultationToUpdate.email,
+            name: consultationToUpdate.full_name,
+            date: formattedDate,
+            time: formattedTime,
+            type: consultationToUpdate.consultation_type
+          });
+          
+          // Send the confirmation email
+          console.log('Calling sendConsultationConfirmationEmail function...');
+          const emailResult = await sendConsultationConfirmationEmail(
+            consultationToUpdate.email,
+            consultationToUpdate.full_name,
+            formattedDate,
+            formattedTime,
+            consultationToUpdate.consultation_type
+          );
+          
+          console.log('Email sending result:', emailResult);
+          
+          if (emailResult.success) {
+            toast({
+              title: 'Success',
+              description: `Consultation confirmed and email notification sent to patient.`,
+            });
+          } else {
+            console.error('Email sending failed but returned without throwing:', emailResult);
+            toast({
+              title: 'Warning',
+              description: 'Consultation was confirmed but there was an issue sending the email notification.',
+              variant: 'warning',
+            });
+          }
+        } catch (emailError) {
+          console.error('Error in email sending process:', emailError);
+          console.error('Error details:', JSON.stringify(emailError, null, 2));
+          toast({
+            title: 'Warning',
+            description: 'Consultation was confirmed but we couldn\'t send the email notification.',
+            variant: 'destructive',
+          });
+        }
+      } else {
+        toast({
+          title: 'Success',
+          description: `Consultation status updated to ${status}.`,
+        });
+      }
+      
     } catch (error) {
-      console.error(`Error updating consultation status:`, error);
+      console.error('Error updating consultation status:', error);
       toast({
-        title: 'Action Failed',
-        description: `Failed to update the consultation. Please try again.`,
+        title: 'Error',
+        description: 'Failed to update consultation status. Please try again.',
         variant: 'destructive',
       });
     } finally {
