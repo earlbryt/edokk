@@ -49,9 +49,9 @@ const Signup: React.FC = () => {
       // Signup and get user data with role
       const userData = await signup(name, email, password);
       
-      // New users are always directed to their profile page
-      // since they're assigned the 'user' role by default
-      navigate('/profile');
+      // New users are directed to the home page instead of profile
+      // This gives them a better first-time experience
+      navigate('/');
     } catch (error) {
       console.error('Signup failed:', error);
       // Error is handled within the signup function

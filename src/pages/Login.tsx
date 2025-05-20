@@ -44,8 +44,8 @@ const Login: React.FC = () => {
         });
         navigate('/admin');
       } else {
-        // Regular users go to their profile
-        navigate('/profile');
+        // Regular users stay on the home page
+        navigate('/');
       }
     } catch (error) {
       console.error('Login failed:', error);
