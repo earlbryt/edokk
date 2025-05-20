@@ -17,22 +17,22 @@ async function tableExists(tableName: string) {
   return data && data.length > 0;
 }
 
-// Placeholder migration function for setting up the health platform
+// Setup function for the health platform
 async function setupHealthPlatform() {
   console.log("Setting up health platform...");
   
-  // This would be used to create any necessary tables for the health platform
-  // but we're doing this through SQL migrations via Supabase now
+  // We would create necessary tables for the health platform here
+  // but we're using SQL migrations via Supabase now
   
   return { success: true };
 }
 
-// Main exported function - simplified placeholder that maintains the interface
+// Main exported function
 export async function runMigrations() {
   console.log("Running migrations for health platform...");
   
   try {
-    // Check if we need to set up the health platform
+    // Check if we need to set up the health platform by verifying if profiles table exists
     const profilesExist = await tableExists('profiles');
     
     if (!profilesExist) {
