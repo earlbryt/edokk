@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import Consultations from "./pages/Consultations";
 import { useAuth } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
@@ -90,6 +92,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Positions />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/consultations" 
+        element={
+          <ProtectedRoute>
+            <Consultations />
           </ProtectedRoute>
         } 
       />

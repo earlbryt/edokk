@@ -52,21 +52,17 @@ const Hero: React.FC = () => {
               An AI-driven health platform integrating both conventional and alternative medicine services. Get consultations, prescriptions, dietary advice, mental health support, and herbal remedies all in one place.
             </motion.p>
             <motion.div 
-              className="flex flex-col sm:flex-row items-center sm:items-start gap-4"
+              className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mt-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <Link to="/signup">
-                <Button size="lg" className="rounded-full px-8 py-6 text-lg bg-gradient-to-r from-lens-purple to-purple-600 hover:from-purple-600 hover:to-lens-purple text-white shadow-lg shadow-lens-purple/20 hover:shadow-lens-purple/40 transition-all duration-300 transform hover:-translate-y-1">
-                  Start Your Health Journey
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-lg border-lens-purple text-lens-purple hover:bg-lens-purple/10 transition-all duration-300 transform hover:-translate-y-1 shadow-sm hover:shadow-md">
-                  Sign In <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+              <Button asChild size="lg" className="bg-lens-purple hover:bg-lens-purple-light text-white">
+                <Link to="/signup">Get Started</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/consultations">Book Consultation</Link>
+              </Button>
             </motion.div>
             
             {/* Enhanced Stats with Icons */}

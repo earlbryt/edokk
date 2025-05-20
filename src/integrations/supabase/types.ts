@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      consultations: {
+        Row: {
+          additional_notes: string | null
+          consultation_type: Database["public"]["Enums"]["consultation_type"]
+          created_at: string
+          doctor_id: string | null
+          email: string
+          full_name: string
+          id: string
+          preferred_date: string
+          preferred_time: string
+          status: Database["public"]["Enums"]["consultation_status"]
+          symptoms: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          consultation_type: Database["public"]["Enums"]["consultation_type"]
+          created_at?: string
+          doctor_id?: string | null
+          email: string
+          full_name: string
+          id?: string
+          preferred_date: string
+          preferred_time: string
+          status?: Database["public"]["Enums"]["consultation_status"]
+          symptoms: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_notes?: string | null
+          consultation_type?: Database["public"]["Enums"]["consultation_type"]
+          created_at?: string
+          doctor_id?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          preferred_date?: string
+          preferred_time?: string
+          status?: Database["public"]["Enums"]["consultation_status"]
+          symptoms?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -38,10 +86,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      table_exists: {
+        Args: { table_name: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      consultation_status: "pending" | "confirmed" | "cancelled" | "completed"
+      consultation_type: "virtual" | "in_person"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -156,6 +208,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      consultation_status: ["pending", "confirmed", "cancelled", "completed"],
+      consultation_type: ["virtual", "in_person"],
+    },
   },
 } as const

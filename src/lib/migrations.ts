@@ -42,6 +42,15 @@ export async function runMigrations() {
       console.log("Profiles table already exists.");
     }
     
+    // Check if consultations table exists
+    const consultationsExist = await tableExists('consultations');
+    
+    if (!consultationsExist) {
+      console.log("Consultations table does not exist. Please create it using SQL migrations.");
+    } else {
+      console.log("Consultations table already exists.");
+    }
+    
     // Run platform setup if needed
     const result = await setupHealthPlatform();
     
