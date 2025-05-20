@@ -89,8 +89,8 @@ const AdminDashboard: React.FC = () => {
         // Get recent users for the table display
         const { data: recentUsersData, error: recentUsersError } = await supabase
           .from('profiles')
-          .select('id, name, email, created_at')
-          .order('created_at', { ascending: false })
+          .select('id, name, email, updated_at')
+          .order('updated_at', { ascending: false })
           .limit(10);
         
         if (recentUsersError) {
@@ -102,7 +102,7 @@ const AdminDashboard: React.FC = () => {
             id: String(user.id || ''),
             name: String(user.name || ''),
             email: String(user.email || ''),
-            created_at: String(user.created_at || new Date().toISOString())
+            created_at: String(user.updated_at || new Date().toISOString())
           }));
           setRecentUsers(typedUserData);
         } else {

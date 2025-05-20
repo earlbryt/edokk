@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
 import { sendConsultationConfirmationEmail } from '@/utils/email';
+import { useAuth } from '@/context/AuthContext';
 
 // Define the consultation type
 interface Consultation {
@@ -29,6 +30,7 @@ interface Consultation {
 }
 
 const ConsultationsPage: React.FC = () => {
+  const { user } = useAuth(); // Add useAuth hook to get current user
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [filteredConsultations, setFilteredConsultations] = useState<Consultation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,15 +59,21 @@ const ConsultationsPage: React.FC = () => {
   const fetchConsultations = async () => {
     try {
       setIsLoading(true);
+      console.log('Starting to fetch consultations for admin view');
       
-      // Fetch all consultations
+      // For the admin dashboard, we want to fetch all consultations without filtering by user_id
+      // This makes it simpler and avoids issues with database schema changes
       const { data, error } = await supabase
         .from('consultations')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Database error when fetching consultations:', error);
+        throw error;
+      }
       
+      console.log(`Successfully fetched ${data?.length || 0} consultations`);
       setConsultations(data || []);
     } catch (error) {
       console.error('Error fetching consultations:', error);

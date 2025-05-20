@@ -3,14 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Briefcase,
   Calendar,
-  FileSearch,
   LayoutDashboard,
-  Sliders,
-  Users,
-  Settings,
-  LogOut
+  LogOut,
+  Home
 } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 
@@ -48,26 +44,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       href: "/admin/consultations",
       icon: Calendar,
     },
-    {
-      name: "Candidates",
-      href: "/admin/candidates",
-      icon: Users,
-    },
-    {
-      name: "Positions",
-      href: "/admin/positions",
-      icon: Briefcase,
-    },
-    {
-      name: "Job Parser",
-      href: "/admin/parser",
-      icon: FileSearch,
-    },
-    {
-      name: "Filters",
-      href: "/admin/filters",
-      icon: Sliders,
-    },
   ];
 
   return (
@@ -99,9 +75,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
 
         <div className="mt-auto border-t border-gray-200 dark:border-gray-700 px-3 py-2">
           <Button asChild variant="ghost" className="w-full justify-start font-normal">
-            <Link to="/account-settings" className="flex items-center">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Account Settings</span>
+            <Link to="/" className="flex items-center">
+              <Home className="mr-2 h-4 w-4" />
+              <span>Return to Homepage</span>
             </Link>
           </Button>
           <Button variant="ghost" className="w-full justify-start font-normal text-red-500 hover:bg-red-50 dark:hover:bg-red-900" onClick={handleLogout}>
