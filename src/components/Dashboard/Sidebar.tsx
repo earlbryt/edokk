@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   ];
 
   return (
-    <div className={cn("w-64 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900 dark:border-gray-800 py-4", className)}>
+    <div className={cn("w-64 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900 dark:border-gray-800 py-4 h-screen fixed", className)}>
       <div className="space-y-4">
         <div className="px-3 py-2">
           <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
