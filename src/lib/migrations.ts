@@ -3,18 +3,19 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Helper function to check if a particular table exists
 async function tableExists(tableName: string) {
-  const { data, error } = await supabase
-    .from('pg_tables')
-    .select('*')
-    .eq('tablename', tableName)
-    .eq('schemaname', 'public');
-  
-  if (error) {
-    console.error('Error checking if table exists:', error);
+  try {
+    const { data, error } = await supabase.rpc('table_exists', { table_name: tableName });
+    
+    if (error) {
+      console.error('Error checking if table exists:', error);
+      return false;
+    }
+    
+    return !!data;
+  } catch (error) {
+    console.error('Error in tableExists function:', error);
     return false;
   }
-  
-  return data && data.length > 0;
 }
 
 // Setup function for the health platform

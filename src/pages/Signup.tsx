@@ -47,6 +47,7 @@ const Signup: React.FC = () => {
     
     try {
       await signup(name, email, password);
+      // Direct all users to dashboard after signup
       navigate('/dashboard');
     } catch (error) {
       console.error('Signup failed:', error);

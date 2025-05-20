@@ -14,7 +14,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, user } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -34,20 +34,8 @@ const Login: React.FC = () => {
     
     try {
       await login(email, password);
-      
-      // The user state might not be updated immediately after login
-      // so we'll wait a bit before checking the role
-      setTimeout(() => {
-        if (user?.role === 'admin') {
-          navigate('/dashboard');
-        } else {
-          // For now, we'll just show a message that normal user functionality is coming soon
-          toast({
-            title: "Coming Soon",
-            description: "Normal user functionality is under development.",
-          });
-        }
-      }, 500);
+      // Direct all users to dashboard after login
+      navigate('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
       // Error is handled within the login function
