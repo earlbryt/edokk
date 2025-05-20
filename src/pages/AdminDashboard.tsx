@@ -3,7 +3,7 @@ import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
 import StatsCard from '@/components/Dashboard/StatsCard';
 import ChartCard from '@/components/Dashboard/ChartCard';
-import { Users, FileText, Calendar, Clock, Activity, UserCheck, Video, PersonStanding } from 'lucide-react';
+import { Users, Calendar, Clock, Video, PersonStanding, Activity } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import LoadingAnimation from '@/components/ui/loading-animation';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 
-const Dashboard: React.FC = () => {
+const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -179,41 +179,21 @@ const Dashboard: React.FC = () => {
           }))
           .sort((a, b) => b.value - a.value)
           .slice(0, 10);
-                  .replace(/^vue\.?js$/i, 'vue');
-                
-                // Only count each skill once per candidate
-                if (!processedSkills.has(normalizedSkill)) {
-                  processedSkills.add(normalizedSkill);
-                  skillCounts[normalizedSkill] = (skillCounts[normalizedSkill] || 0) + 1;
-                }
-              });
-            }
-          });
-        }
-        
-        // Get top 15 skills for a more comprehensive view
-        const sortedSkills = Object.entries(skillCounts)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 15)
-          .map(([name, value]) => ({ 
-            name: name.charAt(0).toUpperCase() + name.slice(1), // Capitalize skill names
-            value, 
-            percentage: Math.round((value / totalCandidates) * 100) // Calculate percentage of candidates with this skill
-          }));
         
         // Update state with fetched data
         setStats({
-          totalCandidates: cvCount || 0,
-          processedToday: processedToday || 0,
-          activeProjects: activeProjects || 0,
-          pendingReview: pendingReview || 0,
-          todayDelta: processedYesterday ? processedToday - processedYesterday : 0,
-          projectDelta: recentProjects || 0
+          totalUsers: usersCount || 0,
+          totalConsultations: consultationsCount || 0,
+          pendingConsultations: pendingCount || 0,
+          completedConsultations: completedCount || 0,
+          todayConsultations: todayCount || 0,
+          todayDelta: yesterdayCount ? todayCount - yesterdayCount : 0
         });
         
         setMonthlyData(last6Months);
-        setBucketData(buckets);
-        setTopSkills(sortedSkills);
+        setConsultationTypeData(typeData);
+        setRecentUsers(recentUsersData || []);
+        setTopSymptoms(sortedSymptoms);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -232,7 +212,7 @@ const Dashboard: React.FC = () => {
         <main className="p-6">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              {user?.name ? `Welcome, ${user.name.split(' ')[0]}` : 'Recruitment Dashboard'}
+              {user?.name ? `Welcome, ${user.name.split(' ')[0]}` : 'Admin Dashboard'}
             </h1>
             <p className="text-gray-600">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -240,70 +220,94 @@ const Dashboard: React.FC = () => {
           </div>
           
           {loading ? (
-            <LoadingAnimation message="Preparing your recruitment insights..." />
+            <LoadingAnimation message="Loading admin dashboard..." />
           ) : (
             <>
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatsCard 
-                  title="Total Candidates"
-                  value={stats.totalCandidates.toString()}
+                  title="Total Users"
+                  value={stats.totalUsers.toString()}
                   icon={<Users size={20} className="text-blue-500" />}
                 />
                 <StatsCard 
-                  title="CVs Processed Today"
-                  value={stats.processedToday.toString()}
-                  icon={<FileText size={20} className="text-green-500" />}
-                  trend={stats.todayDelta !== 0 ? { value: Math.abs(stats.todayDelta), positive: stats.todayDelta > 0 } : undefined}
+                  title="Total Consultations"
+                  value={stats.totalConsultations.toString()}
+                  icon={<Calendar size={20} className="text-green-500" />}
                 />
                 <StatsCard 
-                  title="Active Projects"
-                  value={stats.activeProjects.toString()}
-                  icon={<Briefcase size={20} className="text-purple-500" />}
-                  suffix={stats.projectDelta > 0 ? `+${stats.projectDelta} new` : ''}
-                />
-                <StatsCard 
-                  title="Pending Review"
-                  value={stats.pendingReview.toString()}
+                  title="Pending Consultations"
+                  value={stats.pendingConsultations.toString()}
                   icon={<Clock size={20} className="text-amber-500" />}
+                />
+                <StatsCard 
+                  title="Today's Bookings"
+                  value={stats.todayConsultations.toString()}
+                  icon={<Activity size={20} className="text-purple-500" />}
+                  trend={stats.todayDelta !== 0 ? { value: Math.abs(stats.todayDelta), positive: stats.todayDelta > 0 } : undefined}
                 />
               </div>
               
               {/* Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <ChartCard 
-                  title="CVs Processed per Month"
-                  subtitle="6-month recruitment activity"
+                  title="Consultations per Month"
+                  subtitle="Last 6 months activity"
                   data={monthlyData}
                   type="bar"
                 />
                 <ChartCard 
-                  title="Candidate Rating Distribution"
-                  subtitle="By match category"
-                  data={bucketData}
+                  title="Consultation Types"
+                  subtitle="Virtual vs In-Person"
+                  data={consultationTypeData}
                   type="pie"
                 />
               </div>
               
-              {/* Skills Distribution */}
+              {/* Recent Users Table */}
               <div className="mb-8">
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                  <div className="px-6 py-4">
-                    <h3 className="text-lg font-medium text-gray-900">Top Skills in Candidate Pool</h3>
-                    <p className="text-sm text-gray-500">Most frequently mentioned skills across all candidate resumes</p>
-                  </div>
-                  
-                  <div className="px-6 pb-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent User Registrations</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Registration Date</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {recentUsers.map((user) => (
+                          <TableRow key={user.id}>
+                            <TableCell className="font-medium">{user.name}</TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>{format(new Date(user.created_at), 'PPP')}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Top Symptoms */}
+              <div className="mb-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Top Reported Symptoms</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <ChartCard 
                       title=""
                       subtitle=""
-                      data={topSkills}
+                      data={topSymptoms}
                       type="bar"
                     />
-                    
-
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
             </>
           )}
@@ -313,4 +317,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;

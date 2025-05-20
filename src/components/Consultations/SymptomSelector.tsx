@@ -2,7 +2,7 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -53,26 +53,28 @@ const SymptomSelector: React.FC<SymptomSelectorProps> = ({ value, onChange }) =>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
             <CommandInput placeholder="Search symptoms..." className="h-9" />
-            <CommandEmpty>No symptoms found.</CommandEmpty>
-            <CommandGroup className="max-h-64 overflow-auto">
-              {SYMPTOMS.map((symptom) => (
-                <CommandItem
-                  key={symptom}
-                  onSelect={() => handleSelect(symptom)}
-                  className="flex items-center gap-2"
-                >
-                  <div
-                    className={cn(
-                      "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                      value.includes(symptom) ? "bg-primary text-primary-foreground" : "opacity-50"
-                    )}
+            <CommandList>
+              <CommandEmpty>No symptoms found.</CommandEmpty>
+              <CommandGroup className="max-h-64 overflow-auto">
+                {SYMPTOMS.map((symptom) => (
+                  <CommandItem
+                    key={symptom}
+                    onSelect={() => handleSelect(symptom)}
+                    className="flex items-center gap-2"
                   >
-                    {value.includes(symptom) && <Check className="h-3 w-3" />}
-                  </div>
-                  {symptom}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+                    <div
+                      className={cn(
+                        "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                        value.includes(symptom) ? "bg-primary text-primary-foreground" : "opacity-50"
+                      )}
+                    >
+                      {value.includes(symptom) && <Check className="h-3 w-3" />}
+                    </div>
+                    {symptom}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
           </Command>
         </PopoverContent>
       </Popover>

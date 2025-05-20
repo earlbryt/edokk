@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 import { AuthProvider } from "./context/AuthContext";
 import Landing from "./pages/Landing";
-import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import CVParser from "./pages/CVParser";
 import Filters from "./pages/Filters";
 import Candidates from "./pages/Candidates";
@@ -20,11 +20,13 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import Consultations from "./pages/Consultations";
 import { useAuth } from "./context/AuthContext";
+import { useEffect, useState } from "react";
+import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
-// Protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+// User-only protected route
+const UserRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
@@ -38,71 +40,123 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Admin-only protected route
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
+  
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setCheckingAdmin(false);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        
+        setIsAdmin(data?.role === 'admin');
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      } finally {
+        setCheckingAdmin(false);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [user]);
+  
+  if (isLoading || checkingAdmin) {
+    return <div className="h-screen flex items-center justify-center">Loading...</div>;
+  }
+  
+  if (!user || !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Public routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/features" element={<Features />} />
       <Route path="/contact" element={<Contact />} />
-      <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/dashboard/:section" 
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/dashboard/parser" 
-        element={
-          <ProtectedRoute>
-            <CVParser />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/dashboard/filters" 
-        element={
-          <ProtectedRoute>
-            <Filters />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/dashboard/candidates" 
-        element={
-          <ProtectedRoute>
-            <Candidates />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/dashboard/positions" 
-        element={
-          <ProtectedRoute>
-            <Positions />
-          </ProtectedRoute>
-        } 
-      />
+      
+      {/* User routes */}
       <Route 
         path="/consultations" 
         element={
-          <ProtectedRoute>
+          <UserRoute>
             <Consultations />
-          </ProtectedRoute>
+          </UserRoute>
         } 
       />
+      
+      {/* Admin routes */}
+      <Route 
+        path="/admin" 
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/:section" 
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/parser" 
+        element={
+          <AdminRoute>
+            <CVParser />
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/filters" 
+        element={
+          <AdminRoute>
+            <Filters />
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/candidates" 
+        element={
+          <AdminRoute>
+            <Candidates />
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/positions" 
+        element={
+          <AdminRoute>
+            <Positions />
+          </AdminRoute>
+        } 
+      />
+      
+      {/* Catch all */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
