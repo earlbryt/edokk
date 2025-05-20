@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -45,8 +46,7 @@ const Signup: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Default role is recruiter
-      await signup(name, email, password, 'recruiter');
+      await signup(name, email, password);
       navigate('/dashboard');
     } catch (error) {
       console.error('Signup failed:', error);
@@ -218,7 +218,7 @@ const Signup: React.FC = () => {
           >
             <img 
               src="/assets/content-management-icon-poster-2.png" 
-              alt="Content Management" 
+              alt="Healthcare Platform" 
               className="mx-auto w-3/4 h-auto drop-shadow-2xl"
             />
           </motion.div>

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/lib/supabase';
@@ -7,14 +8,13 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, role: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Get user profile data
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('name, role')
+          .select('name')
           .eq('id', session.user.id)
           .single();
         
@@ -47,7 +47,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             id: session.user.id,
             email: session.user.email || '',
             name: profile.name || '',
-            role: profile.role || 'recruiter'
           });
         }
       }
@@ -61,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Get user profile data
             const { data: profile, error } = await supabase
               .from('profiles')
-              .select('name, role')
+              .select('name')
               .eq('id', session.user.id)
               .single();
             
@@ -70,7 +69,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 id: session.user.id,
                 email: session.user.email || '',
                 name: profile.name || '',
-                role: profile.role || 'recruiter'
               });
             }
           } else if (event === 'SIGNED_OUT') {
@@ -103,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Get user profile data
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('name, role')
+          .select('name')
           .eq('id', data.user.id)
           .single();
         
@@ -115,7 +113,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           id: data.user.id,
           email: data.user.email || '',
           name: profile?.name || email.split('@')[0],
-          role: profile?.role || 'recruiter'
         };
         
         setUser(userData);
@@ -138,7 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signup = async (name: string, email: string, password: string, role: string) => {
+  const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
       // Sign up with Supabase
@@ -147,8 +144,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
         options: {
           data: {
-            name,
-            role
+            name
           }
         }
       });
@@ -156,38 +152,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       if (data.user) {
-        // Create profile entry with timestamps to satisfy NOT NULL constraints
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            name,
-            email,
-            role,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-        
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          throw profileError;
-        }
-        
-        // Small delay to allow database trigger to create default project
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Profile creation happens automatically via DB trigger
         
         const userData = {
           id: data.user.id,
           email: data.user.email || '',
-          name,
-          role
+          name
         };
         
         setUser(userData);
         
         toast({
           title: "Account created",
-          description: "Your account has been successfully created with a default project.",
+          description: "Your account has been successfully created.",
         });
       }
     } catch (error) {

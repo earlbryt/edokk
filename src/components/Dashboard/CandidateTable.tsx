@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, ArrowUpRight, CheckCircle, Clock, Star, Medal, Award, Badge as BadgeIcon, Bookmark, BarChart, Filter, User, Info } from 'lucide-react';
+import { Eye, ArrowUpRight, CheckCircle, Clock, Star, Medal, Award, Badge as BadgeIcon, Bookmark, BarChart, Filter, User, Info, AlertTriangle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { matchCandidate, MatchCandidateResult } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
