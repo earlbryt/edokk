@@ -1,46 +1,28 @@
 import { supabase } from '@/integrations/supabase/client';
 import * as pdfjsLib from 'pdfjs-dist';
-import { matchCandidate } from '@/lib/supabase';
-import { processDocumentInBrowser } from '@/lib/browserDocumentProcessor';
 
 // Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-// Queue for processing files
+// Queue for processing files - stub for new implementation
 let processingQueue: string[] = [];
 let isProcessing = false;
 
 /**
- * Add a file to the processing queue
+ * Add a file to the processing queue - placeholder for new implementation
  */
 export function addToProcessingQueue(fileId: string) {
-  processingQueue.push(fileId);
-  processNextInQueue();
+  console.log('Added file to processing queue:', fileId);
+  // This is a stub - real implementation will be added with new backend
+  return true;
 }
 
 /**
- * Process the next file in the queue
+ * Process the next file in the queue - placeholder for new implementation
  */
 async function processNextInQueue() {
-  if (isProcessing || processingQueue.length === 0) return;
-  
-  isProcessing = true;
-  const fileId = processingQueue[0];
-  
-  try {
-    await processDocument(fileId);
-  } catch (error) {
-    console.error(`Error processing file ${fileId}:`, error);
-  } finally {
-    // Remove the processed file from the queue
-    processingQueue = processingQueue.slice(1);
-    isProcessing = false;
-    
-    // Process next file if any
-    if (processingQueue.length > 0) {
-      processNextInQueue();
-    }
-  }
+  console.log('processNextInQueue called - stub for new implementation');
+  return true;
 }
 
 /**
@@ -61,163 +43,14 @@ function getFileType(fileName: string): 'pdf' | 'docx' | 'doc' | 'unsupported' {
 }
 
 /**
- * Process a single document
+ * Process a single document - placeholder for new implementation
  */
 async function processDocument(fileId: string) {
-  try {
-    // Update status to processing
-    await supabase
-      .from('cv_files')
-      .update({
-        status: 'processing',
-        progress: 25
-      })
-      .eq('id', fileId);
-
-    // Get file data from database
-    const { data: fileData, error: fileError } = await supabase
-      .from('cv_files')
-      .select('*')
-      .eq('id', fileId)
-      .single();
-
-    if (fileError) throw fileError;
-    if (!fileData) throw new Error('File not found');
-    if (!fileData.storage_path) throw new Error('No storage path found for file');
-    
-    // Determine the file type based on the filename
-    const fileType = getFileType(fileData.name);
-    
-    if (fileType === 'unsupported') {
-      throw new Error(`Unsupported file type: ${fileData.name}. Only PDF, DOCX, and DOC files are supported.`);
-    }
-    
-    // Only process PDF files on the server for now
-    // For non-PDF files, update status to indicate they should be processed client-side
-    if (fileType !== 'pdf') {
-      // Update the status to indicate non-PDF file
-      await supabase
-        .from('cv_files')
-        .update({
-          status: 'completed',
-          progress: 100,
-          text_extracted: false,
-          extraction_error: 'Non-PDF files must be processed using client-side extraction.'
-        })
-        .eq('id', fileId);
-      
-      console.log(`Skipping server-side processing for non-PDF file: ${fileData.name}`);
-      return;
-    }
-
-    // Download file from storage (only for PDFs)
-    const { data: fileContent, error: downloadError } = await supabase.storage
-      .from('lens')
-      .download(fileData.storage_path);
-
-    if (downloadError) {
-      console.error('Download error:', downloadError);
-      throw new Error(`Failed to download file: ${downloadError.message}`);
-    }
-    if (!fileContent) throw new Error('File content not found');
-
-    // Convert file to ArrayBuffer
-    const arrayBuffer = await fileContent.arrayBuffer();
-    
-    // Variable to store extracted text
-    let fullText = '';
-    
-    try {
-      // Load PDF document
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
-      // Extract text from all pages
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
-        fullText += pageText + '\n';
-      }
-    } catch (pdfError) {
-      console.error('PDF processing error:', pdfError);
-      throw new Error(`Failed to process PDF file: ${pdfError.message}`);
-    }
-
-    // Update database with extracted text and status
-    const { error: updateError } = await supabase
-      .from('cv_files')
-      .update({
-        raw_text: fullText,
-        text_extracted: true,
-        text_extraction_date: new Date().toISOString(),
-        status: 'completed',
-        progress: 100
-      })
-      .eq('id', fileId);
-
-    if (updateError) throw updateError;
-
-    // Call Edge Function to process the text
-    const { data: processedData, error: processError } = await supabase.functions
-      .invoke('process_resume', {
-        body: { resume: { id: fileId, raw_text: fullText } }
-      });
-
-    if (processError) {
-      console.error('Error processing resume with Edge Function:', processError);
-    } else {
-      try {
-        // Get the project_id from the cv_file
-        const { data: cvFileData, error: cvFileError } = await supabase
-          .from('cv_files')
-          .select('project_id')
-          .eq('id', fileId)
-          .single();
-        
-        if (cvFileError) {
-          console.error('Error getting project_id:', cvFileError);
-        } else if (cvFileData?.project_id) {
-          // Automatically match the candidate to the project after processing
-          console.log('Automatically matching candidate', fileId, 'to project', cvFileData.project_id);
-          const matchResult = await matchCandidate({
-            candidate_id: fileId,
-            project_id: cvFileData.project_id
-          });
-          
-          console.log('Match result:', matchResult);
-          
-          // Update the cv_file status based on the matching result
-          if (matchResult) {
-            await supabase
-              .from('cv_files')
-              .update({ 
-                status: `bucket-${matchResult.rating.toLowerCase()}`,
-                match_status: 'matched'
-              })
-              .eq('id', fileId);
-          }
-        } else {
-          console.log('No project_id found for this CV file, skipping automatic matching');
-        }
-      } catch (matchError) {
-        console.error('Error matching candidate:', matchError);
-      }
-    }
-
-  } catch (error) {
-    console.error('Error in processDocument:', error);
-    
-    // Update database with error status
-    await supabase
-      .from('cv_files')
-      .update({
-        text_extracted: false,
-        extraction_error: error.message,
-        status: 'failed',
-        error: error.message
-      })
-      .eq('id', fileId);
-
-    throw error;
-  }
+  console.log('processDocument called with:', fileId);
+  console.log('This is a stub for the new backend implementation');
+  // Return a simulated successful processing
+  return {
+    success: true,
+    message: 'Document processing placeholder - will be implemented in new backend'
+  };
 } 

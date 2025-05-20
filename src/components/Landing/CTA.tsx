@@ -20,19 +20,19 @@ const CTA: React.FC = () => {
         
         {/* Main CTA */}
         <div className="text-center max-w-3xl mx-auto">
-          <h2 className="font-display text-4xl font-bold mb-6">Ready to Transform Your Recruitment Process?</h2>
+          <h2 className="font-display text-4xl font-bold mb-6">Ready to Take Control of Your Health?</h2>
           <p className="text-xl mb-10 text-white/90">
-            Join forward-thinking recruiting agencies and HR departments who have already cut their screening time by 80%.
+            Join thousands of people who have discovered integrated healthcare that combines conventional and alternative medicine.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/signup">
               <Button size="lg" className="rounded-full px-8 py-6 text-lg bg-white text-lens-purple hover:bg-gray-100">
-                Get Started Free
+                Start Your Health Journey
               </Button>
             </Link>
             <Link to="/login">
               <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-lg border-white text-white bg-lens-purple/20 hover:bg-lens-purple/30">
-                Log In <ArrowRight className="ml-2 h-5 w-5" />
+                Book Consultation <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
           </div>

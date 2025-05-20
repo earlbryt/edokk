@@ -107,7 +107,7 @@ const Sidebar: React.FC = () => {
     },
     { 
       icon: <FileText size={22} />, 
-      label: 'Resume Upload', 
+      label: 'Upload', 
       to: '/dashboard/parser' 
     },
     // Requirements tab removed - functionality integrated into Positions page

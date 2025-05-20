@@ -1,35 +1,40 @@
 import React from 'react';
 import { 
-  Upload,
-  FileText, 
-  CheckCircle, 
-  BarChart3,
-  Users,
-  Zap
+  Calendar,
+  Pill, 
+  Apple, 
+  Brain,
+  Flower2,
+  Stethoscope
 } from 'lucide-react';
 import { motion } from "framer-motion";
 
 const Features: React.FC = () => {
   const features = [
     {
-      icon: <Upload className="h-10 w-10 text-lens-purple" />,
-      title: "Bulk CV Upload",
-      description: "Upload hundreds of CVs in seconds via drag-and-drop, cloud link, or zip folder. Our system handles the processing so you can focus on decision making."
+      icon: <Calendar className="h-10 w-10 text-lens-purple" />,
+      title: "Consultation Booking",
+      description: "Book appointments with healthcare professionals through our AI-optimized scheduling system. Get reminders and join virtual consultations with ease."
     },
     {
-      icon: <FileText className="h-10 w-10 text-lens-blue" />,
-      title: "Intelligent CV Parsing",
-      description: "Our AI extracts key information from CVs including experience, education, skills, and certifications with industry-leading accuracy."
+      icon: <Pill className="h-10 w-10 text-lens-blue" />,
+      title: "E-Pharmacy",
+      description: "Upload prescriptions for instant validation, check drug interactions, and order medications with secure delivery tracking and automatic refill options."
     },
     {
-      icon: <CheckCircle className="h-10 w-10 text-lens-green" />,
-      title: "Smart Candidate Matching",
-      description: "Match candidates against job requirements using AI-powered scoring. Automatically sort applicants into A, B, C, and D buckets based on fit."
+      icon: <Apple className="h-10 w-10 text-lens-green" />,
+      title: "Personalized Dietetics",
+      description: "Receive customized diet plans based on your health conditions, goals, and preferences. Our AI adjusts recommendations based on your progress and feedback."
     },
     {
-      icon: <BarChart3 className="h-10 w-10 text-lens-orange" />,
-      title: "Insightful Analytics",
-      description: "Track your hiring pipeline with comprehensive analytics. Identify bottlenecks and optimize your recruitment process with data-driven insights."
+      icon: <Brain className="h-10 w-10 text-lens-orange" />,
+      title: "Mental Health Support",
+      description: "Track your emotional wellbeing, access guided assessments, and connect with therapists. Includes emergency protocols and personalized coping strategies."
+    },
+    {
+      icon: <Flower2 className="h-10 w-10 text-emerald-500" />,
+      title: "Herbal Medicine",
+      description: "Explore evidence-based herbal treatments with our comprehensive database. Check herb-drug interactions and receive proper usage guidance from traditional knowledge."
     }
   ];
 
@@ -37,14 +42,14 @@ const Features: React.FC = () => {
     <section className="py-20 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="font-display text-4xl font-bold mb-6 text-gray-900">Revolutionize Your Recruitment Process</h2>
+          <h2 className="font-display text-4xl font-bold mb-6 text-gray-900">Comprehensive Healthcare at Your Fingertips</h2>
           <p className="text-xl text-gray-600">
-            Our platform helps recruiters save time, reduce bias, and find the best candidates efficiently.
+            eDok integrates conventional and alternative medicine in one platform, providing holistic care for your complete wellbeing.
           </p>
         </div>
         
         {/* Feature grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 mb-24">
           {features.map((feature, index) => (
             <motion.div 
               key={index} 
@@ -83,7 +88,7 @@ const Features: React.FC = () => {
             >
               <img 
                 src="/assets/data-analyst-avatar-icon-poster-2.png" 
-                alt="Data Analyst" 
+                alt="eDok Health Platform" 
                 className="w-full h-auto"
               />
             </motion.div>
@@ -107,39 +112,39 @@ const Features: React.FC = () => {
           
           {/* Right side - Feature list */}
           <div className="space-y-8">
-            <h2 className="font-display text-3xl font-bold text-gray-900">Powerful Tools for Modern Recruiters</h2>
+            <h2 className="font-display text-3xl font-bold text-gray-900">Your Health Assistant Powered by AI</h2>
             <p className="text-lg text-gray-600">
-              Our intuitive dashboard gives you all the tools you need to streamline your recruitment process from start to finish.
+              Our intuitive platform provides personalized healthcare solutions, integrating cutting-edge AI with trusted medical knowledge.
             </p>
             
             <div className="space-y-6">
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-lens-purple/10 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-lens-purple" />
+                  <Stethoscope className="h-6 w-6 text-lens-purple" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Candidate Buckets</h3>
-                  <p className="text-gray-600">Organize candidates into buckets based on their match score, making it easy to prioritize your outreach.</p>
+                  <h3 className="text-xl font-semibold mb-2">Integrated Health Record</h3>
+                  <p className="text-gray-600">All your health data in one place, securely stored and accessible to your care providers with your permission.</p>
                 </div>
               </div>
               
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-lens-blue/10 flex items-center justify-center">
-                  <Zap className="h-6 w-6 text-lens-blue" />
+                  <Calendar className="h-6 w-6 text-lens-blue" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">One-Click Requirements</h3>
-                  <p className="text-gray-600">Create custom requirements for each role and instantly match your candidate pool against them.</p>
+                  <h3 className="text-xl font-semibold mb-2">Smart Appointment Scheduling</h3>
+                  <p className="text-gray-600">AI suggests optimal appointment times based on your schedule and specialist availability.</p>
                 </div>
               </div>
               
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-lens-green/10 flex items-center justify-center">
-                  <BarChart3 className="h-6 w-6 text-lens-green" />
+                  <Pill className="h-6 w-6 text-lens-green" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Real-time Analytics</h3>
-                  <p className="text-gray-600">Get insights into your recruitment funnel with beautiful, actionable analytics that help you make better decisions.</p>
+                  <h3 className="text-xl font-semibold mb-2">Prescription Management</h3>
+                  <p className="text-gray-600">Upload prescriptions for validation, receive medication reminders, and get automatic refill notifications.</p>
                 </div>
               </div>
             </div>

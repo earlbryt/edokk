@@ -14,7 +14,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -34,7 +34,20 @@ const Login: React.FC = () => {
     
     try {
       await login(email, password);
-      navigate('/dashboard');
+      
+      // The user state might not be updated immediately after login
+      // so we'll wait a bit before checking the role
+      setTimeout(() => {
+        if (user?.role === 'admin') {
+          navigate('/dashboard');
+        } else {
+          // For now, we'll just show a message that normal user functionality is coming soon
+          toast({
+            title: "Coming Soon",
+            description: "Normal user functionality is under development.",
+          });
+        }
+      }, 500);
     } catch (error) {
       console.error('Login failed:', error);
       // Error is handled within the login function
@@ -73,8 +86,8 @@ const Login: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <h2 className="mt-8 text-3xl font-bold text-lens-purple">Welcome Back</h2>
-            <p className="mt-2 text-gray-600">Resume to results in record time. Access your AI-powered recruitment workspace.</p>
+            <h2 className="mt-8 text-3xl font-bold text-lens-purple">Online Consultation</h2>
+            <p className="mt-2 text-gray-600">Welcome back! Schedule your medical appointments with qualified healthcare professionals.</p>
           </motion.div>
         </div>
         <div className="absolute inset-0 bg-gradient-to-br from-lens-purple/20 to-transparent opacity-70 z-0"></div>
@@ -109,7 +122,7 @@ const Login: React.FC = () => {
               <Logo size="lg" className="inline-block mx-auto" />
               <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
               <p className="mt-2 text-sm text-gray-600 mb-2">
-                Access your recruitment dashboard and AI-powered tools{' '}
+                Access your medical consultation dashboard{' '}
                 <Link to="/signup" className="font-medium text-lens-purple hover:text-lens-purple/80">
                   or create a new account
                 </Link>

@@ -155,13 +155,23 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
         title: 'Candidate Rated',
         description: `${candidate.name} has been rated and categorized`
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error rating candidate:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to rate candidate. Please try again.',
-        variant: 'destructive'
-      });
+      
+      // Check if this is the specific "No requirements" error
+      if (error.message && error.message.includes('No requirements found')) {
+        toast({
+          title: 'Requirements Missing',
+          description: 'Please define requirements for this position before rating candidates. Go to the "Requirements" tab in the position details.',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to rate candidate. Please try again.',
+          variant: 'destructive'
+        });
+      }
     } finally {
       setProcessingCandidates(prev => {
         const updated = { ...prev };

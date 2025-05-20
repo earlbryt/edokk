@@ -91,7 +91,7 @@ const Signup: React.FC = () => {
               <Logo size="lg" className="inline-block mx-auto" />
               <h2 className="mt-6 text-3xl font-bold text-gray-900">Create your account</h2>
               <p className="mt-2 text-sm text-gray-600 mb-2">
-                Start using AI to match requirements with the perfect candidates
+                Get access to prescribed medications and healthcare services
               </p>
             </div>
           </div>
@@ -227,8 +227,8 @@ const Signup: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <h2 className="mt-8 text-3xl font-bold text-lens-purple">Intelligent Recruiting</h2>
-            <p className="mt-2 text-gray-600">AI-powered CV parsing and candidate matching to find your perfect hires faster</p>
+            <h2 className="mt-8 text-3xl font-bold text-lens-purple">Online Pharmacy</h2>
+            <p className="mt-2 text-gray-600">Access your prescribed medications and healthcare products with secure online ordering</p>
           </motion.div>
         </div>
         <div className="absolute inset-0 bg-gradient-to-tl from-lens-purple/20 to-transparent opacity-70 z-0"></div>

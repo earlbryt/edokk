@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
           <div className="col-span-1">
             <Logo className="mb-4" />
             <p className="text-gray-600 mb-4">
-              Visualize your data, track progress, and achieve your goals with our powerful analytics platform.
+              Your integrated health platform combining conventional and alternative medicine for complete wellbeing.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-lens-purple transition-colors">
@@ -38,31 +38,33 @@ const Footer: React.FC = () => {
           </div>
           
           <div className="col-span-1">
-            <h3 className="font-semibold text-gray-900 mb-4">Pages</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Services</h3>
             <ul className="space-y-3">
-              <li><Link to="/" className="text-gray-600 hover:text-lens-purple transition-colors">Home</Link></li>
-              <li><Link to="/features" className="text-gray-600 hover:text-lens-purple transition-colors">Features</Link></li>
-              <li><Link to="/pricing" className="text-gray-600 hover:text-lens-purple transition-colors">Pricing</Link></li>
-              <li><Link to="/contact" className="text-gray-600 hover:text-lens-purple transition-colors">Contact</Link></li>
+              <li><Link to="/consultation" className="text-gray-600 hover:text-lens-purple transition-colors">Consultation Booking</Link></li>
+              <li><Link to="/pharmacy" className="text-gray-600 hover:text-lens-purple transition-colors">E-Pharmacy</Link></li>
+              <li><Link to="/dietetics" className="text-gray-600 hover:text-lens-purple transition-colors">Dietetics</Link></li>
+              <li><Link to="/mental-health" className="text-gray-600 hover:text-lens-purple transition-colors">Mental Health</Link></li>
+              <li><Link to="/herbal" className="text-gray-600 hover:text-lens-purple transition-colors">Herbal Medicine</Link></li>
             </ul>
           </div>
           
 
           
           <div className="col-span-1">
-            <h3 className="font-semibold text-gray-900 mb-4">Dashboard</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">My Account</h3>
             <ul className="space-y-3">
               <li><Link to="/dashboard" className="text-gray-600 hover:text-lens-purple transition-colors">Dashboard</Link></li>
-              <li><Link to="/dashboard/parser" className="text-gray-600 hover:text-lens-purple transition-colors">Bulk Document Upload</Link></li>
-              <li><Link to="/dashboard/filters" className="text-gray-600 hover:text-lens-purple transition-colors">Filters</Link></li>
-              <li><Link to="/dashboard/candidates" className="text-gray-600 hover:text-lens-purple transition-colors">Candidates</Link></li>
+              <li><Link to="/appointments" className="text-gray-600 hover:text-lens-purple transition-colors">My Appointments</Link></li>
+              <li><Link to="/prescriptions" className="text-gray-600 hover:text-lens-purple transition-colors">My Prescriptions</Link></li>
+              <li><Link to="/health-records" className="text-gray-600 hover:text-lens-purple transition-colors">Health Records</Link></li>
+              <li><Link to="/diet-plans" className="text-gray-600 hover:text-lens-purple transition-colors">My Diet Plans</Link></li>
             </ul>
           </div>
         </div>
         
         <div className="mt-12 pt-8 border-t border-gray-200">
           <p className="text-gray-500 text-sm text-center">
-            © {new Date().getFullYear()} Lens. All rights reserved.
+            © {new Date().getFullYear()} eDok Health Platform. All rights reserved.
           </p>
         </div>
       </div>

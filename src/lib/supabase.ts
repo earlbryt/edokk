@@ -1,24 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
+// Importing the Supabase client from the official integration file
+import { supabase } from '@/integrations/supabase/client';
 
-// Use the actual Supabase URL and anon key
-const supabaseUrl = 'https://pbefndabvlaebfexhhnv.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBiZWZuZGFidmxhZWJmZXhoaG52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3NTk3OTYsImV4cCI6MjA2MjMzNTc5Nn0.6yRR2fLreSCFmSb1XlIMe4X98P58TWHYM_4t1tx1xz8';
+// Re-export the supabase client for backward compatibility
+export { supabase };
 
-// Create a single supabase client for interacting with your database
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Custom query function using rpc
+// Custom query function - placeholder for new backend implementation
 export async function executeSQL(sql: string, params?: any[]) {
-  const rpcOptions = { count: 'exact' as const };
-  
-  // Apply SQL using PostgreSQL functions
-  const { data, error, count } = await supabase.rpc(
-    'pgfunction', 
-    { sql, params: params || [] },
-    rpcOptions
-  );
-  
-  return { data, error, count };
+  console.log('executeSQL called with:', sql, params);
+  // Return empty placeholder response
+  return { data: [], error: null, count: 0 };
 }
 
 // Match a candidate against project requirements
@@ -40,33 +30,9 @@ export interface MatchCandidateResult {
 }
 
 export async function matchCandidate(params: MatchCandidateParams): Promise<MatchCandidateResult | null> {
-  try {
-    const response = await fetch(`${supabaseUrl}/functions/v1/match_candidate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`
-      },
-      body: JSON.stringify(params)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error matching candidate:', errorData);
-      throw new Error(errorData.error || 'Failed to match candidate');
-    }
-
-    const result = await response.json();
-    
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to match candidate');
-    }
-
-    return result.data;
-  } catch (error) {
-    console.error('Error in matchCandidate:', error);
-    return null;
-  }
+  console.log('matchCandidate called with:', params);
+  // Return null as placeholder for the new backend implementation
+  return null;
 }
 
 // The name of the storage bucket
@@ -74,12 +40,12 @@ export const STORAGE_BUCKET = 'lens';
 
 // Storage helpers
 export const getStoragePath = (fileId: string, fileName: string) => {
-  // Encode the filename to handle special characters
+  // Simplified version that maintains the same interface
   const encodedFileName = encodeURIComponent(fileName);
   return `${fileId}-${encodedFileName}`;
 };
 
 export const getPublicURL = (path: string) => {
-  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-  return data.publicUrl;
-}; 
+  // Placeholder function - will be replaced by the new backend
+  return `https://placeholder-url.com/${path}`;
+};

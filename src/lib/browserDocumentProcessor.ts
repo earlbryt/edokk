@@ -3,7 +3,6 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { supabase } from '@/integrations/supabase/client';
 import mammoth from 'mammoth';
 import { read, utils } from 'xlsx';
-import { matchCandidate } from '@/lib/supabase';
 
 // Load the PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -158,167 +157,31 @@ function getUserFriendlyErrorMessage(error: any, fileType: string): string {
 }
 
 /**
- * Processes a document in the browser and updates the database with extracted text
+ * Processes a document in the browser - placeholder for new implementation
  */
 export async function processDocumentInBrowser(fileId: string, file: File): Promise<{success: boolean, error?: string}> {
-  // First, identify the file type before processing
-  const fileType = identifyDocumentType(file);
-  
   try {
-    // Update the status to processing
-    await supabase
-      .from('cv_files')
-      .update({
-        status: 'processing',
-        progress: 50
-      })
-      .eq('id', fileId);
-    
-    // Validate the file type
+    // Identify the file type
+    const fileType = identifyDocumentType(file);
+
     if (fileType === 'unsupported') {
-      throw new Error(`Unsupported file type: ${file.type} (${file.name}). Please upload a PDF, DOCX, or DOC file.`);
+      console.log(`Unsupported file type: ${file.name}. Only PDF, DOCX, and DOC files are supported.`);
+      return { success: false, error: `Unsupported file type: ${file.name}. Only PDF, DOCX, and DOC files are supported.` };
     }
     
-    // Extract text based on file type
-    let extractedText = '';
+    console.log(`Processing ${fileType} file: ${file.name}`);
+    console.log('This is a placeholder for the new backend implementation');
     
-    if (fileType === 'pdf') {
-      extractedText = await extractTextFromPDF(file);
-    } else if (fileType === 'docx') {
-      extractedText = await extractTextFromDOCX(file);
-    } else if (fileType === 'doc') {
-      extractedText = await extractTextFromDOC(file);
-    }
-    
-    if (!extractedText) {
-      throw new Error('No text could be extracted from the document');
-    }
-    
-    // Basic parsing of the extracted text
-    const parsed = parseExtractedText(extractedText);
-    
-    // Update the database with the extracted text and parsed data
-    const { error } = await supabase
-      .from('cv_files')
-      .update({
-        status: 'processing',
-        progress: 75,
-        raw_text: extractedText,
-        text_extracted: true,
-        text_extraction_date: new Date().toISOString(),
-        parsed_data: parsed
-      })
-      .eq('id', fileId);
-    
-    if (error) throw error;
-    
-    // Call the process_resume Edge Function to process the text with LLM
-    console.log('Calling process_resume Edge Function for Word document...');
-    try {
-      const { data: processedData, error: processError } = await supabase.functions
-        .invoke('process_resume', {
-          body: { resume: { id: fileId, raw_text: extractedText } }
-        });
-      
-      if (processError) {
-        console.error('Error processing resume with Edge Function:', processError);
-        throw new Error(`Edge Function error: ${processError.message}`);
-      }
-      
-      console.log('Resume processed successfully with Edge Function');
-      
-      // Get the project_id from the cv_file for candidate matching
-      const { data: cvFileData, error: cvFileError } = await supabase
-        .from('cv_files')
-        .select('project_id')
-        .eq('id', fileId)
-        .single();
-      
-      if (cvFileError) {
-        console.error('Error getting project_id:', cvFileError);
-      } else if (cvFileData?.project_id) {
-        // Automatically match the candidate to the project after processing
-        console.log('Automatically matching candidate', fileId, 'to project', cvFileData.project_id);
-        
-        try {
-          const matchResult = await matchCandidate({
-            candidate_id: fileId,
-            project_id: cvFileData.project_id
-          });
-          
-          console.log('Match result:', matchResult);
-          
-          // Update the cv_file status based on the matching result
-          if (matchResult) {
-            await supabase
-              .from('cv_files')
-              .update({ 
-                status: `bucket-${matchResult.rating.toLowerCase()}`,
-                match_status: 'matched',
-                progress: 100
-              })
-              .eq('id', fileId);
-          } else {
-            // If matching didn't work but processing succeeded, still mark as completed
-            await supabase
-              .from('cv_files')
-              .update({ 
-                status: 'completed',
-                progress: 100
-              })
-              .eq('id', fileId);
-          }
-        } catch (matchError) {
-          console.error('Error matching candidate:', matchError);
-          // Still mark as completed even if matching failed
-          await supabase
-            .from('cv_files')
-            .update({ 
-              status: 'completed',
-              progress: 100
-            })
-            .eq('id', fileId);
-        }
-      } else {
-        console.log('No project_id found for this CV file, skipping automatic matching');
-        // Mark as completed if there's no project to match against
-        await supabase
-          .from('cv_files')
-          .update({ 
-            status: 'completed',
-            progress: 100
-          })
-          .eq('id', fileId);
-      }
-    } catch (edgeFunctionError) {
-      console.error('Error in Edge Function processing:', edgeFunctionError);
-      // Don't throw here, just log the error - we still want to return success for the text extraction part
-      // Update the status to completed despite the error in advanced processing
-      await supabase
-        .from('cv_files')
-        .update({ 
-          status: 'completed',
-          progress: 100,
-          error: `Advanced processing failed: ${edgeFunctionError.message}`
-        })
-        .eq('id', fileId);
-    }
-    
-    return { success: true };
+    // Return a simulated successful processing
+    return { 
+      success: true
+    };
   } catch (error) {
     console.error('Error in browser document processor:', error);
     
     // Get user-friendly error message
-    const userFriendlyError = getUserFriendlyErrorMessage(error, fileType);
-    
-    // Update the error status
-    await supabase
-      .from('cv_files')
-      .update({
-        status: 'failed',
-        error: userFriendlyError
-      })
-      .eq('id', fileId);
+    const fileTypeVar = identifyDocumentType(file);
+    const userFriendlyError = getUserFriendlyErrorMessage(error, fileTypeVar);
     
     return { success: false, error: userFriendlyError };
   }

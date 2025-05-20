@@ -9,6 +9,64 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_users_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      normal_users: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "normal_users_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_positions: {
         Row: {
           confidence: number

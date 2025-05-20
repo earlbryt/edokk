@@ -38,9 +38,11 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center gap-8">
             <div className="hidden md:flex space-x-8">
               <Link to="/" className="text-gray-700 hover:text-lens-purple transition-colors">Home</Link>
-              <Link to="/features" className="text-gray-700 hover:text-lens-purple transition-colors">Features</Link>
-              <Link to="/pricing" className="text-gray-700 hover:text-lens-purple transition-colors">Pricing</Link>
-              <Link to="/contact" className="text-gray-700 hover:text-lens-purple transition-colors">Contact</Link>
+              <Link to="/consultation" className="text-gray-700 hover:text-lens-purple transition-colors">Consultation</Link>
+              <Link to="/pharmacy" className="text-gray-700 hover:text-lens-purple transition-colors">E-Pharmacy</Link>
+              <Link to="/dietetics" className="text-gray-700 hover:text-lens-purple transition-colors">Dietetics</Link>
+              <Link to="/mental-health" className="text-gray-700 hover:text-lens-purple transition-colors">Mental Health</Link>
+              <Link to="/herbal" className="text-gray-700 hover:text-lens-purple transition-colors">Herbal Medicine</Link>
             </div>
           </div>
           
@@ -115,9 +117,11 @@ const Navbar: React.FC = () => {
               >
                 <div className="flex flex-col gap-3">
                   <NavLink to="/">Home</NavLink>
-                  <NavLink to="/features">Features</NavLink>
-                  <NavLink to="/pricing">Pricing</NavLink>
-                  <NavLink to="/contact">Contact</NavLink>
+                  <NavLink to="/consultation">Consultation</NavLink>
+                  <NavLink to="/pharmacy">E-Pharmacy</NavLink>
+                  <NavLink to="/dietetics">Dietetics</NavLink>
+                  <NavLink to="/mental-health">Mental Health</NavLink>
+                  <NavLink to="/herbal">Herbal Medicine</NavLink>
                   
                   <div className="h-px bg-gray-100 my-3" />
                   

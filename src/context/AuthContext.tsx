@@ -156,20 +156,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       if (data.user) {
-        // Create profile entry
+        // Create profile entry with timestamps to satisfy NOT NULL constraints
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
             id: data.user.id,
             name,
             email,
-            role
+            role,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           });
         
         if (profileError) {
           console.error('Error creating profile:', profileError);
           throw profileError;
         }
+        
+        // Small delay to allow database trigger to create default project
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         const userData = {
           id: data.user.id,
@@ -182,7 +187,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         toast({
           title: "Account created",
-          description: "Your account has been successfully created.",
+          description: "Your account has been successfully created with a default project.",
         });
       }
     } catch (error) {

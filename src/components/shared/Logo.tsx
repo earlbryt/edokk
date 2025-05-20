@@ -30,14 +30,12 @@ const Logo: React.FC<LogoProps> = ({
 
   return (
     <Link to="/" className={`flex items-center gap-2 ${className}`}>
-      <img 
-        src="/assets/favicon/favicon.svg" 
-        alt="Lens Logo" 
-        className={`${sizeMap[size].container}`}
-      />
+      <div className={`${sizeMap[size].container} bg-lens-purple rounded-md flex items-center justify-center text-white font-bold`}>
+        eD
+      </div>
       {showText && (
         <span className={`font-display font-semibold ${sizeMap[size].text}`}>
-          Lens
+          eDok
         </span>
       )}
     </Link>
