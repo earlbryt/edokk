@@ -36,14 +36,12 @@ import { format } from 'date-fns';
 import { 
   AlertCircle, 
   CheckCircle, 
-  Filter, 
   Search, 
   PackageSearch, 
-  Plus,
-  ChevronDown,
   Truck,
   ArrowDown,
-  ArrowUp
+  ArrowUp,
+  Eye
 } from 'lucide-react';
 
 // Define types for orders and order items
@@ -325,23 +323,16 @@ const AdminOrders: React.FC = () => {
       <div className="flex-1 ml-64">
         <TopBar />
         <main className="p-6">
-          <div className="mb-6 flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center">
-                <PackageSearch className="mr-2 h-5 w-5 text-lens-purple" />
-                Order Management
-              </h1>
-              <p className="text-gray-500">View and manage customer orders</p>
-            </div>
-            
-            <Button className="bg-lens-purple hover:bg-lens-purple/90">
-              <Plus className="h-4 w-4 mr-1" />
-              New Order
-            </Button>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center">
+              <PackageSearch className="mr-2 h-5 w-5 text-lens-purple" />
+              Order Management
+            </h1>
+            <p className="text-gray-500">View and manage customer orders</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-4 flex justify-between items-center border-b">
+            <div className="p-4 border-b">
               <div className="relative max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -350,19 +341,6 @@ const AdminOrders: React.FC = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 w-64 focus-visible:ring-lens-purple"
                 />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" className="flex items-center">
-                  <Filter className="h-3.5 w-3.5 mr-1" />
-                  Filter
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={fetchOrders}
-                >
-                  Refresh
-                </Button>
               </div>
             </div>
 
@@ -442,19 +420,19 @@ const AdminOrders: React.FC = () => {
                               size="sm" 
                               onClick={() => viewOrderDetails(order)}
                             >
-                              <Search className="h-3.5 w-3.5" />
+                              <Eye className="h-3.5 w-3.5" />
                               <span className="sr-only">View Details</span>
                             </Button>
                             
                             {order.status !== 'delivered' && (
                               <Button 
                                 size="sm" 
-                                className="bg-green-600 hover:bg-green-700 text-xs"
+                                className="bg-green-600 hover:bg-green-700"
                                 onClick={() => updateOrderStatus(order.id, 'delivered')}
                                 disabled={updatingStatus}
                               >
-                                <Truck className="h-3.5 w-3.5" />
-                                <span className="sr-only">Mark Delivered</span>
+                                <Truck className="h-3.5 w-3.5 mr-1" />
+                                Mark as delivered
                               </Button>
                             )}
                           </div>
