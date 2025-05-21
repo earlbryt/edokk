@@ -190,7 +190,7 @@ const Hero: React.FC = () => {
               </div>
             </motion.div>
             
-            {/* Second floating card - medicine reminder */}
+            {/* Second floating card - E-Pharmacy */}
             <motion.div 
               className="absolute -top-6 left-0 bg-white p-3 rounded-xl shadow-lg border border-purple-100 z-20 hidden lg:block"
               initial={{ scale: 0, opacity: 0 }}
@@ -208,13 +208,13 @@ const Hero: React.FC = () => {
                   <Pill className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium">Medication Reminder</p>
-                  <p className="text-[10px] text-gray-500">Take Vitamin D - 4:00 PM</p>
+                  <p className="text-xs font-medium">E-Pharmacy</p>
+                  <p className="text-[10px] text-gray-500">Your prescription is verified</p>
                 </div>
               </div>
             </motion.div>
             
-            {/* Health Report Card */}
+            {/* Mental Health Card */}
             <motion.div 
               className="absolute top-1/3 -left-16 bg-white p-3 rounded-xl shadow-lg border border-purple-100 z-20 hidden lg:block"
               initial={{ scale: 0, x: -30, opacity: 0 }}
@@ -229,13 +229,11 @@ const Hero: React.FC = () => {
             >
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center shadow-md shadow-purple-200">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
+                  <Brain className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium">Health Report Ready</p>
-                  <p className="text-[10px] text-gray-500">View your monthly summary</p>
+                  <p className="text-xs font-medium">Mental Wellness</p>
+                  <p className="text-[10px] text-gray-500">Chat with Serene Companion</p>
                 </div>
               </div>
             </motion.div>
