@@ -72,10 +72,8 @@ const initialMessages: Message[] = [
 // Quick suggestions for the chatbot
 const quickSuggestions = [
   "I'm feeling anxious",
-  "I need help with stress",
-  "How to improve sleep?",
-  "Meditation techniques",
-  "Finding a therapist"
+  "Help with stress",
+  "Sleep issues"
 ];
 
 // Mental health resources
@@ -406,12 +404,19 @@ const MentalHealth: React.FC = () => {
     resetAssessment();
   };
   
-  // Handle sending a message
+  // Track if a message is being sent to prevent multiple submissions
+  const [isSending, setIsSending] = useState(false);
+
+  // Handle sending a message - optimized version without sessions
   const handleSendMessage = async () => {
-    if (inputValue.trim() === "") return;
+    // Don't allow sending if already processing a message or if input is empty
+    if (isSending || inputValue.trim() === "") return;
     
     try {
-      // Check if user is logged in
+      // Set sending state to true to prevent multiple submissions
+      setIsSending(true);
+      
+      // Get current user information
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -420,30 +425,38 @@ const MentalHealth: React.FC = () => {
           description: "Please sign in to use the chat feature.",
           variant: "destructive"
         });
+        setIsSending(false);
         return;
       }
       
-      // Create and display user message
+      // Store message content before clearing input
+      const messageContent = inputValue;
+      
+      // Create and display user message immediately for better UX
       const newUserMessage: Message = {
         id: `user-${Date.now()}`,
-        content: inputValue,
+        content: messageContent,
         sender: "user",
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, newUserMessage]);
+      // Clear input and show the message
       setInputValue("");
+      setMessages(prev => [...prev, newUserMessage]);
       
       // Show typing indicator
       setIsTyping(true);
       
-      // Call the mental-health-chat edge function
-      const { data, error } = await supabase.functions.invoke('mental-health-chat', {
-        body: {
-          user_id: user.id,
-          message: newUserMessage.content
+      // Call edge function with user ID and message
+      const { data, error } = await supabase.functions.invoke(
+        'mental-health-chat', 
+        {
+          body: {
+            user_id: user.id,
+            message: messageContent
+          }
         }
-      });
+      );
       
       if (error) throw error;
       
@@ -456,6 +469,7 @@ const MentalHealth: React.FC = () => {
       };
       
       setMessages(prev => [...prev, newAssistantMessage]);
+      
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -475,6 +489,7 @@ const MentalHealth: React.FC = () => {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
+      setIsSending(false);
     }
   };
   
@@ -565,13 +580,13 @@ const MentalHealth: React.FC = () => {
           {/* Header with minimal design */}
           <div className="px-6 py-4 bg-white border-b border-gray-100 flex-shrink-0 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Avatar className="h-9 w-9 border-2 border-lens-purple/20">
-                <AvatarImage src="/assets/bot-avatar.png" alt="AI Assistant" />
-                <AvatarFallback className="bg-lens-purple/10 text-lens-purple font-medium">AI</AvatarFallback>
+              <Avatar className="h-9 w-9 border-2 border-teal-200/70">
+                <AvatarImage src="/assets/bot-avatar.png" alt="Serene Companion" />
+                <AvatarFallback className="bg-teal-50 text-teal-600 font-medium">SC</AvatarFallback>
               </Avatar>
               <div>
-                <h2 className="font-medium text-gray-900">eDok Assistant</h2>
-                <p className="text-xs text-gray-500">Mental health support</p>
+                <h2 className="font-medium text-gray-900">Serene Companion</h2>
+                <p className="text-xs text-gray-500">Your mindful wellness guide</p>
               </div>
             </div>
             <Badge variant="outline" className="h-6 bg-green-50 text-green-700 border-green-100 px-2">
@@ -598,8 +613,8 @@ const MentalHealth: React.FC = () => {
                 >
                   {message.sender === 'assistant' && (
                     <Avatar className="h-8 w-8 mr-2 mt-1 flex-shrink-0 opacity-85">
-                      <AvatarImage src="/assets/bot-avatar.png" alt="AI Assistant" />
-                      <AvatarFallback className="bg-lens-purple/10 text-lens-purple text-xs">AI</AvatarFallback>
+                      <AvatarImage src="/assets/bot-avatar.png" alt="Serene Companion" />
+                      <AvatarFallback className="bg-teal-50 text-teal-600 text-xs">SC</AvatarFallback>
                     </Avatar>
                   )}
                   <div 
@@ -618,8 +633,8 @@ const MentalHealth: React.FC = () => {
               {isTyping && (
                 <div className="flex justify-start">
                   <Avatar className="h-8 w-8 mr-2 mt-1 flex-shrink-0 opacity-85">
-                    <AvatarImage src="/assets/bot-avatar.png" alt="AI Assistant" />
-                    <AvatarFallback className="bg-lens-purple/10 text-lens-purple text-xs">AI</AvatarFallback>
+                    <AvatarImage src="/assets/bot-avatar.png" alt="Serene Companion" />
+                    <AvatarFallback className="bg-teal-50 text-teal-600 text-xs">SC</AvatarFallback>
                   </Avatar>
                   <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 border border-gray-100 shadow-sm">
                     <div className="flex space-x-1.5 items-center h-5">
@@ -635,15 +650,15 @@ const MentalHealth: React.FC = () => {
             </div>
           </ScrollArea>
 
-          {/* Simplified quick suggestions */}
+          {/* Simplified quick suggestions - no scrolling */}
           <div className="px-4 py-2.5 bg-white border-t border-gray-100">
-            <div className="flex flex-nowrap overflow-x-auto gap-2 pb-1 scrollbar-none">
+            <div className="flex justify-center gap-2">
               {quickSuggestions.map((suggestion, index) => (
                 <Button
                   key={index}
                   variant="outline"
                   size="sm"
-                  className="text-xs whitespace-nowrap py-1 px-3 h-7 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-lens-purple rounded-full flex-shrink-0"
+                  className="text-xs py-1 px-3 h-7 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-lens-purple rounded-full flex-1"
                   onClick={() => handleSuggestionClick(suggestion)}
                 >
                   {suggestion}
@@ -671,10 +686,14 @@ const MentalHealth: React.FC = () => {
               <Button 
                 type="submit" 
                 size="sm" 
-                className="bg-lens-purple hover:bg-lens-purple/90 h-8 w-8 rounded-full p-0"
-                disabled={!inputValue.trim()}
+                className="bg-lens-purple hover:bg-lens-purple/90 h-8 w-8 rounded-full p-0 transition-all"
+                disabled={!inputValue.trim() || isSending || isTyping}
               >
-                <Send className="h-3.5 w-3.5" />
+                {isSending ? (
+                  <div className="h-3.5 w-3.5 animate-spin border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Send className="h-3.5 w-3.5" />
+                )}
               </Button>
             </form>
           </div>
