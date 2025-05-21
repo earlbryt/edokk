@@ -22,6 +22,7 @@ import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
 import Contact from "./pages/Contact";
 import Pharmacy from "./pages/Pharmacy";
+import AdminOrders from "./pages/AdminOrders";
 import { useAuth } from "./context/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
@@ -124,6 +125,14 @@ const AppRoutes = () => {
         element={
           <AdminRoute>
             <AdminDashboard />
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/orders" 
+        element={
+          <AdminRoute>
+            <AdminOrders />
           </AdminRoute>
         } 
       />
