@@ -407,44 +407,75 @@ const MentalHealth: React.FC = () => {
   };
   
   // Handle sending a message
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputValue.trim() === "") return;
     
-    const newUserMessage: Message = {
-      id: `user-${Date.now()}`,
-      content: inputValue,
-      sender: "user",
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, newUserMessage]);
-    setInputValue("");
-    
-    // Simulate assistant typing
-    setIsTyping(true);
-    
-    // Simulate AI response
-    setTimeout(() => {
-      const assistantResponses = [
-        "I understand how you're feeling. Would you like to explore some coping strategies?",
-        "That's completely valid. Remember that your feelings matter and it's okay to take things at your own pace.",
-        "Thank you for sharing that with me. Would you consider taking one of our assessments to help us better understand how to support you?",
-        "I'm here to listen without judgment. Would you like to tell me more about what's going on?",
-        "It sounds like you're going through a challenging time. Would it help to discuss some mindfulness techniques?"
-      ];
+    try {
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
       
-      const randomResponse = assistantResponses[Math.floor(Math.random() * assistantResponses.length)];
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to use the chat feature.",
+          variant: "destructive"
+        });
+        return;
+      }
       
+      // Create and display user message
+      const newUserMessage: Message = {
+        id: `user-${Date.now()}`,
+        content: inputValue,
+        sender: "user",
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, newUserMessage]);
+      setInputValue("");
+      
+      // Show typing indicator
+      setIsTyping(true);
+      
+      // Call the mental-health-chat edge function
+      const { data, error } = await supabase.functions.invoke('mental-health-chat', {
+        body: {
+          user_id: user.id,
+          message: newUserMessage.content
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Display AI response
       const newAssistantMessage: Message = {
         id: `assistant-${Date.now()}`,
-        content: randomResponse,
+        content: data.message,
         sender: "assistant",
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, newAssistantMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Could not process your message. Please try again later.",
+        variant: "destructive"
+      });
+      
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: `error-${Date.now()}`,
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        sender: "assistant",
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
   
   // Handle quick suggestion click
@@ -530,36 +561,52 @@ const MentalHealth: React.FC = () => {
       
       {/* Chat Dialog */}
       <Dialog open={chatOpen} onOpenChange={setChatOpen}>
-        <DialogContent className="sm:max-w-[500px] h-[80vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="px-6 py-4 border-b bg-gray-50 flex-shrink-0">
-            <div className="flex items-center">
-              <Avatar className="h-10 w-10 mr-3">
+        <DialogContent className="sm:max-w-[450px] md:max-w-[500px] h-[85vh] flex flex-col p-0 gap-0 rounded-xl overflow-hidden border-0 shadow-xl">
+          {/* Header with minimal design */}
+          <div className="px-6 py-4 bg-white border-b border-gray-100 flex-shrink-0 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-9 w-9 border-2 border-lens-purple/20">
                 <AvatarImage src="/assets/bot-avatar.png" alt="AI Assistant" />
-                <AvatarFallback className="bg-lens-purple text-white">AI</AvatarFallback>
+                <AvatarFallback className="bg-lens-purple/10 text-lens-purple font-medium">AI</AvatarFallback>
               </Avatar>
               <div>
-                <DialogTitle className="text-lg">Mental Health Assistant</DialogTitle>
-                <p className="text-sm text-gray-500">AI-powered emotional support</p>
+                <h2 className="font-medium text-gray-900">eDok Assistant</h2>
+                <p className="text-xs text-gray-500">Mental health support</p>
               </div>
-              <Badge variant="outline" className="ml-auto bg-green-50 text-green-700 border-green-200">
-                <span className="mr-1 h-2 w-2 rounded-full bg-green-500 inline-block"></span> Online
-              </Badge>
             </div>
-          </DialogHeader>
+            <Badge variant="outline" className="h-6 bg-green-50 text-green-700 border-green-100 px-2">
+              <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-green-500 inline-block animate-pulse"></span>Online
+            </Badge>
+          </div>
           
-          {/* Chat messages */}
-          <ScrollArea className="flex-1 p-4">
+          {/* Welcome message */}
+          {messages.length <= 2 && (
+            <div className="px-6 py-3 bg-gray-50/50 border-b border-gray-100">
+              <p className="text-sm text-gray-600">
+                Share how you're feeling in a safe space. I'm here to listen and support you.
+              </p>
+            </div>
+          )}
+          
+          {/* Chat messages with improved styling */}
+          <ScrollArea className="flex-1 px-4 py-4 bg-[#f9fafc]">
             <div className="space-y-4">
               {messages.map((message) => (
                 <div 
                   key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
                 >
+                  {message.sender === 'assistant' && (
+                    <Avatar className="h-8 w-8 mr-2 mt-1 flex-shrink-0 opacity-85">
+                      <AvatarImage src="/assets/bot-avatar.png" alt="AI Assistant" />
+                      <AvatarFallback className="bg-lens-purple/10 text-lens-purple text-xs">AI</AvatarFallback>
+                    </Avatar>
+                  )}
                   <div 
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                    className={`max-w-[85%] px-4 py-3 text-sm shadow-sm ${
                       message.sender === 'user' 
-                        ? 'bg-lens-purple text-white rounded-tr-none' 
-                        : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                        ? 'bg-lens-purple text-white rounded-2xl rounded-tr-sm ml-2' 
+                        : 'bg-white text-gray-800 rounded-2xl rounded-tl-sm border border-gray-100'
                     }`}
                   >
                     {message.content}
@@ -567,33 +614,36 @@ const MentalHealth: React.FC = () => {
                 </div>
               ))}
               
-              {/* Typing indicator */}
+              {/* Improved typing indicator */}
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 rounded-2xl px-4 py-3 rounded-tl-none">
-                    <div className="flex space-x-1">
-                      <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce"></div>
-                      <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  <Avatar className="h-8 w-8 mr-2 mt-1 flex-shrink-0 opacity-85">
+                    <AvatarImage src="/assets/bot-avatar.png" alt="AI Assistant" />
+                    <AvatarFallback className="bg-lens-purple/10 text-lens-purple text-xs">AI</AvatarFallback>
+                  </Avatar>
+                  <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 border border-gray-100 shadow-sm">
+                    <div className="flex space-x-1.5 items-center h-5">
+                      <div className="h-2 w-2 rounded-full bg-lens-purple/40 animate-pulse"></div>
+                      <div className="h-2 w-2 rounded-full bg-lens-purple/40 animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                      <div className="h-2 w-2 rounded-full bg-lens-purple/40 animate-pulse" style={{ animationDelay: '0.6s' }}></div>
                     </div>
                   </div>
                 </div>
               )}
               
-              <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} className="h-1" />
             </div>
           </ScrollArea>
 
-          {/* Quick suggestions */}
-          <div className="px-4 py-2 bg-gray-50 border-t border-b">
-            <p className="text-xs text-gray-500 mb-2">Suggested topics:</p>
-            <div className="flex flex-wrap gap-2">
+          {/* Simplified quick suggestions */}
+          <div className="px-4 py-2.5 bg-white border-t border-gray-100">
+            <div className="flex flex-nowrap overflow-x-auto gap-2 pb-1 scrollbar-none">
               {quickSuggestions.map((suggestion, index) => (
                 <Button
                   key={index}
                   variant="outline"
                   size="sm"
-                  className="text-xs py-1 h-auto bg-white"
+                  className="text-xs whitespace-nowrap py-1 px-3 h-7 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-lens-purple rounded-full flex-shrink-0"
                   onClick={() => handleSuggestionClick(suggestion)}
                 >
                   {suggestion}
@@ -602,10 +652,10 @@ const MentalHealth: React.FC = () => {
             </div>
           </div>
 
-          {/* Input area */}
-          <div className="p-4 border-t bg-white flex-shrink-0">
+          {/* Improved input area */}
+          <div className="p-3 border-t border-gray-100 bg-white flex-shrink-0">
             <form 
-              className="flex gap-2"
+              className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full"
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendMessage();
@@ -614,12 +664,17 @@ const MentalHealth: React.FC = () => {
               <Input
                 id="message-input"
                 placeholder="Type your message..."
-                className="flex-1"
+                className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400 text-sm py-1"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
               />
-              <Button type="submit" size="icon" className="bg-lens-purple hover:bg-lens-purple/90">
-                <Send className="h-4 w-4" />
+              <Button 
+                type="submit" 
+                size="sm" 
+                className="bg-lens-purple hover:bg-lens-purple/90 h-8 w-8 rounded-full p-0"
+                disabled={!inputValue.trim()}
+              >
+                <Send className="h-3.5 w-3.5" />
               </Button>
             </form>
           </div>
