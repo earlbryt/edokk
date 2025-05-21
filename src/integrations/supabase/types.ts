@@ -57,12 +57,84 @@ export type Database = {
         }
         Relationships: []
       }
+      order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_id: string
+          price: number
+          product_id: string
+          product_name: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_id: string
+          price: number
+          product_id: string
+          product_name: string
+          quantity: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          price?: number
+          product_id?: string
+          product_name?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string | null
+          id: string
+          payment_method: string
+          shipping_address: Json
+          status: string
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          payment_method: string
+          shipping_address: Json
+          status?: string
+          total_amount: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          payment_method?: string
+          shipping_address?: Json
+          status?: string
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           email: string | null
           id: string
           name: string | null
+          role: string
           updated_at: string | null
         }
         Insert: {
@@ -70,6 +142,7 @@ export type Database = {
           email?: string | null
           id: string
           name?: string | null
+          role?: string
           updated_at?: string | null
         }
         Update: {
@@ -77,6 +150,7 @@ export type Database = {
           email?: string | null
           id?: string
           name?: string | null
+          role?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -86,6 +160,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_profiles_by_ids: {
+        Args: { user_ids: string[] }
+        Returns: {
+          avatar_url: string | null
+          email: string | null
+          id: string
+          name: string | null
+          role: string
+          updated_at: string | null
+        }[]
+      }
       table_exists: {
         Args: { table_name: string }
         Returns: boolean
