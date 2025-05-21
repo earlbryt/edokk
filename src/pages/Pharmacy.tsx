@@ -53,6 +53,26 @@ const products: Product[] = [
     category: "First Aid",
     image: "/assets/products/eyedropper.png",
     backgroundColor: "bg-[#f7f7f7]" // Light gray
+  },
+  {
+    id: "5",
+    name: "Paracetamol Tablets",
+    description: "Fast relief from fever and mild to moderate pain",
+    price: 7.99,
+    startingPrice: 7.99,
+    category: "Pain Relief",
+    image: "/assets/products/tablet.png",
+    backgroundColor: "bg-[#fdf0e6]" // Light peach
+  },
+  {
+    id: "6",
+    name: "Multivitamin Tablets",
+    description: "Complete daily nutrition in easy-to-take tablet form",
+    price: 22.99,
+    startingPrice: 18.99,
+    category: "Supplements",
+    image: "/assets/products/tablets.png",
+    backgroundColor: "bg-[#f0f7fd]" // Light blue
   }
 ];
 
