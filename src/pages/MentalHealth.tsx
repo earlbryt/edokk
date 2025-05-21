@@ -175,23 +175,17 @@ const MentalHealth: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   
-  // Assessment state
+  // State for assessment flow
   const [assessmentDialogOpen, setAssessmentDialogOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'select' | 'questions' | 'processing' | 'results'>('select');
   const [assessmentListLoading, setAssessmentListLoading] = useState(false);
-  const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
-  
-  // Questions and responses state
-  const [currentStep, setCurrentStep] = useState<'select' | 'questions' | 'results'>('select');
-  const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
+  const [assessments, setAssessments] = useState<any[]>([]);
+  const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
+  const [questions, setQuestions] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userResponses, setUserResponses] = useState<UserResponses>({});
+  const [userResponses, setUserResponses] = useState<Record<number, number>>({});
+  const [assessmentResult, setAssessmentResult] = useState<{ score: number; result_category: string; feedback: string; } | null>(null);
   const [responseLoading, setResponseLoading] = useState(false);
-  const [assessmentResult, setAssessmentResult] = useState<{
-    score: number;
-    result_category: string;
-    feedback: string;
-  } | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -313,8 +307,12 @@ const MentalHealth: React.FC = () => {
           description: 'Please sign in to save your assessment results.',
           variant: 'destructive'
         });
+        setResponseLoading(false);
         return;
       }
+      
+      // Show an intermediate step while the LLM processes the assessment
+      setCurrentStep('processing');
       
       // Call Edge Function to score the assessment
       const { data, error } = await supabase.functions.invoke('score-mental-health-assessment', {
@@ -343,6 +341,10 @@ const MentalHealth: React.FC = () => {
         description: 'Could not process your assessment. Please try again later.',
         variant: 'destructive'
       });
+      // Go back to questions if there's an error
+      if (currentStep === 'processing') {
+        setCurrentStep('questions');
+      }
     } finally {
       setResponseLoading(false);
     }
@@ -644,50 +646,51 @@ const MentalHealth: React.FC = () => {
                   <span className="ml-3 text-lg">Loading assessments...</span>
                 </div>
               ) : (
-                <ScrollArea className="flex-1 pr-4 max-h-[60vh] my-4">
-                  <div className="space-y-4">
-                    {assessments.map((assessment) => (
-                      <Card 
-                        key={assessment.id} 
-                        className="cursor-pointer transition-all hover:shadow-md"
-                        onClick={() => handleAssessmentSelect(assessment)}
-                      >
-                        <CardHeader className="pb-2">
-                          <CardTitle>{assessment.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-gray-600 mb-3">{assessment.description}</p>
-                          <div className="flex justify-between items-center">
-                            <Badge variant="outline" className="bg-lens-purple/10 text-lens-purple border-lens-purple/20">
-                              {assessment.type.charAt(0).toUpperCase() + assessment.type.slice(1)}
-                            </Badge>
-                            <Button variant="ghost" size="sm" className="text-lens-purple hover:text-lens-purple/90 hover:bg-lens-purple/10">
-                              Take Assessment
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                    
-                    {assessments.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        <p className="mb-2">No assessments found</p>
-                        <Button 
-                          variant="outline" 
-                          onClick={fetchAssessments}
-                          className="mt-2"
+                <div className="h-[60vh] overflow-hidden my-4">
+                  <ScrollArea className="h-full w-full">
+                    <div className="space-y-4 pr-4">
+                      {assessments.map((assessment) => (
+                        <Card 
+                          key={assessment.id} 
+                          className="cursor-pointer transition-all hover:shadow-md"
+                          onClick={() => handleAssessmentSelect(assessment)}
                         >
-                          Refresh
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
+                          <CardHeader className="pb-2">
+                            <CardTitle>{assessment.title}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm text-gray-600 mb-3">{assessment.description}</p>
+                            <div className="flex justify-between items-center">
+                              <Badge variant="outline" className="bg-lens-purple/10 text-lens-purple border-lens-purple/20">
+                                {assessment.type.charAt(0).toUpperCase() + assessment.type.slice(1)}
+                              </Badge>
+                              <Button variant="ghost" size="sm" className="text-lens-purple hover:text-lens-purple/90 hover:bg-lens-purple/10">
+                                Take Assessment
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      
+                      {assessments.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          <p className="mb-2">No assessments found</p>
+                          <Button 
+                            variant="outline" 
+                            onClick={fetchAssessments}
+                            className="mt-2"
+                          >
+                            Refresh
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
               )}
             </>
           )}
-          
-          {/* Questions Screen */}
+                    {/* Questions Screen */}
           {currentStep === 'questions' && selectedAssessment && questions.length > 0 && (
             <>
               <DialogHeader>
@@ -706,7 +709,9 @@ const MentalHealth: React.FC = () => {
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">{questions[currentQuestionIndex].question_text}</h3>
                     
+                    {/* Key added to the RadioGroup to force re-render on question change */}
                     <RadioGroup
+                      key={`question-${currentQuestionIndex}`}
                       value={userResponses[questions[currentQuestionIndex].question_order]?.toString()}
                       onValueChange={(value) => 
                         handleResponseSelect(questions[currentQuestionIndex].question_order, parseInt(value))
@@ -716,9 +721,9 @@ const MentalHealth: React.FC = () => {
                         <div key={option.value} className="flex items-center space-x-2 py-2">
                           <RadioGroupItem 
                             value={option.value.toString()} 
-                            id={`option-${option.value}`} 
+                            id={`option-${currentQuestionIndex}-${option.value}`} 
                           />
-                          <Label htmlFor={`option-${option.value}`} className="cursor-pointer">
+                          <Label htmlFor={`option-${currentQuestionIndex}-${option.value}`} className="cursor-pointer">
                             {option.label}
                           </Label>
                         </div>
@@ -762,6 +767,26 @@ const MentalHealth: React.FC = () => {
             </>
           )}
           
+          {/* Processing Screen */}
+          {currentStep === 'processing' && (
+            <div className="py-12 flex flex-col items-center justify-center space-y-6">
+              <div className="relative w-24 h-24">
+                <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-lens-purple/20 animate-ping"></div>
+                <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-lens-purple/40"></div>
+                <div className="absolute inset-4 flex items-center justify-center">
+                  <Spinner size="xl" className="text-lens-purple w-12 h-12" />
+                </div>
+              </div>
+              <div className="text-center space-y-3">
+                <h3 className="text-xl font-medium text-gray-800">Analyzing Your Responses</h3>
+                <p className="text-gray-600">Our AI is carefully reviewing your assessment and preparing personalized feedback...</p>
+              </div>
+              <div className="w-full max-w-xs bg-gray-100 rounded-full h-2 overflow-hidden">
+                <div className="bg-lens-purple h-2 rounded-full animate-progress"></div>
+              </div>
+            </div>
+          )}
+          
           {/* Results Screen */}
           {currentStep === 'results' && assessmentResult && selectedAssessment && (
             <>
@@ -769,35 +794,39 @@ const MentalHealth: React.FC = () => {
                 <DialogTitle className="text-2xl text-center">{selectedAssessment.title} Results</DialogTitle>
               </DialogHeader>
               
-              <div className="py-6 space-y-6">
-                <div className="text-center">
-                  <Badge className="text-lg py-1 px-4 bg-lens-purple text-white">
-                    {assessmentResult.result_category}
-                  </Badge>
-                  <p className="mt-2 text-sm text-gray-500">Score: {assessmentResult.score}</p>
-                </div>
-                
-                <Card className="bg-gray-50">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <ClipboardCheck className="h-5 w-5 text-lens-purple" />
-                      <CardTitle className="text-lg">Assessment Feedback</CardTitle>
+              <div className="h-[60vh] overflow-hidden my-4">
+                <ScrollArea className="h-full w-full">
+                  <div className="py-4 space-y-6 pr-4">
+                    <div className="text-center">
+                      <Badge className="text-lg py-1 px-4 bg-lens-purple text-white">
+                        {assessmentResult.result_category}
+                      </Badge>
+                      <p className="mt-2 text-sm text-gray-500">Score: {assessmentResult.score}</p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm max-w-none">
-                      <p>{assessmentResult.feedback}</p>
+                    
+                    <Card className="bg-gray-50">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center gap-2">
+                          <ClipboardCheck className="h-5 w-5 text-lens-purple" />
+                          <CardTitle className="text-lg">Assessment Feedback</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="prose prose-sm max-w-none">
+                          <p>{assessmentResult.feedback}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <p className="text-amber-800 text-sm">
+                        <strong>Important:</strong> This assessment is for educational purposes only and should not 
+                        replace professional medical advice, diagnosis, or treatment. If you're experiencing a crisis 
+                        or need immediate support, please contact a mental health professional or emergency services.
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-                
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <p className="text-amber-800 text-sm">
-                    <strong>Important:</strong> This assessment is for educational purposes only and should not 
-                    replace professional medical advice, diagnosis, or treatment. If you're experiencing a crisis 
-                    or need immediate support, please contact a mental health professional or emergency services.
-                  </p>
-                </div>
+                  </div>
+                </ScrollArea>
               </div>
               
               <DialogFooter className="border-t pt-4">

@@ -5,6 +5,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom animations */
+@keyframes progress {
+  0% { width: 5%; }
+  50% { width: 70%; }
+  100% { width: 95%; }
+}
+
+.animate-progress {
+  animation: progress 3s ease-in-out infinite;
+}
+
 @layer base {
   :root {
     --background: 210 40% 98%;
