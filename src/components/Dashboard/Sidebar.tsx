@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -7,7 +8,8 @@ import {
   LayoutDashboard,
   LogOut,
   Home,
-  ShoppingBag
+  ShoppingBag,
+  PackageSearch
 } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 
@@ -48,16 +50,25 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     {
       name: "Orders",
       href: "/admin/orders",
-      icon: ShoppingBag,
+      icon: PackageSearch,
     },
   ];
 
   return (
-    <div className={cn("w-64 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900 dark:border-gray-800 py-4 h-screen fixed overflow-y-auto", className)}>
-      <div className="space-y-4">
-        <div className="px-3 py-2">
-          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-            Dashboard
+    <div className={cn("w-64 flex-shrink-0 border-r bg-white dark:bg-gray-900 dark:border-gray-800 py-4 h-screen fixed overflow-y-auto shadow-sm", className)}>
+      <div className="flex flex-col h-full">
+        <div className="px-4 py-3 border-b mb-4">
+          <Link to="/admin" className="flex items-center space-x-2">
+            <div className="h-8 w-8 rounded-full bg-lens-purple flex items-center justify-center">
+              <span className="text-white font-semibold text-lg">e</span>
+            </div>
+            <span className="font-semibold text-xl">eDok</span>
+          </Link>
+        </div>
+        
+        <div className="px-3 py-2 flex-1">
+          <h2 className="mb-3 px-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
+            Main Menu
           </h2>
           <div className="space-y-1">
             {sidebarLinks.map((link) => (
@@ -66,8 +77,10 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
                 asChild
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start font-normal",
-                  isActive(link.href) ? "bg-gray-100 dark:bg-gray-800 text-foreground" : "text-muted-foreground",
+                  "w-full justify-start font-normal border-l-2 rounded-l-none",
+                  isActive(link.href) 
+                    ? "bg-lens-purple/10 text-lens-purple border-lens-purple font-medium" 
+                    : "border-transparent text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800",
                 )}
               >
                 <Link to={link.href} className="flex items-center">
@@ -79,8 +92,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           </div>
         </div>
 
-        <div className="mt-auto border-t border-gray-200 dark:border-gray-700 px-3 py-2">
-          <Button asChild variant="ghost" className="w-full justify-start font-normal">
+        <div className="mt-auto border-t border-gray-200 dark:border-gray-700 px-3 py-3">
+          <Button asChild variant="ghost" className="w-full justify-start font-normal text-gray-600">
             <Link to="/" className="flex items-center">
               <Home className="mr-2 h-4 w-4" />
               <span>Return to Homepage</span>

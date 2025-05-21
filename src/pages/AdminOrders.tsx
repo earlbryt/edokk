@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
 import LoadingAnimation from '@/components/ui/loading-animation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Table, 
   TableBody, 
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { 
   Dialog,
   DialogContent,
@@ -22,9 +23,28 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
-import { AlertCircle, CheckCircle, Package, Search, Truck } from 'lucide-react';
+import { 
+  AlertCircle, 
+  CheckCircle, 
+  Filter, 
+  Search, 
+  PackageSearch, 
+  Plus,
+  ChevronDown,
+  Truck,
+  ArrowDown,
+  ArrowUp
+} from 'lucide-react';
 
 // Define types for orders and order items
 interface OrderItem {
@@ -52,7 +72,6 @@ interface Order {
     phone: string;
   };
   order_items: OrderItem[];
-  // Add profile data
   profiles?: {
     name: string;
     email: string;
@@ -66,6 +85,10 @@ const AdminOrders: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<string>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // Format date safely
   const formatDate = (dateString: string | null | undefined) => {
@@ -126,15 +149,11 @@ const AdminOrders: React.FC = () => {
       // Attach profiles to orders
       const ordersWithProfiles = (ordersData || []).map((order: any) => {
         if (order.user_id && profilesMap[order.user_id]) {
-          console.log(`Profile matched for user_id: ${order.user_id}`);
           return { ...order, profiles: profilesMap[order.user_id] };
         }
         return { ...order, profiles: { name: 'Unknown User', email: '' } };
       });
 
-
-      console.log('Orders with profiles:', ordersWithProfiles.length);
-      
       // Add type safety for the returned data
       const typedOrders = ordersWithProfiles as Order[];
       setOrders(typedOrders || []);
@@ -198,18 +217,99 @@ const AdminOrders: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 font-medium">Pending</Badge>;
       case 'processing':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Processing</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-medium">Processing</Badge>;
       case 'shipped':
-        return <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">Shipped</Badge>;
+        return <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 font-medium">Shipped</Badge>;
       case 'delivered':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Delivered</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 font-medium">Delivered</Badge>;
       case 'cancelled':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Cancelled</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 font-medium">Cancelled</Badge>;
+      case 'in_transit':
+        return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 font-medium">In Transit</Badge>;
+      case 'out_of_delivery':
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 font-medium">Out for Delivery</Badge>;
+      case 'delayed':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 font-medium">Delayed</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  // Handle sorting
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Toggle direction if clicking the same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Default to descending for a new field
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  // Filter and sort orders
+  const getFilteredOrders = () => {
+    let filtered = [...orders];
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(order => 
+        order.id.toLowerCase().includes(query) ||
+        order.profiles?.name.toLowerCase().includes(query) ||
+        order.profiles?.email.toLowerCase().includes(query) ||
+        order.status.toLowerCase().includes(query) ||
+        order.shipping_address.city.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case 'id':
+          comparison = a.id.localeCompare(b.id);
+          break;
+        case 'customer':
+          comparison = (a.profiles?.name || '').localeCompare(b.profiles?.name || '');
+          break;
+        case 'created_at':
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
+          break;
+        case 'total_amount':
+          comparison = a.total_amount - b.total_amount;
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+    
+    return filtered;
+  };
+
+  // Pagination
+  const itemsPerPage = 10;
+  const filteredOrders = getFilteredOrders();
+  const pageCount = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Sort indicator
+  const SortIndicator = ({ field }: { field: string }) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? 
+      <ArrowUp className="inline-block h-3 w-3 ml-1" /> : 
+      <ArrowDown className="inline-block h-3 w-3 ml-1" />;
   };
 
   // Load orders when component mounts
@@ -225,100 +325,202 @@ const AdminOrders: React.FC = () => {
       <div className="flex-1 ml-64">
         <TopBar />
         <main className="p-6">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">Order Management</h1>
-            <p className="text-gray-600">Manage and monitor customer orders</p>
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center">
+                <PackageSearch className="mr-2 h-5 w-5 text-lens-purple" />
+                Order Management
+              </h1>
+              <p className="text-gray-500">View and manage customer orders</p>
+            </div>
+            
+            <Button className="bg-lens-purple hover:bg-lens-purple/90">
+              <Plus className="h-4 w-4 mr-1" />
+              New Order
+            </Button>
           </div>
 
-          {loading ? (
-            <LoadingAnimation message="Loading orders..." />
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex justify-between items-center">
-                  <span>All Orders</span>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={fetchOrders} 
-                    className="flex items-center gap-1"
-                  >
-                    <Package className="h-4 w-4" />
-                    <span>Refresh Orders</span>
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {orders.length === 0 ? (
-                  <div className="text-center py-8">
-                    <AlertCircle className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-lg font-medium text-gray-900">No orders found</h3>
-                    <p className="mt-1 text-sm text-gray-500">There are no customer orders in the system yet.</p>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Items</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {orders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">
-                            #{order.id.substring(0, 8).toUpperCase()}
-                          </TableCell>
-                          <TableCell>
-                            {order.profiles?.name || 'Unknown'}
-                          </TableCell>
-                          <TableCell>{formatDate(order.created_at)}</TableCell>
-                          <TableCell>{order.order_items.length} item(s)</TableCell>
-                          <TableCell className="font-semibold">GH₵{order.total_amount.toFixed(2)}</TableCell>
-                          <TableCell>{getStatusBadge(order.status)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-4 flex justify-between items-center border-b">
+              <div className="relative max-w-sm">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search orders..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 w-64 focus-visible:ring-lens-purple"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" className="flex items-center">
+                  <Filter className="h-3.5 w-3.5 mr-1" />
+                  Filter
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={fetchOrders}
+                >
+                  Refresh
+                </Button>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="py-10">
+                <LoadingAnimation message="Loading orders..." />
+              </div>
+            ) : paginatedOrders.length === 0 ? (
+              <div className="text-center py-16">
+                <AlertCircle className="mx-auto h-12 w-12 text-gray-300" />
+                <h3 className="mt-2 text-lg font-medium text-gray-900">No orders found</h3>
+                <p className="mt-1 text-sm text-gray-500">There are no orders matching your criteria.</p>
+              </div>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader className="bg-gray-50">
+                    <TableRow>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('id')}
+                      >
+                        Order ID <SortIndicator field="id" />
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('customer')}
+                      >
+                        Customer <SortIndicator field="customer" />
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('created_at')}
+                      >
+                        Date <SortIndicator field="created_at" />
+                      </TableHead>
+                      <TableHead>Items</TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('total_amount')}
+                      >
+                        Amount <SortIndicator field="total_amount" />
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('status')}
+                      >
+                        Status <SortIndicator field="status" />
+                      </TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedOrders.map((order) => (
+                      <TableRow key={order.id} className="hover:bg-gray-50">
+                        <TableCell className="font-medium">
+                          #{order.id.substring(0, 8).toUpperCase()}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{order.profiles?.name || 'Unknown'}</div>
+                            <div className="text-xs text-gray-500">{order.profiles?.email}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatDate(order.created_at)}</TableCell>
+                        <TableCell>
+                          <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded">
+                            {order.order_items.length} item(s)
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-semibold">GH₵{order.total_amount.toFixed(2)}</TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => viewOrderDetails(order)}
+                            >
+                              <Search className="h-3.5 w-3.5" />
+                              <span className="sr-only">View Details</span>
+                            </Button>
+                            
+                            {order.status !== 'delivered' && (
                               <Button 
-                                variant="outline" 
                                 size="sm" 
-                                onClick={() => viewOrderDetails(order)}
+                                className="bg-green-600 hover:bg-green-700 text-xs"
+                                onClick={() => updateOrderStatus(order.id, 'delivered')}
+                                disabled={updatingStatus}
                               >
-                                <Search className="h-3.5 w-3.5 mr-1" />
-                                Details
+                                <Truck className="h-3.5 w-3.5" />
+                                <span className="sr-only">Mark Delivered</span>
                               </Button>
-                              
-                              {order.status !== 'delivered' && (
-                                <Button 
-                                  size="sm" 
-                                  className="bg-green-600 hover:bg-green-700"
-                                  onClick={() => updateOrderStatus(order.id, 'delivered')}
-                                  disabled={updatingStatus}
-                                >
-                                  <Truck className="h-3.5 w-3.5 mr-1" />
-                                  Mark Delivered
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                
+                <div className="border-t px-4 py-3 flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    Showing <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</span> of <span className="font-medium">{filteredOrders.length}</span> results
+                  </div>
+                  
+                  {pageCount > 1 && (
+                    <Pagination>
+                      <PaginationContent>
+                        {currentPage > 1 && (
+                          <PaginationItem>
+                            <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} />
+                          </PaginationItem>
+                        )}
+                        
+                        {Array.from({ length: Math.min(5, pageCount) }, (_, i) => {
+                          let pageNum = i + 1;
+                          // Show pages around current page for many pages
+                          if (pageCount > 5) {
+                            if (currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (currentPage >= pageCount - 2) {
+                              pageNum = pageCount - 4 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
+                          }
+                          
+                          return (
+                            <PaginationItem key={pageNum}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(pageNum)}
+                                isActive={currentPage === pageNum}
+                              >
+                                {pageNum}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
+                        
+                        {currentPage < pageCount && (
+                          <PaginationItem>
+                            <PaginationNext onClick={() => setCurrentPage(p => Math.min(pageCount, p + 1))} />
+                          </PaginationItem>
+                        )}
+                      </PaginationContent>
+                    </Pagination>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Order Details Dialog */}
           <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
             <DialogContent className="max-w-3xl">
               <DialogHeader>
-                <DialogTitle>Order Details</DialogTitle>
+                <DialogTitle className="text-xl">Order Details</DialogTitle>
                 <DialogDescription>
                   Order #{selectedOrder?.id.substring(0, 8).toUpperCase()} placed on {formatDate(selectedOrder?.created_at)}
                 </DialogDescription>
