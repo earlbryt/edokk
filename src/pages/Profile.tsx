@@ -6,13 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, CheckCircle, Clock, FileText, Mail, MapPin, Phone, User, X } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, FileText, Mail, MapPin, Phone, ShoppingBag, User, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
 import ConsultationDialog from '@/components/Consultations/ConsultationDialog';
+import OrderHistory, { Order } from '@/components/Orders/OrderHistory';
 
 // Define the consultation type
 interface Consultation {
@@ -31,7 +32,9 @@ interface Consultation {
 const Profile = () => {
   const { user } = useAuth();
   const [consultations, setConsultations] = useState<Consultation[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingConsultations, setIsLoadingConsultations] = useState(true);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
   const [profileData, setProfileData] = useState<any>({});
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [showConsultationDialog, setShowConsultationDialog] = useState(false);
@@ -81,6 +84,33 @@ const Profile = () => {
       }
     };
 
+    const fetchUserOrders = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('orders' as any)
+          .select(`
+            *,
+            order_items(*)
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        setOrders(data || []);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load your order history. Please try again later.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoadingOrders(false);
+      }
+    };
+
     const fetchProfileData = async () => {
       if (!user) return;
       
@@ -106,6 +136,7 @@ const Profile = () => {
     };
 
     fetchUserConsultations();
+    fetchUserOrders();
     fetchProfileData();
   }, [user, toast]);
 
@@ -230,9 +261,9 @@ const Profile = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-lens-purple/5 p-4 rounded-lg text-center">
                   <p className="text-2xl font-bold text-lens-purple">
-                    {isLoadingConsultations ? 
+                    {isLoadingConsultations || isLoadingOrders ? 
                       <Skeleton className="h-8 w-8 mx-auto" /> : 
-                      consultations.length
+                      consultations.length + orders.length
                     }
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">Total Consultations</p>
@@ -274,7 +305,7 @@ const Profile = () => {
           <Tabs defaultValue="consultations" className="w-full">
             <TabsList className="mb-8">
               <TabsTrigger value="consultations">Consultations</TabsTrigger>
-              <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
+              <TabsTrigger value="orders">Orders</TabsTrigger>
               <TabsTrigger value="lab-results">Lab Results</TabsTrigger>
               <TabsTrigger value="medical-history">Medical History</TabsTrigger>
             </TabsList>
@@ -395,20 +426,17 @@ const Profile = () => {
               </div>
             </TabsContent>
             
-            <TabsContent value="prescriptions">
-              <Card className="border-dashed">
-                <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center text-center space-y-4">
-                  <div className="rounded-full bg-lens-purple/10 p-3">
-                    <FileText className="h-8 w-8 text-lens-purple" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium">No prescriptions yet</h3>
-                    <p className="text-muted-foreground mt-1">
-                      Your prescriptions will appear here after consultations.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="orders">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Your Orders</h2>
+                  <Button asChild className="bg-lens-purple hover:bg-lens-purple-light">
+                    <a href="/pharmacy">Visit Pharmacy</a>
+                  </Button>
+                </div>
+                
+                <OrderHistory orders={orders} isLoading={isLoadingOrders} />
+              </div>
             </TabsContent>
             
             <TabsContent value="lab-results">

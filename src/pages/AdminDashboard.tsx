@@ -298,7 +298,19 @@ const AdminDashboard: React.FC = () => {
                           <TableRow key={user.id}>
                             <TableCell className="font-medium">{user.name}</TableCell>
                             <TableCell>{user.email}</TableCell>
-                            <TableCell>{format(new Date(user.created_at), 'PPP')}</TableCell>
+                            <TableCell>
+                              {user.created_at ? (
+                                 // Safe date formatting with error handling
+                                 (() => {
+                                   try {
+                                     return format(new Date(user.created_at), 'PPP');
+                                   } catch (error) {
+                                     console.error('Date formatting error:', error);
+                                     return user.created_at.toString().split('T')[0] || 'Invalid date';
+                                   }
+                                 })()
+                              ) : 'N/A'}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
