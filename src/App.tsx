@@ -1,5 +1,4 @@
 
-<<<<<<< HEAD
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,33 +22,74 @@ import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
 import Contact from "./pages/Contact";
 import Pharmacy from "./pages/Pharmacy";
-import AdminOrders from "./pages/AdminOrders";
 import { useAuth } from "./context/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
-=======
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/components/ui/sonner';
-import { AuthProvider } from '@/context/AuthContext';
-import { CartProvider } from '@/context/CartContext';
-import ScrollToTop from '@/components/shared/ScrollToTop';
->>>>>>> 7e901556718377feb42d613f858f4d72012b4f42
 
-// Pages
-import Landing from '@/pages/Landing';
-import Dashboard from '@/pages/Dashboard';
-import Login from '@/pages/Login';
-import Signup from '@/pages/Signup';
-import NotFound from '@/pages/NotFound';
-import Profile from '@/pages/Profile';
-import Consultations from '@/pages/Consultations';
-import ConsultationsPage from '@/pages/ConsultationsPage';
-import AdminDashboard from '@/pages/AdminDashboard';
-import Pharmacy from '@/pages/Pharmacy';
+const queryClient = new QueryClient();
 
-function App() {
+// User-only protected route
+const UserRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="h-screen flex items-center justify-center">Loading...</div>;
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Admin-only protected route
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
+  
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setCheckingAdmin(false);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        
+        setIsAdmin(data?.role === 'admin');
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      } finally {
+        setCheckingAdmin(false);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [user]);
+  
+  if (isLoading || checkingAdmin) {
+    return <div className="h-screen flex items-center justify-center">Loading...</div>;
+  }
+  
+  if (!user || !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+const AppRoutes = () => {
   return (
-<<<<<<< HEAD
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Landing />} />
@@ -84,14 +124,6 @@ function App() {
         element={
           <AdminRoute>
             <AdminDashboard />
-          </AdminRoute>
-        } 
-      />
-      <Route 
-        path="/admin/orders" 
-        element={
-          <AdminRoute>
-            <AdminOrders />
           </AdminRoute>
         } 
       />
@@ -164,29 +196,10 @@ const AuthenticatedApp = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-=======
->>>>>>> 7e901556718377feb42d613f858f4d72012b4f42
     <AuthProvider>
-      <CartProvider>
-        <Router>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/consultations" element={<Consultations />} />
-            <Route path="/pharmacy" element={<Pharmacy />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/consultations" element={<ConsultationsPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </Router>
-      </CartProvider>
+      <AuthenticatedApp />
     </AuthProvider>
-  );
-}
+  </QueryClientProvider>
+);
 
 export default App;

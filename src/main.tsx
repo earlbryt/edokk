@@ -4,10 +4,6 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { runMigrations } from './lib/migrations';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-// Create a client
-const queryClient = new QueryClient();
 
 // Check if migrations have already been run in this browser session
 const MIGRATIONS_VERSION = 'v1.0.0'; // Change this when migrations need to be run again
@@ -18,9 +14,7 @@ const initApp = () => {
   // Always render the app, regardless of migrations
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
+      <App />
     </React.StrictMode>,
   );
 };

@@ -6,8 +6,7 @@ import {
   Calendar,
   LayoutDashboard,
   LogOut,
-  Home,
-  ShoppingBag
+  Home
 } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 
@@ -44,11 +43,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       name: "Consultations",
       href: "/admin/consultations",
       icon: Calendar,
-    },
-    {
-      name: "Orders",
-      href: "/admin/orders",
-      icon: ShoppingBag,
     },
   ];
 
