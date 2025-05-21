@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,12 @@ const Login: React.FC = () => {
   const { login, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Parse query parameters to get returnUrl and action
+  const queryParams = new URLSearchParams(location.search);
+  const returnUrl = queryParams.get('returnUrl');
+  const action = queryParams.get('action');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,16 +42,39 @@ const Login: React.FC = () => {
       // Login and get user data with role
       const userData = await login(email, password);
       
-      // Check the role from the returned user data
-      if (userData && userData.role === 'admin') {
+      // Handle redirects based on returnUrl and action parameters
+      if (returnUrl) {
         toast({
-          title: "Welcome back, Admin",
-          description: "You've been redirected to the admin dashboard."
+          title: "Login Successful",
+          description: action === 'assessment' ? 
+            "You will now be redirected to take your assessment." : 
+            "You will now be redirected to your requested page."
         });
-        navigate('/admin');
+        
+        // If it's an assessment action, add a flag to session storage to trigger assessment dialog
+        if (action === 'assessment') {
+          sessionStorage.setItem('openAssessmentDialog', 'true');
+        }
+        
+        // Navigate to the return URL
+        navigate(decodeURIComponent(returnUrl));
       } else {
-        // Regular users stay on the home page
-        navigate('/');
+        // Regular login flow
+        // Check the role from the returned user data
+        if (userData && userData.role === 'admin') {
+          toast({
+            title: "Welcome back, Admin",
+            description: "You've been redirected to the admin dashboard."
+          });
+          navigate('/admin');
+        } else {
+          // Regular users stay on the home page
+          toast({
+            title: "Login Successful",
+            description: "Welcome back!"
+          });
+          navigate('/');
+        }
       }
     } catch (error) {
       console.error('Login failed:', error);

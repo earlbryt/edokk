@@ -22,6 +22,7 @@ import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
 import Contact from "./pages/Contact";
 import Pharmacy from "./pages/Pharmacy";
+import MentalHealth from "./pages/MentalHealth";
 import AdminOrders from "./pages/AdminOrders";
 import { useAuth } from "./context/AuthContext";
 import { useEffect, useState } from "react";
@@ -99,6 +100,7 @@ const AppRoutes = () => {
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/features" element={<Features />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/mental-health" element={<MentalHealth />} />
       
       {/* User routes */}
       <Route 
