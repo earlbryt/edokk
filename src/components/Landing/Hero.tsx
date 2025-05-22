@@ -23,9 +23,9 @@ const Hero: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="inline-block"
+                className="inline-block mr-2"
               >
-                Your{" "}
+                Your
               </motion.span>
               <motion.span
                 initial={{ opacity: 0, y: 20 }}
@@ -33,8 +33,11 @@ const Hero: React.FC = () => {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="inline-block relative text-lens-purple"
               >
-                Complete
-                <span className="absolute -bottom-2 left-0 w-full h-1 bg-lens-purple/30 rounded-full"></span>
+                Integrated
+                <div className="absolute -bottom-2 left-0 w-full h-[3px]">
+                  <div className="absolute inset-0 bg-gradient-to-r from-lens-purple/40 via-lens-purple to-lens-purple/40 rounded-md"></div>
+                  <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-md"></div>
+                </div>
               </motion.span>
               <motion.span
                 initial={{ opacity: 0, y: 20 }}
@@ -42,7 +45,7 @@ const Hero: React.FC = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className="inline-block ml-2"
               >
-                Health Platform
+                Health Solution
               </motion.span>
             </h1>
             <motion.p 
@@ -51,7 +54,7 @@ const Hero: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              An AI-driven health platform integrating both conventional and alternative medicine services. Get consultations, prescriptions, dietary advice, mental health support, and herbal remedies all in one place.
+              eDok seamlessly blends AI-powered healthcare with both modern and traditional medicine. Access consultations, prescriptions, nutrition plans, mental wellness tools, and herbal remedies—all through one intuitive platform.
             </motion.p>
             <motion.div 
               className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mt-8"
