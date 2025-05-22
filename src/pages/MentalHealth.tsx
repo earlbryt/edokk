@@ -543,7 +543,8 @@ const MentalHealth: React.FC = () => {
                   className="border-lens-purple text-lens-purple hover:bg-lens-purple/10"
                   onClick={handleTakeAssessment}
                 >
-                  Take Assessment
+                  <ClipboardCheck className="mr-2 h-5 w-5" />
+                  Take Mental Health Screening
                 </Button>
               </div>
             </motion.div>
@@ -666,10 +667,10 @@ const MentalHealth: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow-sm border border-indigo-100"
+              className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-300 hover:translate-y-[-4px] transform transition-transform"
             >
-              <div className="h-12 w-12 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                <MessageSquare className="h-6 w-6 text-lens-purple" />
+              <div className="mb-5">
+                <MessageSquare className="h-10 w-10 text-lens-purple" />
               </div>
               <h3 className="text-xl font-medium text-gray-900 mb-2">Serene Companion Chatbot</h3>
               <p className="text-gray-600">Our AI-powered chatbot provides personalized emotional support, coping strategies, and mindfulness exercises whenever you need someone to talk to.</p>
@@ -680,10 +681,10 @@ const MentalHealth: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-gradient-to-br from-amber-50 to-white p-6 rounded-xl shadow-sm border border-amber-100"
+              className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-300 hover:translate-y-[-4px] transform transition-transform"
             >
-              <div className="h-12 w-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-                <ClipboardCheck className="h-6 w-6 text-amber-600" />
+              <div className="mb-5">
+                <ClipboardCheck className="h-10 w-10 text-lens-purple" />
               </div>
               <h3 className="text-xl font-medium text-gray-900 mb-2">Mental Health Assessment</h3>
               <p className="text-gray-600">Assess your emotional balance, stress levels, sleep quality, and thought patterns through clinically-informed screenings. Each assessment provides personalized insights and practical recommendations aligned with both modern psychology and ancient wisdom traditions.</p>
@@ -694,19 +695,19 @@ const MentalHealth: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-gradient-to-br from-teal-50 to-white p-6 rounded-xl shadow-sm border border-teal-100"
+              className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-300 hover:translate-y-[-4px] transform transition-transform"
             >
-              <div className="h-12 w-12 bg-teal-100 rounded-full flex items-center justify-center mb-4">
-                <Moon className="h-6 w-6 text-teal-600" />
+              <div className="mb-5">
+                <Moon className="h-10 w-10 text-lens-purple" />
               </div>
               <h3 className="text-xl font-medium text-gray-900 mb-2">Guided Meditation</h3>
               <p className="text-gray-600">Access a library of calming meditations inspired by Alan Watts to help you achieve inner peace, reduce anxiety, and improve your overall mental clarity.</p>
             </motion.div>
           </div>
           
-          <div className="mt-12 bg-gradient-to-r from-indigo-50 via-purple-50 to-amber-50 p-6 rounded-xl border border-indigo-100/50">
+          <div className="mt-12 bg-lens-purple/5 p-8 rounded-xl shadow-sm border border-lens-purple/20">
             <div className="max-w-3xl mx-auto text-center">
-              <p className="text-gray-600 italic mb-4">"The mind is like water. When it's turbulent, it's difficult to see. When it's calm, everything becomes clear."</p>
+              <p className="text-gray-700 italic mb-4">"The mind is like water. When it's turbulent, it's difficult to see. When it's calm, everything becomes clear."</p>
               <p className="text-lens-purple font-medium">— Inspired by Alan Watts</p>
             </div>
           </div>
