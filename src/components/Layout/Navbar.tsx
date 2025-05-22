@@ -42,7 +42,7 @@ const Navbar: React.FC = () => {
             <div className="hidden md:flex space-x-8">
               <Link to="/" className="text-gray-700 hover:text-lens-purple transition-colors">Home</Link>
               <Link to="/pharmacy" className="text-gray-700 hover:text-lens-purple transition-colors">E-Pharmacy</Link>
-              <Link to="/dietetics" className="text-gray-700 hover:text-lens-purple transition-colors">Dietetics</Link>
+              <Link to="/nutrition" className="text-gray-700 hover:text-lens-purple transition-colors">Nutrition</Link>
               <Link to="/mental-health" className="text-gray-700 hover:text-lens-purple transition-colors">Mental Health</Link>
               <Link to="/herbal" className="text-gray-700 hover:text-lens-purple transition-colors">Herbal Medicine</Link>
             </div>
@@ -126,7 +126,7 @@ const Navbar: React.FC = () => {
                 <div className="flex flex-col gap-3">
                   <NavLink to="/">Home</NavLink>
                   <NavLink to="/pharmacy">E-Pharmacy</NavLink>
-                  <NavLink to="/dietetics">Dietetics</NavLink>
+                  <NavLink to="/nutrition">Nutrition</NavLink>
                   <NavLink to="/mental-health">Mental Health</NavLink>
                   <NavLink to="/herbal">Herbal Medicine</NavLink>
                   

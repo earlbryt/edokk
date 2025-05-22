@@ -23,6 +23,7 @@ import Features from "./pages/Features";
 import Contact from "./pages/Contact";
 import Pharmacy from "./pages/Pharmacy";
 import MentalHealth from "./pages/MentalHealth";
+import Nutrition from "./pages/Nutrition";
 import AdminOrders from "./pages/AdminOrders";
 import { useAuth } from "./context/AuthContext";
 import { useEffect, useState } from "react";
@@ -120,6 +121,7 @@ const AppRoutes = () => {
         } 
       />
       <Route path="/pharmacy" element={<Pharmacy />} />
+      <Route path="/nutrition" element={<Nutrition />} />
       
       {/* Admin routes */}
       <Route 
