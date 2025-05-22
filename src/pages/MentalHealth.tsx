@@ -508,9 +508,9 @@ const MentalHealth: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Hero Section */}
-        <section className="py-12 md:py-16">
+        <section className="py-8 md:py-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left side - Content */}
             <motion.div
@@ -523,9 +523,11 @@ const MentalHealth: React.FC = () => {
                 Mental Health Support
                 <span className="block mt-2 text-lens-purple">When You Need It</span>
               </h1>
-              <p className="text-xl text-gray-600 mb-8">
-                Connect with our AI assistant, track your emotional wellbeing, and access professional support in a safe, judgment-free environment.
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Your personal space for emotional wellbeing with AI-powered assistance, scientifically-backed assessments, and guided meditation inspired by Alan Watts' contemplative philosophy—all in a safe, judgment-free environment.
               </p>
+              
+
               <div className="flex flex-wrap gap-4 mb-8">
                 <Button 
                   size="lg" 
@@ -553,25 +555,162 @@ const MentalHealth: React.FC = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="relative"
             >
-              <div className="relative z-10 rounded-2xl overflow-hidden shadow-xl">
-                <img 
-                  src="/assets/mental-health.png" 
-                  alt="Mental Health Support" 
-                  className="w-full h-auto"
+              {/* Unique asymmetrical collage-style design */}
+              <div className="relative z-10">
+                {/* Zen-inspired background aura */}
+                <motion.div 
+                  className="absolute -top-8 -right-8 w-[120%] h-[120%] bg-gradient-to-bl from-indigo-300/30 via-amber-300/20 to-teal-400/30 -rotate-6 z-0 opacity-30 overflow-hidden"
+                  style={{ clipPath: 'polygon(35% 0%, 100% 0%, 100% 35%, 65% 100%, 0% 100%, 0% 65%)' }}
+                  animate={{ 
+                    rotate: [-6, -3, -6]
+                  }}
+                  transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
                 />
+                
+                {/* Contemplative container frame */}
+                <div className="relative z-20 bg-gradient-to-tr from-indigo-50/60 to-amber-50/60 backdrop-blur-sm p-5 shadow-inner overflow-hidden" 
+                     style={{ clipPath: 'polygon(5% 15%, 15% 5%, 100% 5%, 95% 85%, 85% 95%, 0% 95%)' }}>
+                     <div className="absolute inset-0 bg-white/20 backdrop-filter backdrop-blur-md opacity-40"></div>
+                  
+                  {/* Image container with unique styling */}
+                  <div className="relative transform -rotate-3">
+                    {/* Meditation-inspired decorative elements */}
+                    <div className="absolute inset-0 border-2 border-dashed border-indigo-300/20 transform rotate-3 scale-[1.03]"></div>
+                    <div className="absolute inset-0 border-1 border-amber-200/30 transform -rotate-1 scale-[1.01]"></div>
+                    
+                    {/* Image with subtle zen overlay effects */}
+                    <div className="relative overflow-hidden transform rotate-2">
+                      <img 
+                        src="/assets/mental-health.png" 
+                        alt="Mental Health Support" 
+                        className="relative z-10 w-full h-auto"
+                      />
+                      
+                      {/* Spiritual journey gradient overlays */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/10 via-transparent to-amber-300/15 mix-blend-overlay"></div>
+                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-teal-400/5 to-transparent mix-blend-color"></div>
+                      
+                      {/* Sacred geometry inspired subtle lines */}
+                      <svg className="absolute top-0 left-0 w-full h-full z-20 opacity-20 mix-blend-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <circle cx="50" cy="50" r="30" stroke="#a5b4fc" strokeWidth="0.3" fill="none" />
+                        <circle cx="50" cy="50" r="45" stroke="#bae6fd" strokeWidth="0.2" fill="none" />
+                        <path d="M50,20 L50,80" stroke="#fde68a" strokeWidth="0.3" fill="none" />
+                        <path d="M20,50 L80,50" stroke="#a5f3fc" strokeWidth="0.3" fill="none" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Zen-inspired floating elements */}
+                <motion.div 
+                  className="absolute bottom-0 right-10 w-20 h-20 bg-amber-300/20 z-10 rounded-full overflow-hidden"
+                  animate={{ 
+                    scale: [1, 1.05, 1],
+                    opacity: [0.2, 0.3, 0.2]
+                  }}
+                  transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                <motion.div 
+                  className="absolute top-6 left-4 w-16 h-16 bg-indigo-400/10 rounded-full z-10 mix-blend-soft-light"
+                  animate={{ 
+                    scale: [1, 1.08, 1],
+                    opacity: [0.1, 0.2, 0.1]
+                  }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                <motion.div 
+                  className="absolute top-1/2 right-2 w-12 h-12 bg-teal-400/15 rounded-full z-10 mix-blend-multiply"
+                  animate={{ 
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                {/* Mindfulness symbols */}
+                <motion.div 
+                  className="absolute bottom-3 right-10 flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-50 to-white p-3.5 shadow-md z-30 rounded-full"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5, type: "spring", stiffness: 50 }}
+                  whileHover={{ y: -5, boxShadow: "0 15px 30px rgba(0,0,0,0.1)" }}
+                >
+                  <Brain className="h-9 w-9 text-indigo-400" />
+                </motion.div>
+                
+                <motion.div 
+                  className="absolute top-10 left-2 flex items-center justify-center w-14 h-14 bg-gradient-to-br from-amber-50 to-white p-3 shadow-md z-30 rounded-full"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7, type: "spring", stiffness: 50 }}
+                  whileHover={{ y: 3, boxShadow: "0 15px 30px rgba(0,0,0,0.1)" }}
+                >
+                  <Moon className="h-8 w-8 text-amber-400" />
+                </motion.div>
               </div>
-              
-              {/* Decorative elements */}
-              <div className="absolute -bottom-6 -right-6 w-48 h-48 bg-lens-purple/10 rounded-full z-0"></div>
-              <div className="absolute top-1/4 -left-8 w-16 h-16 bg-lens-purple/20 rounded-full z-0"></div>
             </motion.div>
           </div>
         </section>
 
-        {/* Main Content */}
-        <div className="mt-16">
-          {/* All tab content has been removed */}
-        </div>
+        {/* Benefits Section */}
+        <section className="mt-12 mb-16">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-display font-bold text-gray-900">Our <span className="text-lens-purple">Mental Health</span> Features</h2>
+            <p className="mt-3 text-gray-600 max-w-2xl mx-auto">Discover the tools we've designed to support your emotional wellbeing and mental clarity.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Feature 1: Chatbot */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow-sm border border-indigo-100"
+            >
+              <div className="h-12 w-12 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                <MessageSquare className="h-6 w-6 text-lens-purple" />
+              </div>
+              <h3 className="text-xl font-medium text-gray-900 mb-2">Serene Companion Chatbot</h3>
+              <p className="text-gray-600">Our AI-powered chatbot provides personalized emotional support, coping strategies, and mindfulness exercises whenever you need someone to talk to.</p>
+            </motion.div>
+            
+            {/* Feature 2: Assessment */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-gradient-to-br from-amber-50 to-white p-6 rounded-xl shadow-sm border border-amber-100"
+            >
+              <div className="h-12 w-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+                <ClipboardCheck className="h-6 w-6 text-amber-600" />
+              </div>
+              <h3 className="text-xl font-medium text-gray-900 mb-2">Mental Health Assessment</h3>
+              <p className="text-gray-600">Assess your emotional balance, stress levels, sleep quality, and thought patterns through clinically-informed screenings. Each assessment provides personalized insights and practical recommendations aligned with both modern psychology and ancient wisdom traditions.</p>
+            </motion.div>
+            
+            {/* Feature 3: Meditation */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-gradient-to-br from-teal-50 to-white p-6 rounded-xl shadow-sm border border-teal-100"
+            >
+              <div className="h-12 w-12 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                <Moon className="h-6 w-6 text-teal-600" />
+              </div>
+              <h3 className="text-xl font-medium text-gray-900 mb-2">Guided Meditation</h3>
+              <p className="text-gray-600">Access a library of calming meditations inspired by Alan Watts to help you achieve inner peace, reduce anxiety, and improve your overall mental clarity.</p>
+            </motion.div>
+          </div>
+          
+          <div className="mt-12 bg-gradient-to-r from-indigo-50 via-purple-50 to-amber-50 p-6 rounded-xl border border-indigo-100/50">
+            <div className="max-w-3xl mx-auto text-center">
+              <p className="text-gray-600 italic mb-4">"The mind is like water. When it's turbulent, it's difficult to see. When it's calm, everything becomes clear."</p>
+              <p className="text-lens-purple font-medium">— Inspired by Alan Watts</p>
+            </div>
+          </div>
+        </section>
       </main>
       
       {/* Chat Dialog */}
