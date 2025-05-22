@@ -508,7 +508,7 @@ const MentalHealth: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mt-14 md:mt-8">
         {/* Hero Section */}
         <section className="py-8 md:py-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">

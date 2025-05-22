@@ -8,7 +8,7 @@ import ConsultationDialog from "@/components/Consultations/ConsultationDialog";
 const Hero: React.FC = () => {
   const [showConsultationDialog, setShowConsultationDialog] = useState(false);
   return (
-    <section className="relative pt-16 pb-16 md:pt-24 md:pb-20 lg:py-32 overflow-hidden">
+    <section className="relative pt-24 pb-16 md:pt-24 md:pb-20 lg:py-32 overflow-hidden">
       {/* Enhanced Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-lens-purple/10 via-indigo-50/30 to-white z-0"></div>
       

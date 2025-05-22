@@ -212,7 +212,7 @@ const Nutrition = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="container mx-auto py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <div className="container mx-auto py-24 px-4 sm:px-6 lg:px-8 overflow-hidden mt-10 md:mt-0">
         <div className="space-y-16">
           {/* Hero Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start lg:items-center">
