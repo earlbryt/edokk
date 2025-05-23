@@ -59,10 +59,12 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       <div className="flex flex-col h-full">
         <div className="px-4 py-3 border-b mb-4">
           <Link to="/admin" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-lens-purple flex items-center justify-center">
-              <span className="text-white font-semibold text-lg">e</span>
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-lens-purple to-lens-purple-light flex items-center justify-center relative overflow-hidden">
+              <span className="text-white font-semibold text-lg relative z-10">eD</span>
+              <div className="absolute inset-0 bg-white/10 opacity-50 rounded-full scale-[0.85]"></div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-2 bg-white/20 rounded-b-full"></div>
             </div>
-            <span className="font-semibold text-xl">eDok</span>
+            <span className="font-semibold text-xl bg-gradient-to-r from-lens-purple to-emerald-600 bg-clip-text text-transparent">eDok</span>
           </Link>
         </div>
         
