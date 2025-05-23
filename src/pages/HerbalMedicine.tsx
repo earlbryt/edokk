@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -18,7 +20,10 @@ import {
   ScrollText, 
   Dna,
   CheckCircle2, 
-  AlertCircle
+  AlertCircle,
+  Send,
+  MessageSquare,
+  Flower2
 } from "lucide-react";
 
 // Types for herb remedies
@@ -260,6 +265,171 @@ const HerbCard: React.FC<HerbCardProps> = ({ remedy }) => {
         </div>
       </Card>
     </motion.div>
+  );
+};
+
+// Message type for the chatbot
+interface Message {
+  id: string;
+  content: string;
+  sender: 'user' | 'assistant';
+  timestamp: Date;
+}
+
+// Herbal Medicine Chatbot component
+const HerbalChatbot = () => {
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'welcome',
+      content: "Hello! I'm Nature's Wisdom, your herbal medicine consultant. Tell me about your symptoms or health concerns, and I'll provide information on relevant herbal remedies from our database.",
+      sender: 'assistant',
+      timestamp: new Date()
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom of messages
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isLoading || !user) return;
+
+    const userMessage = {
+      id: Date.now().toString(),
+      content: inputMessage,
+      sender: 'user' as const,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsLoading(true);
+
+    try {
+      // Call the Edge Function to get a response
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/herbal-medicine-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || ''}`
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          message: userMessage.content
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from herbal medicine chatbot');
+      }
+
+      const data = await response.json();
+
+      const assistantMessage = {
+        id: (Date.now() + 1).toString(),
+        content: data.message,
+        sender: 'assistant' as const,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error in herbal medicine chat:', error);
+      
+      const errorMessage = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm sorry, I encountered an error while processing your request. Please try again later.",
+        sender: 'assistant' as const,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  return (
+    <div className="h-[600px] flex flex-col rounded-xl overflow-hidden border border-lens-purple/20 bg-white shadow-lg">
+      <div className="p-4 bg-gradient-to-r from-lens-purple/20 to-green-100/50 border-b flex items-center">
+        <Flower2 className="h-5 w-5 text-emerald-600 mr-2" />
+        <h3 className="font-semibold">Nature's Wisdom - Herbal Medicine Consultant</h3>
+      </div>
+      
+      <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-white to-green-50/30">
+        <div className="space-y-4">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[80%] rounded-lg p-3 ${message.sender === 'user' 
+                  ? 'bg-lens-purple text-white' 
+                  : 'bg-gradient-to-r from-emerald-50 to-green-100 text-gray-800 border border-green-200/50'}`}
+              >
+                <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-gray-500">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '600ms' }} />
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
+      
+      <div className="p-3 border-t bg-white">
+        <div className="flex items-center space-x-2">
+          <Input
+            placeholder="Ask about herbal remedies for your symptoms..."
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={isLoading || !user}
+            className="flex-1"
+          />
+          <Button 
+            onClick={handleSendMessage} 
+            disabled={isLoading || !inputMessage.trim() || !user}
+            size="icon"
+            className="bg-lens-purple hover:bg-lens-purple-light"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+        {!user && (
+          <p className="text-xs text-red-500 mt-2">Please log in to use the chatbot</p>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -679,9 +849,85 @@ const HerbalMedicine = () => {
             </Tabs>
           </div>
           
+          {/* Herbal Medicine Chatbot Section */}
+          <div className="mt-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center max-w-3xl mx-auto mb-10"
+            >
+              <h2 className="text-3xl font-bold text-gray-900">Ask Nature's Wisdom</h2>
+              <p className="mt-4 text-lg text-gray-600">
+                Our AI-powered herbal medicine consultant uses a specialized knowledge base to provide evidence-based information about traditional herbal remedies based on your symptoms.
+              </p>
+            </motion.div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <HerbalChatbot />
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="bg-gradient-to-br from-green-50 to-white rounded-xl p-6 border border-green-200/50 shadow-sm"
+              >
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <MessageSquare className="h-5 w-5 text-emerald-600 mr-2" />
+                  How to Use the Herbal Consultant
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <div className="bg-emerald-100 rounded-full p-2 mr-3 mt-0.5">
+                      <span className="text-emerald-700 font-semibold">1</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">Describe Your Symptoms</p>
+                      <p className="text-gray-600 text-sm">Tell the consultant about your health concerns or symptoms in detail.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <div className="bg-emerald-100 rounded-full p-2 mr-3 mt-0.5">
+                      <span className="text-emerald-700 font-semibold">2</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">Get Personalized Information</p>
+                      <p className="text-gray-600 text-sm">Receive information about relevant herbal remedies based on our curated database.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <div className="bg-emerald-100 rounded-full p-2 mr-3 mt-0.5">
+                      <span className="text-emerald-700 font-semibold">3</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">Ask Follow-up Questions</p>
+                      <p className="text-gray-600 text-sm">Inquire about preparation methods, dosages, or potential side effects.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200/50">
+                  <p className="text-amber-800 text-sm font-medium flex items-start">
+                    <AlertCircle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0" />
+                    <span>The consultant provides educational information only and is not a substitute for professional medical advice. Always consult with a healthcare provider before using herbal remedies.</span>
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+          
           {/* Call to Action */}
           <motion.div 
-            className="bg-gradient-to-r from-lens-purple/10 to-green-100 rounded-xl p-8 text-center"
+            className="bg-gradient-to-r from-lens-purple/10 to-green-100 rounded-xl p-8 text-center mt-20"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -697,7 +943,7 @@ const HerbalMedicine = () => {
               className="mt-6 bg-lens-purple hover:bg-lens-purple-light"
             >
               <span className="flex items-center gap-2">
-                Try Symptom Checker <ArrowRight className="h-4 w-4" />
+                Browse Herbal Remedies <ArrowRight className="h-4 w-4" />
               </span>
             </Button>
           </motion.div>
