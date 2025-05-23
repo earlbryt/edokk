@@ -24,6 +24,7 @@ import Contact from "./pages/Contact";
 import Pharmacy from "./pages/Pharmacy";
 import MentalHealth from "./pages/MentalHealth";
 import Nutrition from "./pages/Nutrition";
+import HerbalMedicine from "./pages/HerbalMedicine";
 import AdminOrders from "./pages/AdminOrders";
 import { useAuth } from "./context/AuthContext";
 import { useEffect, useState } from "react";
@@ -102,6 +103,7 @@ const AppRoutes = () => {
       <Route path="/features" element={<Features />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/mental-health" element={<MentalHealth />} />
+      <Route path="/herbal-medicine" element={<HerbalMedicine />} />
       
       {/* User routes */}
       <Route 

@@ -61,13 +61,13 @@ const Footer: React.FC = () => {
 
           
           <div className="col-span-1">
-            <h3 className="font-semibold text-gray-900 mb-4">My Account</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Admin</h3>
             <ul className="space-y-3">
-              <li><Link to="/dashboard" className="text-gray-600 hover:text-lens-purple transition-colors">Dashboard</Link></li>
-              <li><Link to="/appointments" className="text-gray-600 hover:text-lens-purple transition-colors">My Appointments</Link></li>
-              <li><Link to="/prescriptions" className="text-gray-600 hover:text-lens-purple transition-colors">My Prescriptions</Link></li>
-              <li><Link to="/health-records" className="text-gray-600 hover:text-lens-purple transition-colors">Health Records</Link></li>
-              <li><Link to="/diet-plans" className="text-gray-600 hover:text-lens-purple transition-colors">My Diet Plans</Link></li>
+              <li><Link to="/admin/dashboard" className="text-gray-600 hover:text-lens-purple transition-colors">Admin Dashboard</Link></li>
+              <li><Link to="/admin/appointments" className="text-gray-600 hover:text-lens-purple transition-colors">Manage Appointments</Link></li>
+              <li><Link to="/admin/prescriptions" className="text-gray-600 hover:text-lens-purple transition-colors">Manage Prescriptions</Link></li>
+              <li><Link to="/admin/health-records" className="text-gray-600 hover:text-lens-purple transition-colors">Patient Records</Link></li>
+              <li><Link to="/admin/diet-plans" className="text-gray-600 hover:text-lens-purple transition-colors">Diet Plans</Link></li>
             </ul>
           </div>
         </div>
