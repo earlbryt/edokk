@@ -17,7 +17,10 @@ import {
   AlertCircle,
   Send,
   MessageSquare,
-  Flower2
+  Flower2,
+  MessageCircle,
+  ChevronRight,
+  Info
 } from "lucide-react";
 
 // No herbal remedy types needed since we removed the database section
@@ -214,17 +217,46 @@ const HerbalMedicine = () => {
                 <span className="text-lens-purple">Traditional</span> Herbal Medicine
               </h1>
               <p className="mt-4 text-lg text-gray-600">
-                Discover the power of nature with our AI-powered herbal remedy recommendation system, combining ancient wisdom with modern science.
+                Discover the power of nature with our AI-powered herbal remedy consultant, combining ancient wisdom with modern science.
               </p>
-              <div className="mt-8 flex gap-4">
-                <Button className="bg-lens-purple hover:bg-lens-purple-light">
-                  <span className="flex items-center gap-2">
-                    Find Remedies <Search className="h-4 w-4" />
+              
+              {/* Chat button - prominent call to action */}
+              <div className="mt-8">
+                <Button 
+                  className="bg-lens-purple hover:bg-lens-purple-light w-full md:w-auto text-lg py-6 px-8 shadow-lg transition-all duration-300 hover:scale-102"
+                  onClick={() => document.getElementById('herbal-chatbot')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <span className="flex items-center gap-3 font-medium">
+                    <MessageCircle className="h-5 w-5" />
+                    Chat with Nature's Wisdom
+                    <ChevronRight className="h-5 w-5 ml-1" />
                   </span>
                 </Button>
-                <Button variant="outline" className="border-lens-purple text-lens-purple hover:bg-lens-purple/5">
-                  Learn More
-                </Button>
+              </div>
+              
+              {/* How to Use Guide - directly on the hero section */}
+              <div className="mt-10 space-y-4 border-t border-lens-purple/10 pt-6">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-lens-purple">
+                  <Info className="h-5 w-5" /> 
+                  How to Use the Herbal Consultant
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lens-purple/10 text-lens-purple text-sm font-medium">1</div>
+                    <p className="text-sm text-gray-600">Describe your symptoms or health concerns in detail</p>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lens-purple/10 text-lens-purple text-sm font-medium">2</div>
+                    <p className="text-sm text-gray-600">Receive information about relevant herbal remedies from our database</p>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lens-purple/10 text-lens-purple text-sm font-medium">3</div>
+                    <p className="text-sm text-gray-600">Ask follow-up questions about preparation methods and dosage</p>
+                  </div>
+                </div>
               </div>
             </motion.div>
             
