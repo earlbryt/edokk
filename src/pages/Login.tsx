@@ -19,10 +19,11 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Parse query parameters to get returnUrl and action
+  // Parse query parameters to get returnUrl, action, and fromConsultation
   const queryParams = new URLSearchParams(location.search);
   const returnUrl = queryParams.get('returnUrl');
   const action = queryParams.get('action');
+  const fromConsultation = queryParams.get('fromConsultation') === 'true';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +43,7 @@ const Login: React.FC = () => {
       // Login and get user data with role
       const userData = await login(email, password);
       
-      // Handle redirects based on returnUrl and action parameters
+      // Handle redirects based on returnUrl, action, and fromConsultation parameters
       if (returnUrl) {
         toast({
           title: "Login Successful",
@@ -58,6 +59,9 @@ const Login: React.FC = () => {
         
         // Navigate to the return URL
         navigate(decodeURIComponent(returnUrl));
+      } else if (fromConsultation) {
+        // Coming from consultation booking attempt
+        navigate('/?fromConsultation=true');
       } else {
         // Regular login flow
         // Check the role from the returned user data

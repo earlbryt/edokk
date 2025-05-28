@@ -1,12 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ArrowRight, Heart, Brain, Pill, Apple, Flower } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConsultationDialog from "@/components/Consultations/ConsultationDialog";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 const Hero: React.FC = () => {
   const [showConsultationDialog, setShowConsultationDialog] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
+  
+  // Check if user was redirected from login for consultation booking
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const fromConsultation = params.get('fromConsultation');
+    
+    if (fromConsultation === 'true' && isAuthenticated) {
+      toast({
+        title: "You're now logged in!",
+        description: "You can proceed to book your consultation now.",
+        duration: 5000
+      });
+      
+      // Clean up the URL
+      navigate('/', { replace: true });
+    }
+  }, [location, isAuthenticated, navigate, toast]);
   return (
     <section className="relative pt-24 pb-16 md:pt-24 md:pb-20 lg:py-32 overflow-hidden">
       {/* Enhanced Background Elements */}
@@ -68,7 +91,14 @@ const Hero: React.FC = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                onClick={() => setShowConsultationDialog(true)}
+                onClick={() => {
+                  if (isAuthenticated) {
+                    setShowConsultationDialog(true);
+                  } else {
+                    // Redirect to login with a return indicator
+                    navigate('/login?fromConsultation=true');
+                  }
+                }}
               >
                 Book Consultation
               </Button>

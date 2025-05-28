@@ -327,8 +327,8 @@ const Nutrition = () => {
             </motion.div>
           </div>
           
-          {/* Features Section */}
-          <motion.div
+          
+          {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -375,7 +375,7 @@ const Nutrition = () => {
           {/* Placeholder for removed section */}
           
           {/* Call to Action */}
-          <motion.div 
+          {/* <motion.div 
             className="bg-gradient-to-r from-lens-purple/10 to-purple-100 rounded-xl p-8 text-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -395,7 +395,7 @@ const Nutrition = () => {
                 Start Your Assessment <ArrowRight className="h-4 w-4" />
               </span>
             </Button>
-          </motion.div>
+          </motion.div> */} 
         </div>
         
         {/* Nutrition Chat Section */}
