@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Settings, LogOut, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 
@@ -34,13 +34,14 @@ const ProfileDropdown: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full" aria-label="Profile">
+        <Button variant="ghost" className="rounded-full flex items-center gap-1 pl-2 pr-3 md:gap-2 md:pr-2" aria-label="Profile Menu">
           <Avatar className="h-9 w-9 transition-all hover:ring-2 hover:ring-lens-purple-light">
             <AvatarImage src={user?.photoUrl} alt={user?.name || 'User'} />
             <AvatarFallback className="bg-lens-purple-light/10 text-lens-purple">
               {isAuthenticated ? getInitials(user?.name || 'U') : <User className="h-5 w-5" />}
             </AvatarFallback>
           </Avatar>
+          <ChevronDown className="h-4 w-4 text-gray-500 transition-transform duration-200 md:hidden" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 mt-1" align="end">
@@ -67,12 +68,6 @@ const ProfileDropdown: React.FC = () => {
                 </Link>
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem asChild>
-              <Link to="/settings" className="flex cursor-pointer items-center">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-red-600 focus:text-red-500" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
