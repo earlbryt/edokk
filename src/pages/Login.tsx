@@ -19,11 +19,13 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Parse query parameters to get returnUrl, action, and fromConsultation
+  // Parse query parameters
   const queryParams = new URLSearchParams(location.search);
   const returnUrl = queryParams.get('returnUrl');
   const action = queryParams.get('action');
   const fromConsultation = queryParams.get('fromConsultation') === 'true';
+  const openChat = queryParams.get('openChat') === 'true';
+  const openAssessment = queryParams.get('openAssessment') === 'true';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,22 +45,38 @@ const Login: React.FC = () => {
       // Login and get user data with role
       const userData = await login(email, password);
       
-      // Handle redirects based on returnUrl, action, and fromConsultation parameters
+      // Handle redirects based on parameters
       if (returnUrl) {
-        toast({
-          title: "Login Successful",
-          description: action === 'assessment' ? 
-            "You will now be redirected to take your assessment." : 
-            "You will now be redirected to your requested page."
-        });
-        
-        // If it's an assessment action, add a flag to session storage to trigger assessment dialog
-        if (action === 'assessment') {
+        // If we're returning to mental health page with chat or assessment flags
+        if (openChat) {
+          toast({
+            title: "Login Successful",
+            description: "You will now be redirected to chat with Serene Companion."
+          });
+          navigate(`${decodeURIComponent(returnUrl)}?openChat=true`);
+        } else if (openAssessment) {
+          toast({
+            title: "Login Successful",
+            description: "You will now be redirected to take your mental health assessment."
+          });
+          navigate(`${decodeURIComponent(returnUrl)}?openAssessment=true`);
+        } else if (action === 'assessment') {
+          // Legacy support for session storage method
+          toast({
+            title: "Login Successful",
+            description: "You will now be redirected to take your assessment."
+          });
+          // Add a flag to session storage to trigger assessment dialog
           sessionStorage.setItem('openAssessmentDialog', 'true');
+          navigate(decodeURIComponent(returnUrl));
+        } else {
+          // Generic return URL
+          toast({
+            title: "Login Successful",
+            description: "You will now be redirected to your requested page."
+          });
+          navigate(decodeURIComponent(returnUrl));
         }
-        
-        // Navigate to the return URL
-        navigate(decodeURIComponent(returnUrl));
       } else if (fromConsultation) {
         // Coming from consultation booking attempt
         navigate('/?fromConsultation=true');

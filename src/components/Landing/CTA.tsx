@@ -9,6 +9,7 @@ const CTA: React.FC = () => {
   const navigate = useNavigate();
 
   const handleConsultationClick = () => {
+    // Always use isAuthenticated from AuthContext for consistency
     if (isAuthenticated) {
       // If authenticated, navigate to the consultation page
       navigate('/?openConsultation=true');

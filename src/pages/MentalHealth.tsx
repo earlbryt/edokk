@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { MessageSquare, Send, Brain, BookOpen, Moon, Phone, ClipboardCheck } from 'lucide-react';
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Layout/Navbar";
 import { supabase } from "@/integrations/supabase/client";
@@ -166,6 +167,7 @@ const tipCategories = [
 const MentalHealth: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth(); // Use auth context consistently
   
   // Chat state
   const [chatOpen, setChatOpen] = useState(false);
@@ -194,15 +196,46 @@ const MentalHealth: React.FC = () => {
     }
   }, [messages]);
   
-  // Check for redirect from login page with assessment dialog flag
+  // Check for redirect from login page with assessment dialog flag or chat flag
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const openAssessment = params.get('openAssessment');
+    const openChat = params.get('openChat');
+    
+    if (openAssessment === 'true') {
+      setAssessmentDialogOpen(true);
+      
+      toast({
+        title: "You're logged in!",
+        description: "You can now take your mental health assessment.",
+        duration: 5000
+      });
+      
+      // Clean up the URL
+      navigate('/mental-health', { replace: true });
+    }
+    
+    if (openChat === 'true') {
+      setChatOpen(true);
+      
+      toast({
+        title: "You're logged in!",
+        description: "You can now chat with our Serene Companion.",
+        duration: 5000
+      });
+      
+      // Clean up the URL
+      navigate('/mental-health', { replace: true });
+    }
+    
+    // Legacy support for session storage method
     const openAssessmentDialog = sessionStorage.getItem('openAssessmentDialog');
     if (openAssessmentDialog === 'true') {
       // Open the assessment dialog and clear the flag
       setAssessmentDialogOpen(true);
       sessionStorage.removeItem('openAssessmentDialog');
     }
-  }, []);
+  }, [navigate, toast]);
   
   // Fetch assessments when dialog opens
   useEffect(() => {
@@ -358,44 +391,28 @@ const MentalHealth: React.FC = () => {
     setAssessmentResult(null);
   };
   
-  // Check auth and open assessment dialog or redirect to login
-  const handleTakeAssessment = async () => {
-    console.log('Take Assessment button clicked');
-    
-    try {
-      // Check if user is logged in
-      const { data, error } = await supabase.auth.getSession();
-      
-      console.log('Auth check result:', { data, error });
-      
-      if (!data.session) {
-        console.log('No session found, redirecting to login');
-        
-        // Show a toast for debugging
-        toast({
-          title: "Authentication Required",
-          description: "Redirecting to login page...",
-          variant: "default"
-        });
-        
-        // User is not logged in, redirect to login page with return URL
-        const returnUrl = encodeURIComponent(window.location.pathname);
-        // Use React Router navigation
-        navigate(`/login?returnUrl=${returnUrl}&action=assessment`);
-        return;
-      }
-      
-      console.log('User is logged in, opening assessment dialog');
-      // User is logged in, open assessment dialog
-      setAssessmentDialogOpen(true);
-    } catch (error) {
-      console.error('Error in handleTakeAssessment:', error);
-      toast({
-        title: "Error",
-        description: "There was an error checking your authentication status",
-        variant: "destructive"
-      });
+  // Handle start chat click - check auth or redirect to login
+  const handleStartChat = () => {
+    if (!isAuthenticated) {
+      // User is not logged in, redirect to login page
+      navigate(`/login?returnUrl=${encodeURIComponent('/mental-health')}&openChat=true`);
+      return;
     }
+    
+    // User is logged in, open chat dialog
+    setChatOpen(true);
+  };
+
+  // Check auth and open assessment dialog or redirect to login
+  const handleTakeAssessment = () => {
+    if (!isAuthenticated) {
+      // User is not logged in, redirect to login page
+      navigate(`/login?returnUrl=${encodeURIComponent('/mental-health')}&openAssessment=true`);
+      return;
+    }
+    
+    // User is logged in, open assessment dialog
+    setAssessmentDialogOpen(true);
   };
   
   // Close assessment dialog and reset state
@@ -416,10 +433,8 @@ const MentalHealth: React.FC = () => {
       // Set sending state to true to prevent multiple submissions
       setIsSending(true);
       
-      // Get current user information
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
+      // Check authentication using context
+      if (!isAuthenticated || !user) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to use the chat feature.",
@@ -532,7 +547,7 @@ const MentalHealth: React.FC = () => {
                 <Button 
                   size="lg" 
                   className="bg-lens-purple hover:bg-lens-purple/90 text-white"
-                  onClick={() => setChatOpen(true)}
+                  onClick={handleStartChat}
                 >
                   <MessageSquare className="mr-2 h-5 w-5" />
                   Start Chatting

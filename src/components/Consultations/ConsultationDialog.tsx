@@ -28,7 +28,7 @@ const ConsultationDialog: React.FC<ConsultationDialogProps> = ({
   const [formData, setFormData] = React.useState<any>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   // Reset step when dialog closes
   React.useEffect(() => {
@@ -46,8 +46,14 @@ const ConsultationDialog: React.FC<ConsultationDialogProps> = ({
   };
 
   const handleConfirm = async () => {
-    if (!formData || !user) {
-      console.error('Missing form data or user information');
+    if (!formData || !user || !isAuthenticated) {
+      console.error('Missing form data or user information, or not authenticated');
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to book a consultation.",
+        variant: "destructive"
+      });
+      onOpenChange(false); // Close dialog
       return;
     }
     

@@ -105,6 +105,7 @@ const Hero: React.FC = () => {
                 variant={isAuthenticated ? "default" : "outline"}
                 className={isAuthenticated ? "bg-lens-purple hover:bg-lens-purple-light text-white" : ""}
                 onClick={() => {
+                  // Always rely on the AuthContext for authentication check
                   if (isAuthenticated) {
                     setShowConsultationDialog(true);
                   } else {
