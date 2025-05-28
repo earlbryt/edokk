@@ -1,7 +1,12 @@
 // @ts-ignore: Unreachable code error - This is a Deno script
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { Pinecone } from 'https://esm.sh/@pinecone-database/pinecone@1.1.0';
-import { corsHeaders } from '../_shared/cors.ts';
+
+// CORS headers defined directly in the file
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+};
 
 // Save message to the database
 async function saveMessage(supabase, userId, role, content) {
@@ -40,17 +45,9 @@ async function getConversationHistory(supabase, userId, limit = 10) {
 async function queryPineconeVectorDB(query, topK = 3) {
   try {
     const PINECONE_API_KEY = Deno.env.get('PINECONE_API_KEY') || '';
-    
-    // Initialize Pinecone client
-    const pinecone = new Pinecone({
-      apiKey: PINECONE_API_KEY,
-    });
-
-    // Get the index - using the afdic index as specified
-    const index = pinecone.index('afdic');
-    
-    // First, we need to get the vector embedding for the query
     const FIREWORKS_API_KEY = Deno.env.get('FIREWORKS_API_KEY') || '';
+    
+    // First, generate embeddings with Fireworks API exactly as in the notebook
     const embeddingResponse = await fetch('https://api.fireworks.ai/inference/v1/embeddings', {
       method: 'POST',
       headers: {
@@ -58,7 +55,7 @@ async function queryPineconeVectorDB(query, topK = 3) {
         'Authorization': `Bearer ${FIREWORKS_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'accounts/fireworks/models/embed-v2',
+        model: 'accounts/fireworks/models/embed-v2', // Same model as in the notebook
         input: query,
       })
     });
@@ -72,17 +69,37 @@ async function queryPineconeVectorDB(query, topK = 3) {
     const embeddingData = await embeddingResponse.json();
     const embedding = embeddingData.data[0].embedding;
     
-    // Query the Pinecone index with the embedding
-    const queryResponse = await index.query({
-      vector: embedding,
-      topK,
-      includeMetadata: true,
+    // Using the exact Pinecone setup from the notebook
+    const pineconeApiUrl = 'https://afdic-xlclakz.svc.aped-4627-b74a.pinecone.io';
+    
+    // Query Pinecone directly with the exact structure used in the notebook
+    const pineconeResponse = await fetch(`${pineconeApiUrl}/query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Api-Key': PINECONE_API_KEY
+      },
+      body: JSON.stringify({
+        vector: embedding,
+        topK,
+        includeMetadata: true
+      })
     });
     
-    return queryResponse.matches;
+    if (!pineconeResponse.ok) {
+      const errorText = await pineconeResponse.text();
+      console.error('Pinecone API error:', errorText);
+      throw new Error('Failed to query Pinecone');
+    }
+    
+    const pineconeData = await pineconeResponse.json();
+    console.log('Pinecone response:', JSON.stringify(pineconeData));
+    
+    // Return the matches directly as received from Pinecone
+    return pineconeData.matches || [];
   } catch (error) {
     console.error('Error querying Pinecone:', error);
-    throw new Error('Failed to query vector database');
+    throw new Error('Failed to query vector database: ' + error.message);
   }
 }
 

@@ -5,6 +5,7 @@ import Navbar from "@/components/Layout/Navbar";
 import Footer from "@/components/Layout/Footer";
 import { motion } from "framer-motion";
 import { ArrowRight, Apple, Beef, Fish, Wheat, Salad, PlusCircle } from "lucide-react";
+import NutritionChat from "@/components/nutrition/NutritionChat";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 
@@ -396,6 +397,100 @@ const Nutrition = () => {
             </Button>
           </motion.div>
         </div>
+        
+        {/* Nutrition Chat Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-16"
+        >
+          <div className="text-center max-w-3xl mx-auto mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">Your Personal Nutrition Guide</h2>
+            <p className="mt-4 text-lg text-gray-600">
+              Get personalized nutrition advice, meal tracking, and diet recommendations tailored to your health profile
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2">
+              <NutritionChat />
+            </div>
+            
+            <div className="space-y-6">
+              <Card className="border-0 shadow-md overflow-hidden bg-gradient-to-br from-emerald-50 to-lens-purple/5">
+                <CardHeader className="pb-2">
+                  <h3 className="text-xl font-bold">Why Use Our Nutrition Guide?</h3>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-2">
+                      <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
+                        <Salad className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <span>Personalized nutrition advice based on your health profile</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
+                        <Salad className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <span>Track your meals and monitor nutritional intake</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
+                        <Salad className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <span>Evidence-based guidance for dietary choices</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
+                        <Salad className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <span>Combine with our meal plans for optimal results</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-0 shadow-md overflow-hidden">
+                <CardHeader className="pb-2 bg-gradient-to-r from-emerald-50 to-lens-purple/5">
+                  <h3 className="text-xl font-bold">Did You Know?</h3>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <p className="text-gray-700">
+                    Proper nutrition can significantly impact various health markers, including:
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Blood Pressure</span>
+                      <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '80%' }}></div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Energy Levels</span>
+                      <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '75%' }}></div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Sleep Quality</span>
+                      <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '65%' }}></div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Mood</span>
+                      <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '70%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </motion.div>
       </div>
       <Footer />
     </div>

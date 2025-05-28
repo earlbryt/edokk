@@ -319,7 +319,10 @@ const HerbalChatbot = () => {
       // Get the current session
       const { data: { session } } = await supabase.auth.getSession();
       
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/herbal-medicine-chat`, {
+      // Use the environment variable or fallback to the hardcoded URL
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://eoxgpdtrszswnpilkzma.supabase.co';
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/herbal-medicine-chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
