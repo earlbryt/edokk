@@ -1,10 +1,22 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Star, ArrowRight } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const CTA: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
+  const handleConsultationClick = () => {
+    if (isAuthenticated) {
+      // If authenticated, navigate to the consultation page
+      navigate('/?openConsultation=true');
+    } else {
+      // If not authenticated, navigate to the login page
+      navigate('/login?fromConsultation=true');
+    }
+  };
 
   return (
     <section className="py-20 px-4 bg-gradient-to-br from-lens-purple/90 to-blue-600/90 text-white relative overflow-hidden">
@@ -25,16 +37,23 @@ const CTA: React.FC = () => {
             Join thousands of people who have discovered integrated healthcare that combines conventional and alternative medicine.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/signup">
-              <Button size="lg" className="rounded-full px-8 py-6 text-lg bg-white text-lens-purple hover:bg-gray-100">
-                Start Your Health Journey
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-lg border-white text-white bg-lens-purple/20 hover:bg-lens-purple/30">
-                Book Consultation <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
+            {!isAuthenticated && (
+              <Link to="/signup">
+                <Button size="lg" className="rounded-full px-8 py-6 text-lg bg-white text-lens-purple hover:bg-gray-100">
+                  Start Your Health Journey
+                </Button>
+              </Link>
+            )}
+            <Button 
+              size="lg" 
+              onClick={handleConsultationClick}
+              variant={isAuthenticated ? "default" : "outline"} 
+              className={`rounded-full px-8 py-6 text-lg ${isAuthenticated 
+                ? "bg-white text-lens-purple hover:bg-gray-100" 
+                : "border-white text-white bg-lens-purple/20 hover:bg-lens-purple/30"}`}
+            >
+              Book Consultation <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
           </div>
         </div>
       </div>

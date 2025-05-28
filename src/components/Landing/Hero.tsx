@@ -15,9 +15,11 @@ const Hero: React.FC = () => {
   const { toast } = useToast();
   
   // Check if user was redirected from login for consultation booking
+  // or if the consultation dialog should be opened
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const fromConsultation = params.get('fromConsultation');
+    const openConsultation = params.get('openConsultation');
     
     if (fromConsultation === 'true' && isAuthenticated) {
       toast({
@@ -25,6 +27,14 @@ const Hero: React.FC = () => {
         description: "You can proceed to book your consultation now.",
         duration: 5000
       });
+      
+      // Clean up the URL
+      navigate('/', { replace: true });
+    }
+    
+    // Handle the case when redirected from CTA with openConsultation parameter
+    if (openConsultation === 'true' && isAuthenticated) {
+      setShowConsultationDialog(true);
       
       // Clean up the URL
       navigate('/', { replace: true });
@@ -85,12 +95,15 @@ const Hero: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <Button asChild size="lg" className="bg-lens-purple hover:bg-lens-purple-light text-white">
-                <Link to="/signup">Get Started</Link>
-              </Button>
+              {!isAuthenticated && (
+                <Button asChild size="lg" className="bg-lens-purple hover:bg-lens-purple-light text-white">
+                  <Link to="/signup">Get Started</Link>
+                </Button>
+              )}
               <Button 
                 size="lg" 
-                variant="outline" 
+                variant={isAuthenticated ? "default" : "outline"}
+                className={isAuthenticated ? "bg-lens-purple hover:bg-lens-purple-light text-white" : ""}
                 onClick={() => {
                   if (isAuthenticated) {
                     setShowConsultationDialog(true);
