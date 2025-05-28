@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  ArrowRight, 
   Search, 
   Flower,
   Leaf,
@@ -567,28 +566,7 @@ const HerbalMedicine = () => {
             </div>
           </div>
           
-          {/* Call to Action */}
-          <motion.div 
-            className="bg-gradient-to-r from-lens-purple/10 to-green-100 rounded-xl p-8 text-center mt-20"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-              Discover the Right Herbal Remedy for You
-            </h2>
-            <p className="mt-4 text-lg text-gray-700 max-w-2xl mx-auto">
-              Get personalized herbal medicine recommendations based on your symptoms and health history.
-            </p>
-            <Button 
-              size="lg" 
-              className="mt-6 bg-lens-purple hover:bg-lens-purple-light"
-            >
-              <span className="flex items-center gap-2">
-                Browse Herbal Remedies <ArrowRight className="h-4 w-4" />
-              </span>
-            </Button>
-          </motion.div>
+          {/* Call to Action section removed */}
         </div>
       </div>
       <Footer />
