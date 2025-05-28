@@ -10,8 +10,31 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 import { NutritionMessage, getNutritionProfile, getChatHistory, sendChatMessage } from "@/services/nutritionService";
-import NutritionProfileForm from "./NutritionProfileForm";
-import MealTracker from "./MealTracker";
+// Placeholder components in case the actual ones aren't available yet
+const NutritionProfileForm = ({ onProfileUpdated }: { onProfileUpdated?: () => void }) => (
+  <div className="p-4 bg-gray-50 rounded-lg text-center">
+    <h3 className="text-lg font-medium mb-2">Nutrition Profile</h3>
+    <p className="text-gray-600 mb-4">Complete your profile to get personalized nutrition advice.</p>
+    <Button 
+      onClick={() => onProfileUpdated && onProfileUpdated()}
+      className="bg-lens-purple hover:bg-lens-purple-light"
+    >
+      Start Profile
+    </Button>
+  </div>
+);
+
+const MealTracker = () => (
+  <div className="p-4 bg-gray-50 rounded-lg text-center">
+    <h3 className="text-lg font-medium mb-2">Meal Tracker</h3>
+    <p className="text-gray-600 mb-4">Log your meals to track your nutrition intake.</p>
+    <Button 
+      className="bg-lens-purple hover:bg-lens-purple-light"
+    >
+      Start Tracking
+    </Button>
+  </div>
+);
 
 const suggestedQuestions = [
   "What's a balanced breakfast for weight loss?",
@@ -97,9 +120,11 @@ const NutritionChat: React.FC = () => {
     setIsProcessing(true);
     
     try {
+      console.log('Sending message to nutrition chat:', { userId: user.id, message: inputMessage });
       const response = await sendChatMessage(user.id, inputMessage);
+      console.log('Response from nutrition chat:', response);
       
-      if (response.success) {
+      if (response && response.success) {
         setMessages(prev => [...prev, { 
           role: "assistant" as const, 
           content: response.message 
@@ -115,13 +140,21 @@ const NutritionChat: React.FC = () => {
           });
         }
       } else {
-        throw new Error(response.error || "Failed to get response");
+        console.error('Invalid response format:', response);
+        throw new Error(response?.error || "Failed to get response");
       }
     } catch (error) {
       console.error("Error sending message:", error);
+      
+      // Add assistant message to indicate error
+      setMessages(prev => [...prev, { 
+        role: "assistant" as const, 
+        content: "I'm sorry, I'm having trouble connecting to the nutrition service right now. Please try again later." 
+      }]);
+      
       toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
+        title: "Connection Error",
+        description: "Could not reach the nutrition service. Please check your connection and try again.",
         variant: "destructive"
       });
     } finally {
@@ -175,8 +208,9 @@ const NutritionChat: React.FC = () => {
       <CardHeader className="bg-gradient-to-r from-emerald-50 to-lens-purple/5 rounded-t-lg border-b">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 border-2 border-emerald-100">
-            <AvatarImage src="/assets/nutrition-avatar.png" alt="Nutrient Sage" />
-            <AvatarFallback className="bg-emerald-100 text-emerald-700">NS</AvatarFallback>
+            <AvatarFallback className="bg-emerald-100 text-emerald-700">
+              <Salad className="h-5 w-5" />
+            </AvatarFallback>
           </Avatar>
           <div>
             <CardTitle className="text-xl flex items-center gap-2">

@@ -1,6 +1,14 @@
 // @ts-ignore: Unreachable code error - This is a Deno script
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+
+// CORS headers defined directly in the file
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+};
+
+console.log('Nutrition Chat Edge Function loaded');
 
 // Save message to the database
 async function saveMessage(supabase, userId, role, content, metadata = null) {
