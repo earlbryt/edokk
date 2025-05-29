@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Layout/Navbar";
 import Footer from "@/components/Layout/Footer";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -20,7 +20,11 @@ import {
   Flower2,
   MessageCircle,
   ChevronRight,
-  Info
+  Info,
+  X,
+  Sparkles,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 
 // No herbal remedy types needed since we removed the database section
@@ -36,7 +40,12 @@ interface Message {
 }
 
 // Herbal Medicine Chatbot component
-const HerbalChatbot = () => {
+interface HerbalChatbotProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -48,6 +57,7 @@ const HerbalChatbot = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom of messages
@@ -131,74 +141,149 @@ const HerbalChatbot = () => {
   };
 
   return (
-    <div className="h-[600px] flex flex-col rounded-xl overflow-hidden border border-lens-purple/20 bg-white shadow-lg">
-      <div className="p-4 bg-gradient-to-r from-lens-purple/20 to-green-100/50 border-b flex items-center">
-        <Flower2 className="h-5 w-5 text-emerald-600 mr-2" />
-        <h3 className="font-semibold">Nature's Wisdom - Herbal Medicine Consultant</h3>
-      </div>
-      
-      <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-white to-green-50/30">
-        <div className="space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-lg p-3 ${message.sender === 'user' 
-                  ? 'bg-lens-purple text-white' 
-                  : 'bg-gradient-to-r from-emerald-50 to-green-100 text-gray-800 border border-green-200/50'}`}
-              >
-                <p className="whitespace-pre-wrap text-sm">{message.content}</p>
-              </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-gray-500">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '600ms' }} />
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
-      
-      <div className="p-3 border-t bg-white">
-        <div className="flex items-center space-x-2">
-          <Input
-            placeholder="Ask about herbal remedies for your symptoms..."
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isLoading || !user}
-            className="flex-1"
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Overlay that covers the entire screen */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+            onClick={onClose}
           />
-          <Button 
-            onClick={handleSendMessage} 
-            disabled={isLoading || !inputMessage.trim() || !user}
-            size="icon"
-            className="bg-lens-purple hover:bg-lens-purple-light"
+
+          {/* Chatbot panel that slides in from the bottom */}
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className={`fixed inset-0 ${isFullScreen ? '' : 'top-auto h-[90vh]'} bg-white z-50 flex flex-col rounded-t-3xl overflow-hidden shadow-2xl`}
+            onClick={(e) => e.stopPropagation()}
           >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-        {!user && (
-          <p className="text-xs text-red-500 mt-2">Please log in to use the chatbot</p>
-        )}
-      </div>
-    </div>
+            {/* Header with title and control buttons */}
+            <div className="px-6 py-4 bg-gradient-to-r from-lens-purple/20 to-green-100/50 border-b flex items-center justify-between">
+              <div className="flex items-center">
+                <Flower2 className="h-6 w-6 text-emerald-600 mr-2" />
+                <h3 className="font-semibold text-lg">Nature's Wisdom - Herbal Medicine Consultant</h3>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="rounded-full hover:bg-white/20"
+                  onClick={() => setIsFullScreen(!isFullScreen)}
+                >
+                  {isFullScreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="rounded-full hover:bg-white/20"
+                  onClick={onClose}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Decorative accent elements */}
+            <div className="absolute top-0 left-1/4 w-32 h-1 bg-gradient-to-r from-green-500/30 to-lens-purple/30 rounded-full translate-y-[-50%] blur-sm"></div>
+            <div className="absolute top-0 right-1/4 w-24 h-1 bg-gradient-to-r from-amber-500/30 to-green-400/30 rounded-full translate-y-[-50%] blur-sm"></div>
+            
+            {/* Chat area with ambient gradient background */}
+            <div className="flex-1 overflow-hidden bg-gradient-to-b from-white to-green-50/30 relative">
+              {/* Ambient decorative elements */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-5">
+                <motion.div
+                  className="absolute top-10 right-10 w-80 h-80 rounded-full bg-gradient-to-br from-emerald-400 via-green-300 to-amber-200 blur-3xl"
+                  animate={{opacity: [0.3, 0.5, 0.3], scale: [1, 1.1, 1]}}
+                  transition={{duration: 8, repeat: Infinity, ease: "easeInOut"}}
+                />
+                <motion.div
+                  className="absolute bottom-40 left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-amber-300 via-lens-purple/60 to-emerald-200 blur-3xl"
+                  animate={{opacity: [0.2, 0.4, 0.2], scale: [1, 1.15, 1]}}
+                  transition={{duration: 10, repeat: Infinity, ease: "easeInOut"}}
+                />
+              </div>
+
+              {/* Messages area with scrolling */}
+              <ScrollArea className="h-full px-4 md:px-8 py-6">
+                <div className="max-w-4xl mx-auto space-y-6">
+                  <div className="flex justify-center mb-6">
+                    <div className="px-4 py-2 bg-green-100/50 rounded-full flex items-center gap-2 border border-green-200/50">
+                      <Sparkles className="h-4 w-4 text-emerald-600" />
+                      <span className="text-sm text-emerald-800">Powered by traditional knowledge and AI</span>
+                    </div>
+                  </div>
+
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-4 shadow-sm ${message.sender === 'user' 
+                          ? 'bg-lens-purple text-white' 
+                          : 'bg-gradient-to-r from-emerald-50 to-green-100 text-gray-800 border border-green-200/50'}`}
+                      >
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[85%] md:max-w-[70%] rounded-2xl p-4 bg-gray-100/80 backdrop-blur-sm text-gray-500 shadow-sm">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '600ms' }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} className="h-5" />
+                </div>
+              </ScrollArea>
+            </div>
+            
+            {/* Input area at the bottom */}
+            <div className="p-4 md:p-6 border-t bg-white/80 backdrop-blur-md">
+              <div className="max-w-4xl mx-auto flex items-center gap-3">
+                <Input
+                  placeholder="Ask about herbal remedies for your symptoms..."
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading || !user}
+                  className="flex-1 py-6 px-4 text-base rounded-xl border-lens-purple/20 shadow-sm focus-visible:ring-lens-purple"
+                />
+                <Button 
+                  onClick={handleSendMessage} 
+                  disabled={isLoading || !inputMessage.trim() || !user}
+                  size="icon"
+                  className="rounded-full h-12 w-12 bg-lens-purple hover:bg-lens-purple-light shadow-md"
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
+              </div>
+              {!user && (
+                <p className="text-sm text-red-500 mt-3 text-center">Please log in to use the herbal medicine consultant</p>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
 // Main component
 const HerbalMedicine = () => {
-  
-
+  // State for controlling the chat interface visibility
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
     <div className="min-h-screen">
@@ -224,7 +309,7 @@ const HerbalMedicine = () => {
               <div className="mt-8">
                 <Button 
                   className="bg-lens-purple hover:bg-lens-purple-light w-full md:w-auto text-lg py-6 px-8 shadow-lg transition-all duration-300 hover:scale-102"
-                  onClick={() => document.getElementById('herbal-chatbot')?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() => setIsChatOpen(true)}
                 >
                   <span className="flex items-center gap-3 font-medium">
                     <MessageCircle className="h-5 w-5" />
@@ -520,85 +605,18 @@ const HerbalMedicine = () => {
             </motion.div>
           </div>
           
-          {/* Herbal Medicine Chatbot Section follows directly after hero section */}
+          {/* Slide-in Fullscreen Chat Interface */}
+          <HerbalChatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
           
-          {/* Herbal Medicine Chatbot Section */}
-          <div className="mt-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center max-w-3xl mx-auto mb-10"
+          {/* Footer section with floating chat button */}
+          <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-30">
+            <Button 
+              onClick={() => setIsChatOpen(true)}
+              className="rounded-full h-16 w-16 bg-lens-purple hover:bg-lens-purple-light shadow-xl flex items-center justify-center transition-transform hover:scale-105"
             >
-              <h2 className="text-3xl font-bold text-gray-900">Ask Nature's Wisdom</h2>
-              <p className="mt-4 text-lg text-gray-600">
-                Our AI-powered herbal medicine consultant uses a specialized knowledge base to provide evidence-based information about traditional herbal remedies based on your symptoms.
-              </p>
-            </motion.div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <HerbalChatbot />
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="bg-gradient-to-br from-green-50 to-white rounded-xl p-6 border border-green-200/50 shadow-sm"
-              >
-                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                  <MessageSquare className="h-5 w-5 text-emerald-600 mr-2" />
-                  How to Use the Herbal Consultant
-                </h3>
-                
-                <div className="space-y-4">
-                  <div className="flex items-start">
-                    <div className="bg-emerald-100 rounded-full p-2 mr-3 mt-0.5">
-                      <span className="text-emerald-700 font-semibold">1</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-800">Describe Your Symptoms</p>
-                      <p className="text-gray-600 text-sm">Tell the consultant about your health concerns or symptoms in detail.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="bg-emerald-100 rounded-full p-2 mr-3 mt-0.5">
-                      <span className="text-emerald-700 font-semibold">2</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-800">Get Personalized Information</p>
-                      <p className="text-gray-600 text-sm">Receive information about relevant herbal remedies based on our curated database.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="bg-emerald-100 rounded-full p-2 mr-3 mt-0.5">
-                      <span className="text-emerald-700 font-semibold">3</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-800">Ask Follow-up Questions</p>
-                      <p className="text-gray-600 text-sm">Inquire about preparation methods, dosages, or potential side effects.</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200/50">
-                  <p className="text-amber-800 text-sm font-medium flex items-start">
-                    <AlertCircle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0" />
-                    <span>The consultant provides educational information only and is not a substitute for professional medical advice. Always consult with a healthcare provider before using herbal remedies.</span>
-                  </p>
-                </div>
-              </motion.div>
-            </div>
+              <MessageCircle className="h-7 w-7" />
+            </Button>
           </div>
-          
-          {/* Call to Action section removed */}
         </div>
       </div>
       <Footer />
