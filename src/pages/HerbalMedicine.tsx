@@ -144,27 +144,40 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay that covers the entire screen */}
+          {/* Overlay that covers the entire screen with enhanced backdrop effect */}
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+            animate={{ opacity: 1, backdropFilter: 'blur(5px)' }}
+            exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 bg-black/25 backdrop-blur-[5px] z-50"
             onClick={onClose}
           />
 
-          {/* Chatbot panel that slides in from the bottom */}
+          {/* Chatbot panel that slides in from the bottom with enhanced animations */}
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className={`fixed inset-0 ${isFullScreen ? '' : 'top-auto h-[90vh]'} bg-white z-50 flex flex-col rounded-t-3xl overflow-hidden shadow-2xl`}
+            initial={{ y: '100%', opacity: 0.5, scale: 0.98 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: '100%', opacity: 0.5, scale: 0.98 }}
+            transition={{ 
+              type: "spring", 
+              damping: 25, 
+              stiffness: 400, 
+              mass: 0.9, 
+              restDelta: 0.001,
+              restSpeed: 0.001,
+              bounce: 0,
+            }}
+            className={`fixed inset-0 ${isFullScreen ? '' : 'top-auto h-[90vh] rounded-t-3xl'} bg-white z-50 flex flex-col overflow-hidden shadow-2xl will-change-transform`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header with title and control buttons */}
-            <div className="px-6 py-4 bg-gradient-to-r from-lens-purple/20 to-green-100/50 border-b flex items-center justify-between">
+            {/* Header with title and control buttons - added subtle entrance animation */}
+            <motion.div 
+              className={`px-6 py-4 bg-gradient-to-r from-lens-purple/20 to-green-100/50 border-b flex items-center justify-between ${isFullScreen ? 'pt-7 pb-5' : ''}`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+            >
               <div className="flex items-center">
                 <Flower2 className="h-6 w-6 text-emerald-600 mr-2" />
                 <h3 className="font-semibold text-lg">Nature's Wisdom - Herbal Medicine Consultant</h3>
@@ -187,11 +200,25 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Decorative accent elements */}
-            <div className="absolute top-0 left-1/4 w-32 h-1 bg-gradient-to-r from-green-500/30 to-lens-purple/30 rounded-full translate-y-[-50%] blur-sm"></div>
-            <div className="absolute top-0 right-1/4 w-24 h-1 bg-gradient-to-r from-amber-500/30 to-green-400/30 rounded-full translate-y-[-50%] blur-sm"></div>
+            {/* Enhanced decorative accent elements with subtle animations - only visible in non-fullscreen mode */}
+            {!isFullScreen && (
+              <>
+                <motion.div 
+                  className="absolute top-0 left-1/4 w-32 h-1 bg-gradient-to-r from-green-500/30 to-lens-purple/30 rounded-full translate-y-[-50%] blur-sm"
+                  initial={{ opacity: 0, width: "10%" }}
+                  animate={{ opacity: 1, width: "32%" }}
+                  transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
+                />
+                <motion.div 
+                  className="absolute top-0 right-1/4 w-24 h-1 bg-gradient-to-r from-amber-500/30 to-green-400/30 rounded-full translate-y-[-50%] blur-sm"
+                  initial={{ opacity: 0, width: "6%" }}
+                  animate={{ opacity: 1, width: "24%" }}
+                  transition={{ delay: 0.25, duration: 0.5, ease: "easeOut" }}
+                />
+              </>
+            )}
             
             {/* Chat area with ambient gradient background */}
             <div className="flex-1 overflow-hidden bg-gradient-to-b from-white to-green-50/30 relative">
@@ -199,25 +226,35 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
               <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-5">
                 <motion.div
                   className="absolute top-10 right-10 w-80 h-80 rounded-full bg-gradient-to-br from-emerald-400 via-green-300 to-amber-200 blur-3xl"
-                  animate={{opacity: [0.3, 0.5, 0.3], scale: [1, 1.1, 1]}}
-                  transition={{duration: 8, repeat: Infinity, ease: "easeInOut"}}
+                  animate={{opacity: [0.3, 0.5, 0.3], scale: [1, 1.1, 1], x: [0, 10, 0]}}
+                  transition={{duration: 12, repeat: Infinity, ease: "easeInOut"}}
                 />
                 <motion.div
                   className="absolute bottom-40 left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-amber-300 via-lens-purple/60 to-emerald-200 blur-3xl"
-                  animate={{opacity: [0.2, 0.4, 0.2], scale: [1, 1.15, 1]}}
-                  transition={{duration: 10, repeat: Infinity, ease: "easeInOut"}}
+                  animate={{opacity: [0.2, 0.4, 0.2], scale: [1, 1.15, 1], y: [0, -10, 0]}}
+                  transition={{duration: 14, repeat: Infinity, ease: "easeInOut"}}
                 />
               </div>
 
               {/* Messages area with scrolling */}
               <ScrollArea className="h-full px-4 md:px-8 py-6">
                 <div className="max-w-4xl mx-auto space-y-6">
-                  <div className="flex justify-center mb-6">
-                    <div className="px-4 py-2 bg-green-100/50 rounded-full flex items-center gap-2 border border-green-200/50">
-                      <Sparkles className="h-4 w-4 text-emerald-600" />
+                  <motion.div 
+                    className="flex justify-center mb-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                  >
+                    <div className="px-4 py-2 bg-green-100/50 rounded-full flex items-center gap-2 border border-green-200/50 backdrop-blur-sm">
+                      <motion.div
+                        animate={{ rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 5 }}
+                      >
+                        <Sparkles className="h-4 w-4 text-emerald-600" />
+                      </motion.div>
                       <span className="text-sm text-emerald-800">Powered by traditional knowledge and AI</span>
                     </div>
-                  </div>
+                  </motion.div>
 
                   {messages.map((message) => (
                     <div
@@ -249,8 +286,13 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
               </ScrollArea>
             </div>
             
-            {/* Input area at the bottom */}
-            <div className="p-4 md:p-6 border-t bg-white/80 backdrop-blur-md">
+            {/* Input area at the bottom with entrance animation */}
+            <motion.div 
+              className="p-4 md:p-6 border-t bg-white/80 backdrop-blur-md"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
               <div className="max-w-4xl mx-auto flex items-center gap-3">
                 <Input
                   placeholder="Ask about herbal remedies for your symptoms..."
@@ -264,7 +306,7 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
                   onClick={handleSendMessage} 
                   disabled={isLoading || !inputMessage.trim() || !user}
                   size="icon"
-                  className="rounded-full h-12 w-12 bg-lens-purple hover:bg-lens-purple-light shadow-md"
+                  className="rounded-full h-12 w-12 bg-lens-purple hover:bg-lens-purple-light shadow-md transition-all duration-300 hover:scale-105 active:scale-95"
                 >
                   <Send className="h-5 w-5" />
                 </Button>
@@ -272,7 +314,7 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
               {!user && (
                 <p className="text-sm text-red-500 mt-3 text-center">Please log in to use the herbal medicine consultant</p>
               )}
-            </div>
+            </motion.div>
           </motion.div>
         </>
       )}
