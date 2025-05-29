@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -70,7 +70,15 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading || !user) return;
+    console.log('🚀 handleSendMessage called');
+    if (!inputMessage.trim() || isLoading || !user) {
+      console.log('❌ Early return conditions:', { 
+        emptyInput: !inputMessage.trim(), 
+        isLoading, 
+        userExists: !!user 
+      });
+      return;
+    }
 
     const userMessage = {
       id: Date.now().toString(),
@@ -78,20 +86,43 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
       sender: 'user' as const,
       timestamp: new Date()
     };
+    console.log('📝 User message created:', userMessage);
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
+    console.log('🔄 Loading state set to true');
 
     try {
       // Call the Edge Function to get a response
+      console.log('🔑 Getting auth session...');
       // Get the current session
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError);
+        throw new Error(`Authentication error: ${sessionError.message}`);
+      }
+      
+      console.log('✅ Session obtained:', { 
+        hasSession: !!session, 
+        hasToken: !!session?.access_token,
+        tokenLength: session?.access_token?.length || 0
+      });
       
       // Use the environment variable or fallback to the hardcoded URL
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://eoxgpdtrszswnpilkzma.supabase.co';
+      console.log('🌐 Using Supabase URL:', supabaseUrl);
       
-      const response = await fetch(`${supabaseUrl}/functions/v1/herbal-medicine-chat`, {
+      const endpoint = `${supabaseUrl}/functions/v1/herbal-medicine-chat`;
+      console.log('🌐 Full endpoint URL:', endpoint);
+      
+      console.log('🚀 Sending request with payload:', {
+        user_id: user.id,
+        message: userMessage.content
+      });
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,11 +134,21 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
         })
       });
 
+      console.log('📥 Response received:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to get response from herbal medicine chatbot');
+        const errorText = await response.text();
+        console.error('❌ Response error details:', errorText);
+        throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
       }
 
+      console.log('📦 Parsing response JSON...');
       const data = await response.json();
+      console.log('📦 Parsed response data:', data);
 
       const assistantMessage = {
         id: (Date.now() + 1).toString(),
@@ -115,10 +156,12 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
         sender: 'assistant' as const,
         timestamp: new Date()
       };
+      console.log('🤖 Created assistant message:', assistantMessage);
 
       setMessages(prev => [...prev, assistantMessage]);
+      console.log('✅ Added assistant message to chat');
     } catch (error) {
-      console.error('Error in herbal medicine chat:', error);
+      console.error('❌ Error in herbal medicine chat:', error);
       
       const errorMessage = {
         id: (Date.now() + 1).toString(),
@@ -126,10 +169,12 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
         sender: 'assistant' as const,
         timestamp: new Date()
       };
+      console.log('⚠️ Created error message:', errorMessage);
 
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      console.log('🔄 Loading state set to false');
     }
   };
 

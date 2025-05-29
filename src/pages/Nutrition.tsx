@@ -4,10 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Layout/Navbar";
 import Footer from "@/components/Layout/Footer";
 import { motion } from "framer-motion";
-import { ArrowRight, Apple, Beef, Fish, Wheat, Salad, PlusCircle } from "lucide-react";
+import { ArrowRight, Apple, Beef, Fish, Wheat, Salad, PlusCircle, BarChart3, Calendar, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import NutritionChat from "@/components/nutrition/NutritionChat";
+import MealTracker from "@/components/nutrition/MealTracker";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 // Diet plan types and data
 type DietaryRestriction = "None" | "Vegetarian" | "Vegan" | "Gluten-Free" | "Dairy-Free";
@@ -398,7 +400,7 @@ const Nutrition = () => {
           </motion.div> */} 
         </div>
         
-        {/* Nutrition Chat Section */}
+        {/* Nutrition Dashboard Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -406,89 +408,137 @@ const Nutrition = () => {
           className="mt-16"
         >
           <div className="text-center max-w-3xl mx-auto mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Your Personal Nutrition Guide</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Your Nutrition Dashboard</h2>
             <p className="mt-4 text-lg text-gray-600">
-              Get personalized nutrition advice, meal tracking, and diet recommendations tailored to your health profile
+              Track your meals, analyze your nutrition intake, and get personalized AI guidance based on your eating habits
             </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-2">
-              <NutritionChat />
-            </div>
+          <Card className="border-0 shadow-lg overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-emerald-50 to-lens-purple/5 border-b">
+              <CardTitle className="text-xl flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2 text-emerald-600" />
+                Nutrition Tracker & Assistant
+              </CardTitle>
+              <CardDescription>
+                Log your meals and get AI-powered nutrition advice based on your actual eating habits
+              </CardDescription>
+            </CardHeader>
             
-            <div className="space-y-6">
-              <Card className="border-0 shadow-md overflow-hidden bg-gradient-to-br from-emerald-50 to-lens-purple/5">
-                <CardHeader className="pb-2">
-                  <h3 className="text-xl font-bold">Why Use Our Nutrition Guide?</h3>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    <li className="flex items-start gap-2">
-                      <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
-                        <Salad className="h-4 w-4 text-emerald-600" />
-                      </div>
-                      <span>Personalized nutrition advice based on your health profile</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
-                        <Salad className="h-4 w-4 text-emerald-600" />
-                      </div>
-                      <span>Track your meals and monitor nutritional intake</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
-                        <Salad className="h-4 w-4 text-emerald-600" />
-                      </div>
-                      <span>Evidence-based guidance for dietary choices</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
-                        <Salad className="h-4 w-4 text-emerald-600" />
-                      </div>
-                      <span>Combine with our meal plans for optimal results</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-0 shadow-md overflow-hidden">
-                <CardHeader className="pb-2 bg-gradient-to-r from-emerald-50 to-lens-purple/5">
-                  <h3 className="text-xl font-bold">Did You Know?</h3>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <p className="text-gray-700">
-                    Proper nutrition can significantly impact various health markers, including:
-                  </p>
-                  <div className="mt-3 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Blood Pressure</span>
-                      <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '80%' }}></div>
-                      </div>
+            <CardContent className="p-0">
+              <Tabs defaultValue="tracker" className="w-full">
+                <TabsList className="w-full rounded-none border-b grid grid-cols-2">
+                  <TabsTrigger value="tracker" className="rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-emerald-500 data-[state=active]:shadow-none py-3">
+                    <Calendar className="h-4 w-4 mr-2" /> Meal Tracker
+                  </TabsTrigger>
+                  <TabsTrigger value="assistant" className="rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-emerald-500 data-[state=active]:shadow-none py-3">
+                    <MessageSquare className="h-4 w-4 mr-2" /> Nutrition Assistant
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="tracker" className="m-0">
+                  <div className="p-0">
+                    <MealTracker />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="assistant" className="m-0">
+                  <div className="p-0">
+                    <NutritionChat />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+          
+          {/* Nutrition Insights */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <Card className="border-0 shadow-md overflow-hidden bg-gradient-to-br from-emerald-50 to-lens-purple/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Nutrition Insights</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
+                      <Salad className="h-4 w-4 text-emerald-600" />
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Energy Levels</span>
-                      <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '75%' }}></div>
-                      </div>
+                    <span>Track calories and macronutrients</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
+                      <Salad className="h-4 w-4 text-emerald-600" />
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Sleep Quality</span>
-                      <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '65%' }}></div>
-                      </div>
+                    <span>Review your weekly meal patterns</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="rounded-full bg-emerald-100 p-1 mt-0.5">
+                      <Salad className="h-4 w-4 text-emerald-600" />
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Mood</span>
-                      <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: '70%' }}></div>
-                      </div>
+                    <span>Get personalized nutritional guidance</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-0 shadow-md overflow-hidden">
+              <CardHeader className="pb-2 bg-gradient-to-r from-emerald-50 to-lens-purple/5">
+                <CardTitle className="text-lg">Nutritional Impact</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <p className="text-gray-700 text-sm">
+                  Tracking your nutrition can impact health markers:
+                </p>
+                <div className="mt-3 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Blood Pressure</span>
+                    <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: '80%' }}></div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Energy Levels</span>
+                    <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: '75%' }}></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Recovery</span>
+                    <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: '65%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-0 shadow-md overflow-hidden">
+              <CardHeader className="pb-2 bg-gradient-to-r from-emerald-50 to-lens-purple/5">
+                <CardTitle className="text-lg">AI Assistant Benefits</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <div className="rounded-full bg-lens-purple/20 p-1 mt-0.5">
+                      <MessageSquare className="h-3 w-3 text-lens-purple" />
+                    </div>
+                    <span>Analyzes your logged meals for patterns</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="rounded-full bg-lens-purple/20 p-1 mt-0.5">
+                      <MessageSquare className="h-3 w-3 text-lens-purple" />
+                    </div>
+                    <span>Suggests dietary improvements</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="rounded-full bg-lens-purple/20 p-1 mt-0.5">
+                      <MessageSquare className="h-3 w-3 text-lens-purple" />
+                    </div>
+                    <span>Answers nutrition questions with context</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
           </div>
         </motion.div>
       </div>

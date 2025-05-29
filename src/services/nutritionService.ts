@@ -42,14 +42,15 @@ export interface MealTrackingEntry {
   fat_g?: number;
   notes?: string;
   created_at?: string;
+  ai_analyze?: boolean; // Flag to indicate if AI should analyze nutritional content
 }
 
 // Chat functions
-export const sendChatMessage = async (userId: string, message: string) => {
+export const sendChatMessage = async (userId: string, message: string, mealContext: any = {}) => {
   try {
     console.log('Sending chat message for user:', userId);
     const { data, error } = await db.functions.invoke('nutrition-chat', {
-      body: { user_id: userId, message }
+      body: { user_id: userId, message, meal_context: mealContext }
     });
 
     if (error) {
@@ -160,17 +161,104 @@ export const saveNutritionProfile = async (profile: NutritionProfile) => {
 export const saveMealEntry = async (entry: MealTrackingEntry) => {
   try {
     console.log('Saving meal entry for user:', entry.user_id);
-    const { data, error } = await db
-      .from('meal_tracking')
-      .insert(entry)
-      .select()
-      .single();
+    
+    // Check if AI analysis is needed
+    const shouldAnalyze = entry.ai_analyze || (!entry.calories && !entry.protein_g && !entry.carbs_g && !entry.fat_g);
+    
+    // If we need AI analysis, call the nutrition-analysis function
+    if (shouldAnalyze) {
+      console.log('Requesting AI nutrition analysis for meal');
+      try {
+        // First save the entry without nutritional data to get an ID
+        const { data: savedEntry, error: saveError } = await db
+          .from('meal_tracking')
+          .insert({
+            ...entry,
+            ai_analyze: undefined // Remove this custom field as it's not in the database schema
+          })
+          .select()
+          .single();
+        
+        if (saveError) {
+          console.error('Error saving initial meal entry:', saveError);
+          throw saveError;
+        }
+        
+        // Then call AI function to analyze the nutritional content (meal analysis edge function)
+        const { data: analysisData, error: analysisError } = await db.functions.invoke('nutrition-analysis', {
+          body: { 
+            meal_id: savedEntry.id,
+            user_id: entry.user_id,
+            foods: entry.foods,
+            meal_type: entry.meal_type
+          }
+        });
+        
+        if (analysisError) {
+          console.error('Error analyzing meal:', analysisError);
+          // Return the saved entry even if analysis fails
+          return savedEntry;
+        }
+        
+        // If analysis was successful, update the entry with nutritional data
+        if (analysisData && analysisData.success) {
+          const { data: updatedEntry, error: updateError } = await db
+            .from('meal_tracking')
+            .update({
+              calories: analysisData.calories,
+              protein_g: analysisData.protein_g,
+              carbs_g: analysisData.carbs_g,
+              fat_g: analysisData.fat_g
+            })
+            .eq('id', savedEntry.id)
+            .select()
+            .single();
+            
+          if (updateError) {
+            console.error('Error updating meal with nutritional data:', updateError);
+            return savedEntry;
+          }
+          
+          return updatedEntry;
+        }
+        
+        return savedEntry;
+      } catch (analysisException) {
+        console.error('Exception during meal analysis:', analysisException);
+        // Continue with saving without nutritional data if analysis fails
+        const { data: fallbackEntry, error: fallbackError } = await db
+          .from('meal_tracking')
+          .insert({
+            ...entry,
+            ai_analyze: undefined
+          })
+          .select()
+          .single();
+          
+        if (fallbackError) {
+          console.error('Error in fallback meal entry save:', fallbackError);
+          throw fallbackError;
+        }
+        
+        return fallbackEntry;
+      }
+    } else {
+      // If we don't need AI analysis, just save the entry as is
+      const { data, error } = await db
+        .from('meal_tracking')
+        .insert({
+          ...entry,
+          ai_analyze: undefined // Remove this custom field
+        })
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error saving meal entry:', error);
-      throw error;
+      if (error) {
+        console.error('Error saving meal entry:', error);
+        throw error;
+      }
+      return data;
     }
-    return data;
   } catch (error) {
     console.error('Exception in saveMealEntry:', error);
     throw error;

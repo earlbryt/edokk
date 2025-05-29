@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,15 @@ const mealTypes = [
   { value: "lunch", label: "Lunch" },
   { value: "dinner", label: "Dinner" },
   { value: "snack", label: "Snack" }
+];
+
+// Common Ghanaian foods for suggestions
+const commonGhanaianFoods = [
+  "Jollof Rice", "Waakye", "Banku", "Kenkey", "Fufu", "Tuo Zaafi", "Omo Tuo", 
+  "Red Red", "Konkonte", "Kelewele", "Kontomire Stew", "Light Soup", "Groundnut Soup",
+  "Okro Soup", "Palm Nut Soup", "Tilapia", "Gari", "Plantain", "Yam", "Cassava",
+  "Kokonte", "Sobolo", "Asana", "Rice Water", "Hausa Koko", "Akple", "Fante Fante", 
+  "Kuli Kuli", "Shito", "Boflot", "Koose"
 ];
 
 // Initial entry form
@@ -126,15 +136,25 @@ const MealTracker: React.FC = () => {
     setIsSaving(true);
     
     try {
-      await saveMealEntry({
+      // Let the AI analyze the nutrition content rather than having the user input it
+      // We'll set these fields as undefined and let the backend calculate them
+      const entryToSave = {
         ...newEntry,
         user_id: user.id,
-        foods: validFoodItems
-      });
+        foods: validFoodItems,
+        calories: undefined,
+        protein_g: undefined,
+        carbs_g: undefined,
+        fat_g: undefined,
+        // Flag to indicate the nutrition values should be calculated by AI
+        ai_analyze: true
+      };
+      
+      await saveMealEntry(entryToSave);
       
       toast({
         title: "Meal Logged",
-        description: "Your meal has been saved successfully.",
+        description: "Your meal has been saved and nutrition calculated automatically.",
       });
       
       // Reset form
@@ -244,12 +264,20 @@ const MealTracker: React.FC = () => {
               <div className="space-y-2">
                 {foodItems.map((item, index) => (
                   <div key={index} className="flex gap-2 items-start">
-                    <Input
-                      placeholder="Food name"
-                      value={item.name}
-                      onChange={(e) => handleFoodItemChange(index, 'name', e.target.value)}
-                      className="flex-grow"
-                    />
+                    <div className="flex-grow relative">
+                      <Input
+                        placeholder="Food name (e.g. Jollof Rice)"
+                        value={item.name}
+                        onChange={(e) => handleFoodItemChange(index, 'name', e.target.value)}
+                        className="w-full pr-8"
+                        list={`food-suggestions-${index}`}
+                      />
+                      <datalist id={`food-suggestions-${index}`}>
+                        {commonGhanaianFoods.map((food, i) => (
+                          <option key={i} value={food} />
+                        ))}
+                      </datalist>
+                    </div>
                     <Input
                       placeholder="Amount"
                       value={item.amount}
@@ -271,47 +299,14 @@ const MealTracker: React.FC = () => {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="calories">Calories (kcal)</Label>
-                <Input
-                  id="calories"
-                  name="calories"
-                  type="number"
-                  min="0"
-                  value={newEntry.calories || ''}
-                  onChange={handleEntryChange}
-                  placeholder="Optional"
-                />
+            <div className="bg-emerald-50/50 p-4 rounded-lg border border-emerald-100 my-4">
+              <div className="flex items-center gap-2 mb-2 text-emerald-700">
+                <Badge variant="outline" className="bg-white border-emerald-200 text-emerald-700">
+                  AI Powered
+                </Badge>
+                <p className="text-sm">Nutrition values will be calculated automatically</p>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="protein_g">Protein (g)</Label>
-                <Input
-                  id="protein_g"
-                  name="protein_g"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={newEntry.protein_g || ''}
-                  onChange={handleEntryChange}
-                  placeholder="Optional"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="carbs_g">Carbs (g)</Label>
-                <Input
-                  id="carbs_g"
-                  name="carbs_g"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={newEntry.carbs_g || ''}
-                  onChange={handleEntryChange}
-                  placeholder="Optional"
-                />
-              </div>
+              <p className="text-xs text-gray-600">Simply log your meals and our AI will analyze the nutritional content based on the Ghanaian and international food database.</p>
             </div>
             
             <div className="space-y-2">
@@ -402,33 +397,44 @@ const MealTracker: React.FC = () => {
                             </ul>
                           </div>
                           
-                          {(entry.calories || entry.protein_g || entry.carbs_g || entry.fat_g) && (
-                            <div className="flex flex-wrap gap-4 mt-1">
-                              {entry.calories !== undefined && (
-                                <div className="text-sm">
-                                  <span className="font-medium">Calories:</span> {entry.calories} kcal
-                                </div>
-                              )}
-                              {entry.protein_g !== undefined && (
-                                <div className="text-sm">
-                                  <span className="font-medium">Protein:</span> {entry.protein_g}g
-                                </div>
-                              )}
-                              {entry.carbs_g !== undefined && (
-                                <div className="text-sm">
-                                  <span className="font-medium">Carbs:</span> {entry.carbs_g}g
-                                </div>
-                              )}
-                              {entry.fat_g !== undefined && (
-                                <div className="text-sm">
-                                  <span className="font-medium">Fat:</span> {entry.fat_g}g
-                                </div>
-                              )}
+                          <div className="mt-3 border-t pt-2 border-gray-100">
+                            <h4 className="text-xs font-medium text-emerald-700 mb-2 flex items-center gap-1">
+                              <Badge variant="outline" className="h-5 py-0 bg-emerald-50 border-emerald-200 text-emerald-700 text-xs">
+                                AI Analysis
+                              </Badge> 
+                              Nutritional Information
+                            </h4>
+                            
+                            <div className="grid grid-cols-4 gap-2">
+                              <div className="bg-emerald-50/50 p-2 rounded">
+                                <p className="text-xs text-gray-500">Calories</p>
+                                <p className="font-medium text-sm">
+                                  {entry.calories ? `${entry.calories} kcal` : 'Analyzing...'}
+                                </p>
+                              </div>
+                              <div className="bg-emerald-50/50 p-2 rounded">
+                                <p className="text-xs text-gray-500">Protein</p>
+                                <p className="font-medium text-sm">
+                                  {entry.protein_g ? `${entry.protein_g}g` : 'Analyzing...'}
+                                </p>
+                              </div>
+                              <div className="bg-emerald-50/50 p-2 rounded">
+                                <p className="text-xs text-gray-500">Carbs</p>
+                                <p className="font-medium text-sm">
+                                  {entry.carbs_g ? `${entry.carbs_g}g` : 'Analyzing...'}
+                                </p>
+                              </div>
+                              <div className="bg-emerald-50/50 p-2 rounded">
+                                <p className="text-xs text-gray-500">Fat</p>
+                                <p className="font-medium text-sm">
+                                  {entry.fat_g ? `${entry.fat_g}g` : 'Analyzing...'}
+                                </p>
+                              </div>
                             </div>
-                          )}
+                          </div>
                           
                           {entry.notes && (
-                            <div className="mt-1 text-sm">
+                            <div className="mt-2 text-sm">
                               <span className="font-medium">Notes:</span> {entry.notes}
                             </div>
                           )}
