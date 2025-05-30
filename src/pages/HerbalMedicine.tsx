@@ -401,9 +401,9 @@ const HerbalMedicine = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-[72px] bg-white"> {/* Added explicit padding-top to account for fixed navbar */}
       <Navbar />
-      <div className="container mx-auto py-24 px-4 sm:px-6 lg:px-8 overflow-visible mt-16 md:mt-24">
+      <div className="container mx-auto py-24 px-4 sm:px-6 lg:px-8 overflow-hidden mt-0"> {/* Fixed overflow and margin */}
         <div className="space-y-16">
           {/* Hero Section with 3D effect */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">

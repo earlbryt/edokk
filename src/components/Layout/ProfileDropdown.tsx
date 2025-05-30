@@ -34,7 +34,7 @@ const ProfileDropdown: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="rounded-full flex items-center gap-1 pl-2 pr-3 md:gap-2 md:pr-2" aria-label="Profile Menu">
+        <Button variant="ghost" className="rounded-full flex items-center gap-1 pl-2 pr-3 md:gap-2 md:pr-2 relative" aria-label="Profile Menu">
           <Avatar className="h-9 w-9 transition-all hover:ring-2 hover:ring-lens-purple-light">
             <AvatarImage src={user?.photoUrl} alt={user?.name || 'User'} />
             <AvatarFallback className="bg-lens-purple-light/10 text-lens-purple">
@@ -44,7 +44,7 @@ const ProfileDropdown: React.FC = () => {
           <ChevronDown className="h-4 w-4 text-gray-500 transition-transform duration-200 md:hidden" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 mt-1" align="end">
+      <DropdownMenuContent className="w-56 mt-1" align="end" sideOffset={8} avoidCollisions={true} collisionPadding={10} side="bottom">
         {isAuthenticated ? (
           <>
             <DropdownMenuLabel className="font-normal">

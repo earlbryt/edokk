@@ -30,9 +30,9 @@ const Navbar: React.FC = () => {
   }, [mobileMenuOpen]);
 
   return (
-    <header className="w-full py-4 px-4 md:px-8 absolute top-0 z-50">
+    <header className="w-full h-[72px] py-4 px-4 md:px-8 fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
       <div className="max-w-7xl mx-auto">
-        <nav className="flex items-center justify-between">
+        <nav className="flex items-center justify-between h-10 relative">
           <div className="flex items-center">
             <Logo size="lg" />
           </div>
