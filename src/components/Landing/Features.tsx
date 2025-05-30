@@ -22,11 +22,6 @@ const Features: React.FC = () => {
       description: "Upload prescriptions for instant validation, check drug interactions, and order medications with secure delivery tracking and automatic refill options."
     },
     {
-      icon: <Apple className="h-10 w-10 text-lens-green" />,
-      title: "Personalized Dietetics",
-      description: "Receive customized diet plans based on your health conditions, goals, and preferences. Our AI adjusts recommendations based on your progress and feedback."
-    },
-    {
       icon: <Brain className="h-10 w-10 text-lens-orange" />,
       title: "Mental Health Support",
       description: "Track your emotional wellbeing, access guided assessments, and connect with therapists. Includes emergency protocols and personalized coping strategies."
@@ -48,8 +43,8 @@ const Features: React.FC = () => {
           </p>
         </div>
         
-        {/* Feature grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 mb-24">
+        {/* Feature grid - adjusted for 4 cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
           {features.map((feature, index) => (
             <motion.div 
               key={index} 
