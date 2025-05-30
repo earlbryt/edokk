@@ -14,6 +14,7 @@ import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
 import ConsultationDialog from '@/components/Consultations/ConsultationDialog';
 import OrderHistory, { Order } from '@/components/Orders/OrderHistory';
+import { Link } from 'react-router-dom';
 
 // Define the user assessment type
 interface UserAssessment {
@@ -206,24 +207,27 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
       <Navbar />
       <div className="container max-w-7xl mx-auto px-4 py-24 md:py-32">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left column - User profile info */}
-        <div className="md:col-span-1 space-y-6">
-          <Card>
-            <CardHeader className="text-center pb-2">
+        <div className="md:col-span-1">
+          <Card className="border-none shadow-lg overflow-hidden bg-white backdrop-blur-md">
+            <div className="absolute inset-0 bg-gradient-to-r from-lens-purple/5 to-lens-purple/10 opacity-50 z-0"></div>
+            <CardHeader className="text-center pb-2 relative z-10">
               <div className="flex flex-col items-center">
                 {isLoadingProfile ? (
-                  <Skeleton className="h-24 w-24 rounded-full" />
+                  <Skeleton className="h-28 w-28 rounded-full" />
                 ) : (
-                  <Avatar className="h-24 w-24 border-4 border-white shadow-md mb-4">
-                    <AvatarImage src={profileData.avatar_url} />
-                    <AvatarFallback className="bg-lens-purple-light/10 text-lens-purple text-xl">
-                      {getInitials(user?.name || 'User')}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="rounded-full p-1 bg-gradient-to-r from-lens-purple to-indigo-500 shadow-lg mb-4">
+                    <Avatar className="h-28 w-28 border-4 border-white shadow-md">
+                      <AvatarImage src={profileData.avatar_url} />
+                      <AvatarFallback className="bg-white text-lens-purple text-2xl font-bold">
+                        {getInitials(user?.name || 'User')}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
                 )}
                 {isLoadingProfile ? (
                   <>
@@ -232,13 +236,13 @@ const Profile = () => {
                   </>
                 ) : (
                   <>
-                    <CardTitle className="text-2xl font-bold">{user?.name}</CardTitle>
+                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-lens-purple to-indigo-600 bg-clip-text text-transparent">{user?.name}</CardTitle>
                     <CardDescription className="text-lg mt-1">{user?.email}</CardDescription>
                   </>
                 )}
               </div>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 relative z-10">
               {isLoadingProfile ? (
                 <div className="space-y-4">
                   <Skeleton className="h-6 w-full" />
@@ -288,57 +292,11 @@ const Profile = () => {
                 </div>
               )}
             </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full" asChild>
-                <a href="/settings">Edit Profile</a>
+            <CardFooter className="relative z-10">
+              <Button variant="outline" className="w-full hover:bg-lens-purple hover:text-white border-lens-purple text-lens-purple transition-all duration-300" asChild>
+                <Link to="/settings">Edit Profile</Link>
               </Button>
             </CardFooter>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Health Statistics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-lens-purple/5 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-lens-purple">
-                    {isLoadingConsultations ? 
-                      <Skeleton className="h-8 w-8 mx-auto" /> : 
-                      consultations.length
-                    }
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">Total Consultations</p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-green-600">
-                    {isLoadingConsultations ? 
-                      <Skeleton className="h-8 w-8 mx-auto" /> : 
-                      consultations.filter(c => c.status === 'completed').length
-                    }
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">Completed</p>
-                </div>
-                <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-yellow-600">
-                    {isLoadingConsultations ? 
-                      <Skeleton className="h-8 w-8 mx-auto" /> : 
-                      consultations.filter(c => c.status === 'pending').length
-                    }
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">Pending</p>
-                </div>
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-blue-600">
-                    {isLoadingConsultations ? 
-                      <Skeleton className="h-8 w-8 mx-auto" /> : 
-                      consultations.filter(c => c.status === 'confirmed').length
-                    }
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">Upcoming</p>
-                </div>
-              </div>
-            </CardContent>
           </Card>
         </div>
 
@@ -346,16 +304,39 @@ const Profile = () => {
         <div className="md:col-span-2">
           <Tabs defaultValue="consultations" className="w-full">
             <TabsList className="mb-8">
-              <TabsTrigger value="consultations">Consultations</TabsTrigger>
-              <TabsTrigger value="orders">Order History</TabsTrigger>
-              <TabsTrigger value="assessments">Assessments</TabsTrigger>
+              <TabsTrigger value="consultations">
+                Consultations {!isLoadingConsultations && (
+                  <span className="ml-1.5 rounded-full bg-lens-purple/20 text-lens-purple px-2 py-0.5 text-xs font-medium">
+                    {consultations.length}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="orders">
+                Order History {!isLoadingOrders && (
+                  <span className="ml-1.5 rounded-full bg-lens-purple/20 text-lens-purple px-2 py-0.5 text-xs font-medium">
+                    {orders.length}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="assessments">
+                Assessments {!isLoadingAssessments && (
+                  <span className="ml-1.5 rounded-full bg-lens-purple/20 text-lens-purple px-2 py-0.5 text-xs font-medium">
+                    {assessments.length}
+                  </span>
+                )}
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="consultations">
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold">Your Consultations</h2>
-                  <Button className="bg-lens-purple hover:bg-lens-purple-light" onClick={() => setShowConsultationDialog(true)}>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-lens-purple to-indigo-600 bg-clip-text text-transparent">
+                    Your Consultations
+                    <span className="ml-2 text-base bg-lens-purple/10 text-lens-purple px-2 py-0.5 rounded-full">
+                      {consultations.length}
+                    </span>
+                  </h2>
+                  <Button className="bg-lens-purple hover:bg-lens-purple-light text-white" onClick={() => setShowConsultationDialog(true)}>
                     Book New Consultation
                   </Button>
                 </div>
@@ -369,22 +350,22 @@ const Profile = () => {
                   </div>
                 ) : consultations.length === 0 ? (
                   // Empty state
-                  <Card className="border-dashed">
-                    <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center text-center space-y-4">
-                      <div className="rounded-full bg-lens-purple/10 p-3">
-                        <Calendar className="h-8 w-8 text-lens-purple" />
+                  <Card className="border-dashed bg-gradient-to-br from-white to-lens-purple/5">
+                    <CardContent className="pt-8 pb-8 flex flex-col items-center justify-center text-center space-y-6">
+                      <div className="rounded-full bg-gradient-to-r from-lens-purple/20 to-indigo-200/50 p-5 shadow-inner">
+                        <Calendar className="h-10 w-10 text-lens-purple" />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-medium">No consultations yet</h3>
-                        <p className="text-muted-foreground mt-1">
-                          Book your first consultation with our healthcare professionals.
+                      <div className="max-w-md">
+                        <h3 className="text-xl font-medium text-gray-800">No consultations yet</h3>
+                        <p className="text-muted-foreground mt-2">
+                          Book your first consultation with our healthcare professionals and start your health journey today.
                         </p>
                       </div>
                       <Button 
-                        className="bg-lens-purple hover:bg-lens-purple-light" 
+                        className="bg-lens-purple hover:bg-lens-purple-light text-white" 
                         onClick={() => setShowConsultationDialog(true)}
                       >
-                        Book Consultation
+                        Book Your First Consultation
                       </Button>
                     </CardContent>
                   </Card>
@@ -392,7 +373,7 @@ const Profile = () => {
                   // Consultations list
                   <div className="space-y-4">
                     {consultations.map((consultation) => (
-                      <Card key={consultation.id} className="overflow-hidden">
+                      <Card key={consultation.id} className="overflow-hidden border hover:shadow-md transition-all duration-200">
                         <div className={`h-1.5 w-full ${
                           consultation.status === 'confirmed' ? 'bg-green-500' :
                           consultation.status === 'completed' ? 'bg-blue-500' :
@@ -444,11 +425,6 @@ const Profile = () => {
                             </div>
                             
                             <div className="flex items-center gap-2 md:flex-col md:items-end self-end md:self-center">
-                              {consultation.status === 'pending' && (
-                                <Button variant="outline" size="sm" className="text-red-600 border-red-200">
-                                  Cancel
-                                </Button>
-                              )}
                               {consultation.status === 'confirmed' && (
                                 <Button size="sm" className="bg-lens-purple hover:bg-lens-purple-light">
                                   Join Call
@@ -470,9 +446,14 @@ const Profile = () => {
             <TabsContent value="orders">
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold">Your Orders</h2>
-                  <Button asChild className="bg-lens-purple hover:bg-lens-purple-light">
-                    <a href="/pharmacy">Visit Pharmacy</a>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-lens-purple to-indigo-600 bg-clip-text text-transparent">
+                    Your Orders
+                    <span className="ml-2 text-base bg-lens-purple/10 text-lens-purple px-2 py-0.5 rounded-full">
+                      {orders.length}
+                    </span>
+                  </h2>
+                  <Button asChild className="bg-lens-purple hover:bg-lens-purple-light text-white">
+                    <Link to="/pharmacy">Visit Pharmacy</Link>
                   </Button>
                 </div>
                 
@@ -481,58 +462,75 @@ const Profile = () => {
             </TabsContent>
             
             <TabsContent value="assessments">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Mental Health Assessments</CardTitle>
-                  <CardDescription>Review your completed mental health assessments.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {isLoadingAssessments ? (
-                    Array.from({ length: 2 }).map((_, index) => (
-                      <Card key={index} className="p-4 border shadow-sm">
-                        <Skeleton className="h-6 w-3/4 mb-2" />
-                        <Skeleton className="h-4 w-1/2 mb-1" />
-                        <Skeleton className="h-4 w-1/4 mb-3" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full mt-1" />
-                      </Card>
-                    ))
-                  ) : assessments.length > 0 ? (
-                    assessments.map((assessment) => (
-                      <Card key={assessment.id} className="p-4 hover:shadow-lg transition-shadow duration-200 ease-in-out border">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-semibold text-lg text-lens-purple">
-                            {assessment.mental_health_assessment?.title || 'Assessment'}
-                          </h4>
-                          <Badge variant="outline" className="text-xs font-medium bg-gray-50 text-gray-600 border-gray-200">{formatDate(assessment.created_at)}</Badge>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-lens-purple to-indigo-600 bg-clip-text text-transparent">
+                    Mental Health Assessments
+                    <span className="ml-2 text-base bg-lens-purple/10 text-lens-purple px-2 py-0.5 rounded-full">
+                      {assessments.length}
+                    </span>
+                  </h2>
+                  <Button asChild className="bg-lens-purple hover:bg-lens-purple-light text-white">
+                    <Link to="/mental-health">Take New Assessment</Link>
+                  </Button>
+                </div>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Assessment History</CardTitle>
+                    <CardDescription>Review your completed mental health assessments.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {isLoadingAssessments ? (
+                      Array.from({ length: 2 }).map((_, index) => (
+                        <Card key={index} className="p-4 border shadow-sm">
+                          <Skeleton className="h-6 w-3/4 mb-2" />
+                          <Skeleton className="h-4 w-1/2 mb-1" />
+                          <Skeleton className="h-4 w-1/4 mb-3" />
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-full mt-1" />
+                        </Card>
+                      ))
+                    ) : assessments.length > 0 ? (
+                      assessments.map((assessment) => (
+                        <Card key={assessment.id} className="p-4 hover:shadow-md transition-all duration-200 border">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold text-lg text-lens-purple">
+                              {assessment.mental_health_assessment?.title || 'Assessment'}
+                            </h4>
+                            <Badge variant="outline" className="text-xs font-medium bg-gray-50 text-gray-600 border-gray-200">{formatDate(assessment.created_at)}</Badge>
+                          </div>
+                          <div className="mb-3">
+                            <p className="text-sm text-gray-700">
+                              <span className="font-medium text-gray-800">Score:</span> {assessment.score}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              <span className="font-medium text-gray-800">Category:</span> <span className="font-semibold">{assessment.result_category}</span>
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-800 mb-1">Feedback:</p>
+                            <p className="text-sm text-gray-600 bg-slate-50 p-3 rounded-md border border-slate-200">
+                              {assessment.llm_feedback}
+                            </p>
+                          </div>
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 border border-dashed rounded-lg">
+                        <div className="rounded-full bg-gray-100 p-3 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                          <FileText className="h-8 w-8 text-gray-500" />
                         </div>
-                        <div className="mb-3">
-                          <p className="text-sm text-gray-700">
-                            <span className="font-medium text-gray-800">Score:</span> {assessment.score}
-                          </p>
-                          <p className="text-sm text-gray-700">
-                            <span className="font-medium text-gray-800">Category:</span> <span className="font-semibold">{assessment.result_category}</span>
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800 mb-1">Feedback:</p>
-                          <p className="text-sm text-gray-600 bg-slate-50 p-3 rounded-md border border-slate-200">
-                            {assessment.llm_feedback}
-                          </p>
-                        </div>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="text-center py-10 border border-dashed rounded-lg">
-                      <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-gray-600 text-lg font-medium">No assessments found.</p>
-                      <p className="text-sm text-gray-500 mt-1">You haven't completed any mental health assessments yet.</p>
-                      {/* Consider adding a link/button to the mental health page if desired */}
-                      {/* <Button variant="outline" className="mt-4" onClick={() => navigate('/mental-health?open_assessments=true')}>Take an Assessment</Button> */}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                        <p className="text-gray-700 text-lg font-medium">No assessments found</p>
+                        <p className="text-gray-500 mt-1 max-w-md mx-auto">You haven't completed any mental health assessments yet.</p>
+                        <Button className="mt-4 bg-lens-purple hover:bg-lens-purple-light text-white" asChild>
+                          <Link to="/mental-health">Take Your First Assessment</Link>
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
           </Tabs>
