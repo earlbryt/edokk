@@ -128,7 +128,14 @@ const OrderConfirmation: React.FC<OrderConfirmationProps> = ({ isOpen, onClose, 
                     <span>Your order has been successfully placed!</span>
                   </div>
                   <p className="text-center text-gray-700 text-sm">
-                    You can view all your orders and track shipping details in your profile's <span className="font-semibold text-lens-purple">Orders</span> tab
+                    You can view all your orders and track shipping details in your profile's{" "}
+                    <Link 
+                      to="/profile?tab=orders" 
+                      className="font-semibold text-lens-purple hover:underline cursor-pointer transition-colors"
+                    >
+                      Orders
+                    </Link>{" "}
+                    tab
                   </p>
                 </motion.div>
                 

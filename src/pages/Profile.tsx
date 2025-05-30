@@ -14,7 +14,7 @@ import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
 import ConsultationDialog from '@/components/Consultations/ConsultationDialog';
 import OrderHistory, { Order } from '@/components/Orders/OrderHistory';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 // Define the user assessment type
 interface UserAssessment {
@@ -47,6 +47,7 @@ interface Consultation {
 
 const Profile = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingConsultations, setIsLoadingConsultations] = useState(true);
@@ -56,7 +57,19 @@ const Profile = () => {
   const [profileData, setProfileData] = useState<any>({});
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [showConsultationDialog, setShowConsultationDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState('consultations');
   const { toast } = useToast();
+  
+  // Check URL parameters for tab selection
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    
+    // Set active tab if specified in URL
+    if (tabParam && ['consultations', 'orders', 'assessments'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
 
   // Get user initials for avatar fallback
   const getInitials = (name: string) => {
@@ -302,7 +315,7 @@ const Profile = () => {
 
         {/* Right column - Consultations and other tabs */}
         <div className="md:col-span-2">
-          <Tabs defaultValue="consultations" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="consultations" className="w-full">
             <TabsList className="mb-8">
               <TabsTrigger value="consultations">
                 Consultations {!isLoadingConsultations && (
