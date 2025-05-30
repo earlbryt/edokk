@@ -23,6 +23,7 @@ const Signup: React.FC = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Signup.tsx: handleSignup initiated");
     
     // Basic validation
     if (!name || !email || !password || !confirmPassword) {
@@ -44,19 +45,43 @@ const Signup: React.FC = () => {
     }
     
     setIsSubmitting(true);
+    console.log("Signup.tsx: Submitting state set to true");
     
     try {
+      console.log("Signup.tsx: Calling AuthContext signup...");
       // Signup and get user data with role
       const userData = await signup(name, email, password);
-      
-      // New users are directed to the home page instead of profile
-      // This gives them a better first-time experience
+      console.log("Signup.tsx: AuthContext signup returned:", userData);
+
+      if (userData) {
+        console.log("Signup.tsx: userData received, attempting toast and navigate.");
+        toast({
+        title: "Account Created!",
+        description: "Welcome to eDok! You have been successfully signed up. We are redirecting you to the homepage.",
+        variant: "success", // Ensure you have a 'success' variant or adjust as needed
+      });
+      console.log("Signup.tsx: Toast from Signup.tsx should have been displayed.");
       navigate('/');
+      console.log("Signup.tsx: Navigation to '/' attempted.");
+    } else {
+      console.error("Signup.tsx: AuthContext signup returned null or undefined userData.");
+      toast({
+        title: "Signup Issue (Signup.tsx)",
+        description: "Account may be created, but an issue occurred processing signup data. Please try logging in.",
+        variant: "destructive",
+      });
+    }
     } catch (error) {
-      console.error('Signup failed:', error);
-      // Error is handled within the signup function
+      console.error('Signup.tsx: Signup failed with error caught in Signup.tsx:', error);
+      // This toast is for errors originating within this try block or if AuthContext re-throws.
+      toast({
+        title: "Signup Error (Signup.tsx)",
+        description: "An unexpected error occurred during signup. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
+      console.log("Signup.tsx: Submitting state set to false (finally block).");
     }
   };
 

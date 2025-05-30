@@ -171,24 +171,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       if (data.user) {
-        // Profile creation happens automatically via DB trigger
-        
-        const userData = {
-          id: data.user.id,
-          email: data.user.email || '',
-          name,
-          role: 'user' // New users are regular users by default
-        };
-        
-        setUser(userData);
-        
+        // If signUp is successful and email confirmation is OFF,
+        // onAuthStateChange will fire with 'SIGNED_IN'.
+        // That listener is responsible for fetching the profile and calling setUser.
+
+        // The toast in Signup.tsx is generally sufficient for user feedback on successful account creation.
+        // This toast can be removed or adjusted if you want specific feedback from AuthContext.
         toast({
-          title: "Account created",
-          description: "Your account has been successfully created.",
+          title: "Signup Processed (AuthContext)",
+          description: "Registration with Supabase successful. Session being finalized.",
         });
         
-        // Return the user data for redirection purposes
-        return userData;
+        // Return a basic user object. onAuthStateChange will provide the full profile.
+        return {
+          id: data.user.id,
+          email: data.user.email || '',
+          name: data.user.user_metadata?.name || name, // Attempt to get name from metadata
+          role: 'user' // Default role, profile fetch in onAuthStateChange might update this
+        };
       }
       
       return null;
