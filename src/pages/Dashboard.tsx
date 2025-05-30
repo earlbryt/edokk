@@ -314,3 +314,37 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Skills Distribution */}
+            <div className="mb-8">
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="px-6 py-4">
+                  <h3 className="text-lg font-medium text-gray-900">Top Skills in Candidate Pool</h3>
+                  <p className="text-sm text-gray-500">Most frequently mentioned skills across all candidate resumes</p>
+                </div>
+
+                <div className="px-6 pb-6">
+                  <ChartCard 
+                    title=""
+                    subtitle=""
+                    data={topSkills}
+                    type="bar"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </main>
+    </div>
+  </div>
+);
+  );
+};
+
+export default Dashboard;
