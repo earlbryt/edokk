@@ -3,18 +3,18 @@ import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
 import { motion } from 'framer-motion';
 import { 
-  Upload, 
+  Heart, 
   FileText, 
-  CheckCircle, 
-  BarChart3, 
+  CalendarCheck, 
+  PillIcon, 
   Users, 
-  Zap, 
+  Stethoscope, 
   BrainCircuit, 
   LayoutDashboard,
   Shield,
-  GanttChart,
+  Clock,
   MessageSquare,
-  Clock
+  Bell
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -22,57 +22,57 @@ import { Link } from "react-router-dom";
 const Features: React.FC = () => {
   const mainFeatures = [
     {
-      icon: <Upload className="h-10 w-10 text-lens-purple" />,
-      title: "Bulk CV Upload",
-      description: "Upload hundreds of CVs in seconds via drag-and-drop, cloud link, or zip folder. Our system handles the processing so you can focus on decision making."
+      icon: <BrainCircuit className="h-10 w-10 text-lens-purple" />,
+      title: "Your Health Assistant Powered by AI",
+      description: "Our intuitive platform provides personalized healthcare solutions, integrating cutting-edge AI with trusted medical knowledge."
     },
     {
       icon: <FileText className="h-10 w-10 text-lens-blue" />,
-      title: "Intelligent CV Parsing",
-      description: "Our AI extracts key information from CVs including experience, education, skills, and certifications with industry-leading accuracy."
+      title: "Integrated Health Record",
+      description: "All your health data in one place, securely stored and accessible to your care providers with your permission."
     },
     {
-      icon: <CheckCircle className="h-10 w-10 text-lens-green" />,
-      title: "Smart Candidate Matching",
-      description: "Match candidates against job requirements using AI-powered scoring. Automatically sort applicants into A, B, C, and D buckets based on fit."
+      icon: <CalendarCheck className="h-10 w-10 text-lens-green" />,
+      title: "Smart Appointment Scheduling",
+      description: "AI suggests optimal appointment times based on your schedule and specialist availability."
     },
     {
-      icon: <BarChart3 className="h-10 w-10 text-lens-orange" />,
-      title: "Insightful Analytics",
-      description: "Track your hiring pipeline with comprehensive analytics. Identify bottlenecks and optimize your recruitment process with data-driven insights."
+      icon: <PillIcon className="h-10 w-10 text-lens-orange" />,
+      title: "Prescription Management",
+      description: "Upload prescriptions for validation, receive medication reminders, and get automatic refill notifications."
     }
   ];
 
   const advancedFeatures = [
     {
-      icon: <BrainCircuit className="h-8 w-8 text-lens-purple" />,
-      title: "AI-Driven Screening",
-      description: "Our AI helps you identify the most qualified candidates by analyzing skills, experience, and cultural fit from resumes and cover letters."
+      icon: <Stethoscope className="h-8 w-8 text-lens-purple" />,
+      title: "Virtual Consultations",
+      description: "Connect with healthcare professionals from the comfort of your home with secure video consultations for diagnoses, follow-ups, and specialist opinions."
     },
     {
       icon: <LayoutDashboard className="h-8 w-8 text-lens-blue" />,
-      title: "Unified Dashboard",
-      description: "All your recruitment activities in one place. Track candidates, manage pipelines, and collaborate with team members seamlessly."
+      title: "Health Dashboard",
+      description: "Access all your health metrics, upcoming appointments, and medication schedules in one comprehensive, easy-to-navigate dashboard."
     },
     {
       icon: <Shield className="h-8 w-8 text-lens-green" />,
-      title: "Data Privacy Compliance",
-      description: "GDPR and CCPA compliant. We ensure candidate data is handled securely and in accordance with all relevant regulations."
+      title: "Data Privacy Protection",
+      description: "Your health data is encrypted and protected by industry-leading security protocols, ensuring your medical information remains private and secure."
     },
     {
-      icon: <GanttChart className="h-8 w-8 text-lens-orange" />,
-      title: "Project Management",
-      description: "Organize candidates by recruitment project, set timelines, and track progress from initial application to final hiring decision."
+      icon: <Heart className="h-8 w-8 text-lens-orange" />,
+      title: "Personalized Health Plans",
+      description: "Receive customized nutrition, exercise, and wellness recommendations based on your health profile, goals, and medical history."
     },
     {
       icon: <MessageSquare className="h-8 w-8 text-lens-purple" />,
-      title: "Team Collaboration",
-      description: "Share candidates, leave comments, and tag team members to collaborate efficiently on hiring decisions."
+      title: "AI Health Chatbots",
+      description: "Get immediate answers to health questions from our specialized AI assistants for nutrition guidance, mental health support, and herbal medicine."
     },
     {
-      icon: <Clock className="h-8 w-8 text-lens-blue" />,
-      title: "Time-Saving Automation",
-      description: "Automated candidate sorting, email notifications, and status updates to reduce manual work and speed up your recruitment process."
+      icon: <Bell className="h-8 w-8 text-lens-blue" />,
+      title: "Health Reminders",
+      description: "Never miss important medications, appointments, or health check-ups with our intelligent reminder system tailored to your schedule."
     }
   ];
 
@@ -97,7 +97,7 @@ const Features: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              Powerful Features for<br />Modern Recruiters
+              Advanced Healthcare<br />At Your Fingertips
             </motion.h1>
             <motion.p 
               className="text-xl mb-8 text-white/90"
@@ -105,7 +105,7 @@ const Features: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              Discover how Lens can transform your recruitment process with AI-powered tools designed for efficiency and accuracy.
+              Discover how eDok's integrated platform combines AI innovation with trusted healthcare expertise for personalized medical care.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -128,7 +128,7 @@ const Features: React.FC = () => {
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="font-display text-4xl font-bold mb-6 text-gray-900">Core Features</h2>
             <p className="text-xl text-gray-600">
-              Our platform helps recruiters save time, reduce bias, and find the best candidates efficiently.
+              Our platform makes healthcare accessible, personalized, and convenient for patients and providers alike.
             </p>
           </div>
           
@@ -168,9 +168,9 @@ const Features: React.FC = () => {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
             >
-              <h2 className="font-display text-4xl font-bold text-gray-900">AI-Powered Recruitment</h2>
+              <h2 className="font-display text-4xl font-bold text-gray-900">AI-Powered Healthcare</h2>
               <p className="text-lg text-gray-600">
-                Lens uses advanced AI algorithms to understand the content of resumes and match candidates to your specific requirements with unprecedented accuracy.
+                eDok uses advanced AI to provide personalized health insights, recommendations, and support, complementing traditional medical care with cutting-edge technology.
               </p>
               
               <div className="space-y-6">
@@ -179,18 +179,18 @@ const Features: React.FC = () => {
                     <BrainCircuit className="h-6 w-6 text-lens-purple" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Semantic Understanding</h3>
-                    <p className="text-gray-600">Our AI doesn't just look for keywords - it understands the meaning behind candidate experience and skills.</p>
+                    <h3 className="text-xl font-semibold mb-2">Contextual Understanding</h3>
+                    <p className="text-gray-600">Our AI comprehends your health concerns in context, providing relevant information tailored to your specific medical profile.</p>
                   </div>
                 </div>
                 
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-lens-blue/10 flex items-center justify-center">
-                    <CheckCircle className="h-6 w-6 text-lens-blue" />
+                    <Heart className="h-6 w-6 text-lens-blue" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Automatic Categorization</h3>
-                    <p className="text-gray-600">Candidates are automatically sorted into A, B, C, and D categories based on their match to your requirements.</p>
+                    <h3 className="text-xl font-semibold mb-2">Intelligent Health Monitoring</h3>
+                    <p className="text-gray-600">Our system continuously analyzes your health data to identify patterns and alert you to potential concerns before they become serious.</p>
                   </div>
                 </div>
                 
@@ -199,8 +199,8 @@ const Features: React.FC = () => {
                     <Users className="h-6 w-6 text-lens-green" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Bias Reduction</h3>
-                    <p className="text-gray-600">Our AI is designed to focus on skills and qualifications, helping to reduce unconscious bias in the screening process.</p>
+                    <h3 className="text-xl font-semibold mb-2">Evidence-Based Guidance</h3>
+                    <p className="text-gray-600">Our AI combines the latest medical research with your personal health data to provide accurate, science-backed recommendations.</p>
                   </div>
                 </div>
               </div>
@@ -217,7 +217,7 @@ const Features: React.FC = () => {
               <div className="relative z-10 rounded-xl shadow-xl overflow-hidden">
                 <img 
                   src="/assets/ai-recruitment.jpg" 
-                  alt="AI-Powered Recruitment" 
+                  alt="AI-Powered Healthcare" 
                   className="w-full h-auto"
                   onError={(e) => {
                     e.currentTarget.src = "https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&auto=format&fit=crop&w=2850&q=80";
@@ -239,7 +239,7 @@ const Features: React.FC = () => {
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="font-display text-4xl font-bold mb-6 text-gray-900">Advanced Features</h2>
             <p className="text-xl text-gray-600">
-              Take your recruitment process to the next level with these powerful tools.
+              Enhance your healthcare experience with these specialized tools and services.
             </p>
           </div>
           
@@ -271,9 +271,9 @@ const Features: React.FC = () => {
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-br from-lens-blue/90 to-lens-purple/90 text-white">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-display text-3xl md:text-4xl font-bold mb-8">Ready to Transform Your Recruitment Process?</h2>
+          <h2 className="font-display text-3xl md:text-4xl font-bold mb-8">Ready to Take Control of Your Health?</h2>
           <p className="text-xl mb-10 text-white/90">
-            Join forward-thinking recruiting agencies and HR departments who have already cut their screening time by 80%.
+            Join thousands of patients who have experienced more convenient, personalized, and effective healthcare with eDok.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/signup">

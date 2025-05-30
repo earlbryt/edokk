@@ -1,43 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './card';
-import { User, Brain, Sparkles, FileText, Search, Award, Clock } from 'lucide-react';
+import { Heart, Pill, Apple, Brain, Stethoscope, ShieldCheck, Flower2, Clock } from 'lucide-react';
 
 interface LoadingAnimationProps {
   message?: string;
 }
 
-const recruitingFacts = [
+const healthcareFacts = [
   {
-    fact: "Recruiters spend an average of just 7 seconds scanning a resume initially.",
-    icon: <FileText className="h-6 w-6 text-lens-purple" />
+    fact: "Regular virtual consultations can reduce hospital readmissions by up to 45%.",
+    icon: <Stethoscope className="h-6 w-6 text-lens-purple" />
   },
   {
-    fact: "Top candidates are typically off the market within 10 days.",
+    fact: "Patients who use telemedicine save an average of 100 minutes per visit compared to in-person appointments.",
     icon: <Clock className="h-6 w-6 text-lens-purple" />
   },
   {
-    fact: "63% of job seekers have declined offers due to poor candidate experience.",
-    icon: <User className="h-6 w-6 text-lens-purple" />
+    fact: "78% of patients report better medication adherence with digital reminders and prescription delivery.",
+    icon: <Pill className="h-6 w-6 text-lens-purple" />
   },
   {
-    fact: "AI-powered recruitment tools can reduce time-to-hire by up to 70%.",
+    fact: "AI-powered symptom assessment can improve diagnostic accuracy by up to 30%.",
     icon: <Brain className="h-6 w-6 text-lens-purple" />
   },
   {
-    fact: "Companies with diverse teams outperform their competitors by 35%.",
-    icon: <Award className="h-6 w-6 text-lens-purple" />
+    fact: "Integrated health platforms reduce medical errors by 52% through better coordination of care.",
+    icon: <ShieldCheck className="h-6 w-6 text-lens-purple" />
   },
   {
-    fact: "Soft skills assessment improves hiring success rates by 25%.",
-    icon: <Sparkles className="h-6 w-6 text-lens-purple" />
+    fact: "Personalized nutrition plans can improve chronic condition management by 40%.",
+    icon: <Apple className="h-6 w-6 text-lens-purple" />
   },
   {
-    fact: "Candidate experience directly impacts consumer brand perception and revenue.",
-    icon: <User className="h-6 w-6 text-lens-purple" />
+    fact: "Mental health apps with AI support increase therapy session effectiveness by 35%.",
+    icon: <Brain className="h-6 w-6 text-lens-purple" />
   },
   {
-    fact: "Peer-to-peer recruiting yields 7x more candidate responses than cold outreach.",
-    icon: <Search className="h-6 w-6 text-lens-purple" />
+    fact: "Herbal medicine knowledge databases help identify beneficial interactions with conventional treatments.",
+    icon: <Flower2 className="h-6 w-6 text-lens-purple" />
   }
 ];
 
@@ -47,13 +47,13 @@ export const LoadingAnimation: React.FC<LoadingAnimationProps> = ({ message = "L
   // Change fact every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentFactIndex(prev => (prev + 1) % recruitingFacts.length);
+      setCurrentFactIndex(prev => (prev + 1) % healthcareFacts.length);
     }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const currentFact = recruitingFacts[currentFactIndex];
+  const currentFact = healthcareFacts[currentFactIndex];
 
   return (
     <div className="w-full min-h-[300px] flex items-center justify-center">
@@ -81,7 +81,7 @@ export const LoadingAnimation: React.FC<LoadingAnimationProps> = ({ message = "L
             
             {/* Progress dots */}
             <div className="flex gap-1.5">
-              {recruitingFacts.map((_, index) => (
+              {healthcareFacts.map((_, index) => (
                 <div 
                   key={index}
                   className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${

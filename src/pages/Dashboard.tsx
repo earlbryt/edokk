@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
         <main className="p-6">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              {user?.name ? `Welcome, ${user.name.split(' ')[0]}` : 'Recruitment Dashboard'}
+              {user?.name ? `Welcome, ${user.name.split(' ')[0]}` : 'Healthcare Dashboard'}
             </h1>
             <p className="text-gray-600">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -240,7 +240,7 @@ const Dashboard: React.FC = () => {
           </div>
           
           {loading ? (
-            <LoadingAnimation message="Preparing your recruitment insights..." />
+            <LoadingAnimation message="Preparing your healthcare insights..." />
           ) : (
             <>
               {/* Stats Grid */}

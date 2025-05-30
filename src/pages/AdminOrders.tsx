@@ -495,7 +495,7 @@ const AdminOrders: React.FC = () => {
                               {order.status !== 'delivered' ? (
                                 <Button 
                                   size="sm" 
-                                  className="bg-green-600 hover:bg-green-700 w-full"
+                                  className="bg-green-600 hover:bg-green-700 text-white font-medium w-full"
                                   onClick={() => updateOrderStatus(order.id, 'delivered')}
                                   disabled={updatingStatus}
                                 >
