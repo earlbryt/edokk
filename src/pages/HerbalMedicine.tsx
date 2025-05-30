@@ -465,10 +465,10 @@ const HerbalMedicine = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="relative mt-12 lg:mt-0 lg:ml-4 lg:mr-auto w-full max-w-[486px]" /* Moved slightly back to the right with ml-4 */
+              className="relative mt-12 lg:mt-0 lg:ml-4 lg:mr-auto w-full max-w-[85vw] sm:max-w-[400px] lg:max-w-[486px] overflow-hidden sm:overflow-visible lg:overflow-visible" /* Mobile constraints with original desktop design */
             >
               {/* Dynamic background elements */}
-              <div className="absolute -inset-14 overflow-hidden"> {/* Reduced from -inset-16 to -inset-14 */}
+              <div className="absolute -inset-6 sm:-inset-10 lg:-inset-14 overflow-hidden"> {/* Mobile constraints with original desktop values */}
                 {/* Dramatic radial gradient backgrounds */}
                 <div className="absolute inset-0 bg-gradient-to-br from-green-900/10 via-transparent to-amber-700/5 z-0"></div>
                 
@@ -530,7 +530,7 @@ const HerbalMedicine = () => {
                 {/* Divine angelic backdrop */}
                 <div className="relative">
                   {/* Completely solid hexagonal outer layer - fully visible and extended */}
-                  <div className="absolute inset-[-45px] bg-gradient-to-tr from-purple-100 via-teal-100 to-indigo-50 transform rotate-45 rounded-3xl -z-0"></div>
+                  <div className="absolute inset-[-20px] sm:inset-[-30px] lg:inset-[-45px] bg-gradient-to-tr from-purple-100 via-teal-100 to-indigo-50 transform rotate-45 rounded-3xl -z-0"></div>
                   
                   {/* Removed the beaming rays as requested */}
                   
@@ -555,20 +555,20 @@ const HerbalMedicine = () => {
                   </div>
                   
                   {/* Divine halo frame with white glow - inspired by OrderConfirmation */}
-                  <div className="relative z-10 p-5"> {/* Reduced padding from p-6 to p-5 */}
+                  <div className="relative z-10 p-3 sm:p-4 lg:p-6"> {/* Original p-6 for desktop */}
                     {/* Angelic glow ring - consistent, non-dimming */}
                     <div className="absolute inset-0 rounded-full flex items-center justify-center overflow-hidden shadow-[0_0_15px_5px_rgba(255,255,255,0.7),0_0_30px_15px_rgba(126,58,242,0.3)]"></div>
                     
                     {/* Main image container with divine border */}
-                    <div className="relative overflow-hidden rounded-full border-7 border-gradient-to-r from-lens-purple/80 via-white/90 to-indigo-300/80 shadow-xl"> {/* Reduced border from 8 to 7 */}
+                    <div className="relative overflow-hidden rounded-full border-4 sm:border-5 lg:border-8 border-gradient-to-r from-lens-purple/80 via-white/90 to-indigo-300/80 shadow-xl"> {/* Original border-8 for desktop */}
                       {/* Accent layer */}
-                      <div className="absolute inset-0 border-3 border-lens-purple/20 rounded-full z-20 pointer-events-none"></div> {/* Reduced border from 4 to 3 */}
+                      <div className="absolute inset-0 border-3 border-lens-purple/20 rounded-full z-20 pointer-events-none"></div> 
                       
                       {/* Actual image */}
                       <img 
                         src="/assets/herbal.png" 
                         alt="Herbal Medicine" 
-                        className="w-full h-auto transform scale-100 z-10" /* Reduced scale from 110% to 100% */
+                        className="w-full h-auto transform scale-100 z-10" 
                       />
                       
                       {/* Divine light from above effect - consistent */}
@@ -580,8 +580,8 @@ const HerbalMedicine = () => {
                   </div>
                   
                   {/* Smaller decorative accent elements - consistent, static styling */}
-                  <div className="absolute top-0 right-0 w-11 h-11 bg-gradient-to-br from-lens-purple/40 to-indigo-300/20 rounded-full blur-sm z-10 shadow-[0_0_10px_5px_rgba(126,58,242,0.15)]"></div> {/* Reduced from 12x12 to 11x11 */}
-                  <div className="absolute bottom-4 left-0 w-12 h-12 bg-gradient-to-tr from-teal-400/25 to-teal-200/15 rounded-full blur-sm z-10 shadow-[0_0_10px_5px_rgba(20,184,166,0.15)]"></div> {/* Reduced from 14x14 to 12x12 */}
+                  <div className="absolute top-0 right-0 w-11 h-11 bg-gradient-to-br from-lens-purple/40 to-indigo-300/20 rounded-full blur-sm z-10 shadow-[0_0_10px_5px_rgba(126,58,242,0.15)]"></div> 
+                  <div className="absolute bottom-4 left-0 w-12 h-12 bg-gradient-to-tr from-teal-400/25 to-teal-200/15 rounded-full blur-sm z-10 shadow-[0_0_10px_5px_rgba(20,184,166,0.15)]"></div> 
                 </div>
                 
                 {/* Modern geometric leaf pattern background */}
@@ -639,7 +639,7 @@ const HerbalMedicine = () => {
                 
                 {/* Bold floating herbal elements */}
                 <motion.div
-                  className="absolute -bottom-7 -right-7 w-25 h-25 bg-gradient-to-br from-amber-400/70 to-amber-200/50 rounded-full z-20 flex items-center justify-center shadow-lg backdrop-blur-sm" /* Reduced size and position */  
+                  className="absolute -bottom-3 -right-3 sm:-bottom-5 sm:-right-5 lg:-bottom-8 lg:-right-8 w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 bg-gradient-to-br from-amber-400/70 to-amber-200/50 rounded-full z-20 flex items-center justify-center shadow-lg backdrop-blur-sm"  
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.3 }}
@@ -654,12 +654,12 @@ const HerbalMedicine = () => {
                       ease: "linear"
                     }}
                   >
-                    <Flower className="w-11 h-11 text-amber-700/90" /> {/* Reduced from 12x12 to 11x11 */}
+                    <Flower className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-amber-700/90" /> {/* Original icon size for desktop */}
                   </motion.div>
                 </motion.div>
                 
                 <motion.div
-                  className="absolute -top-7 -left-7 w-25 h-25 bg-gradient-to-tl from-emerald-500/70 to-green-200/50 rounded-full z-20 flex items-center justify-center shadow-lg backdrop-blur-sm" /* Reduced size and position */
+                  className="absolute -top-3 -left-3 sm:-top-5 sm:-left-5 lg:-top-8 lg:-left-8 w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 bg-gradient-to-tl from-emerald-500/70 to-green-200/50 rounded-full z-20 flex items-center justify-center shadow-lg backdrop-blur-sm" 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.5 }}
@@ -674,7 +674,7 @@ const HerbalMedicine = () => {
                       ease: "linear"
                     }}
                   >
-                    <Leaf className="w-11 h-11 text-green-800/90" /> {/* Reduced from 12x12 to 11x11 */}
+                    <Leaf className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-emerald-700/90" />
                   </motion.div>
                 </motion.div>
               </div>
@@ -752,65 +752,27 @@ const HerbalMedicine = () => {
           {/* Slide-in Fullscreen Chat Interface */}
           <HerbalChatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
           
-          {/* Footer section with floating chat button - improved for mobile */}
-          <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-30 max-w-[90vw] overflow-visible">
-            {/* Button with enhanced design - mobile optimized */}
-            <div className="relative group">
-              {/* Outer glow - creates a soft halo effect - constrained for mobile */}
-              <div className="absolute inset-[-6px] sm:inset-[-8px] bg-gradient-to-tr from-lens-purple/40 via-indigo-400/20 to-lens-purple/30 rounded-full blur-md opacity-70 group-hover:opacity-90 transition-opacity duration-500"></div>
-              
-              {/* Subtle pulsing ring - size adjusted for mobile */}
-              <motion.div 
-                className="absolute inset-[-3px] sm:inset-[-4px] rounded-full border border-lens-purple/30 group-hover:border-lens-purple/50 transition-colors duration-500"
-                animate={{
-                  scale: [1, 1.05, 1],
-                  opacity: [0.5, 0.8, 0.5]
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-              
-              {/* Subtler beaming rays - contained for mobile */}
-              <div className="absolute inset-0 z-0 overflow-hidden rounded-full">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div 
-                    key={i}
-                    className="absolute top-1/2 left-1/2 h-[130%] sm:h-[150%] w-0.5 bg-gradient-to-t from-lens-purple/0 via-lens-purple/10 to-indigo-300/0 group-hover:via-lens-purple/15 transition-colors duration-500"
-                    style={{ 
-                      transformOrigin: 'center center',
-                      transform: `translate(-50%, -50%) rotate(${i * 45}deg)` 
-                    }}
-                  />
-                ))}
-              </div>
-              
-              {/* Main button with gradient background - smaller on mobile */}
-              <Button 
+          {/* True floating action button that won't cause overflow */}
+          <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-30">
+            <div className="relative">
+              {/* Main FAB with simplified design */}
+              <Button
                 onClick={() => setIsChatOpen(true)}
-                className="relative rounded-full h-14 w-14 sm:h-16 sm:w-16 bg-gradient-to-br from-lens-purple to-indigo-600 hover:from-lens-purple-light hover:to-indigo-500 shadow-lg border-2 border-white/20 backdrop-blur-sm flex items-center justify-center z-10 transition-all duration-300 group-hover:shadow-lens-purple/30 group-hover:shadow-xl"
+                className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-lens-purple hover:bg-lens-purple-light shadow-lg flex items-center justify-center border-2 border-white/20 transition-all duration-300"
+                aria-label="Chat with Nature's Wisdom"
               >
-                {/* Inner glow effect */}
-                <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-white/10 to-transparent opacity-50"></div>
+                {/* Subtle inner glow */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent opacity-30"></div>
                 
-                {/* Icon with decorative elements - smaller for mobile */}
-                <div className="relative">
-                  {/* Small sparkle in top right of icon */}
-                  <div className="absolute -top-1 -right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full opacity-80"></div>
-                  
-                  {/* Main icon */}
-                  <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7 text-white drop-shadow-md" />
-                  
-                  {/* Small dot decorations */}
-                  <div className="absolute bottom-0 right-0 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-white/70 rounded-full"></div>
-                </div>
+                {/* Icon */}
+                <MessageCircle className="h-6 w-6 text-white" />
               </Button>
               
-              {/* Text label that appears on hover - hidden on small mobile */}
-              <div className="hidden sm:block absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md text-sm font-medium text-lens-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                Chat with Nature's Wisdom
+              {/* Tooltip - only on larger screens */}
+              <div className="hidden md:block absolute bottom-full right-0 mb-2 whitespace-nowrap">
+                <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md text-sm font-medium text-lens-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  Chat with Nature's Wisdom
+                </div>
               </div>
             </div>
           </div>
