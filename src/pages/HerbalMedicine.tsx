@@ -59,11 +59,69 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   // Scroll to bottom of messages
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Fetch chat history when the component opens and user is available
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (isOpen && user && !historyLoaded) {
+        setIsLoading(true); // Show loading indicator while fetching history
+        try {
+          const { data, error } = await supabase
+            .from('herbal_chat_messages')
+            .select('id, content, role, created_at')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: true });
+
+          if (error) {
+            console.error('Error fetching chat history:', error);
+            // Optionally, show an error message to the user in the chat
+            setMessages(prev => [...prev, {
+              id: 'history-error',
+              content: 'Could not load chat history. Please try again later.',
+              sender: 'assistant',
+              timestamp: new Date()
+            }]);
+          } else if (data && data.length > 0) {
+            const fetchedMessages: Message[] = data.map((msg: any) => ({
+              id: msg.id.toString(), // Use DB id as string
+              content: msg.content,
+              sender: msg.role === 'user' ? 'user' : 'assistant', // DB role is 'user' or 'assistant'
+              timestamp: new Date(msg.created_at)
+            }));
+            setMessages(fetchedMessages);
+          } else {
+            // No history, keep the default welcome message which is already in state
+          }
+          setHistoryLoaded(true);
+        } catch (e) {
+          console.error('Unexpected error fetching chat history:', e);
+          setMessages(prev => [...prev, {
+            id: 'history-fetch-error',
+            content: 'An unexpected error occurred while loading history.',
+            sender: 'assistant',
+            timestamp: new Date()
+          }]);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchHistory();
+  }, [isOpen, user, historyLoaded, supabase]);
+
+  // Reset historyLoaded when chat is closed so it refetches on reopen
+  useEffect(() => {
+    if (!isOpen) {
+      setHistoryLoaded(false);
+    }
+  }, [isOpen]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,12 +129,23 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
 
   const handleSendMessage = async () => {
     console.log('🚀 handleSendMessage called');
-    if (!inputMessage.trim() || isLoading || !user) {
+    if (!inputMessage.trim() || isLoading) {
       console.log('❌ Early return conditions:', { 
         emptyInput: !inputMessage.trim(), 
-        isLoading, 
-        userExists: !!user 
+        isLoading 
       });
+      return;
+    }
+    
+    // Check for user authentication and display appropriate message
+    if (!user) {
+      console.log('❌ No authenticated user found');
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        content: "Please sign in to use the herbal medicine consultant.",
+        sender: 'assistant' as const,
+        timestamp: new Date()
+      }]);
       return;
     }
 
@@ -114,6 +183,11 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://eoxgpdtrszswnpilkzma.supabase.co';
       console.log('🌐 Using Supabase URL:', supabaseUrl);
       
+      // Check if we have a valid Supabase URL
+      if (!supabaseUrl) {
+        throw new Error('Supabase URL is not configured properly');
+      }
+      
       const endpoint = `${supabaseUrl}/functions/v1/herbal-medicine-chat`;
       console.log('🌐 Full endpoint URL:', endpoint);
       
@@ -143,7 +217,17 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ Response error details:', errorText);
-        throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
+        
+        // More specific error messages based on status code
+        if (response.status === 401 || response.status === 403) {
+          throw new Error(`Authentication error (${response.status}): Your session may have expired. Please sign in again.`);
+        } else if (response.status === 404) {
+          throw new Error(`Edge function not found (${response.status}): The herbal medicine chat function may not be deployed.`);
+        } else if (response.status >= 500) {
+          throw new Error(`Server error (${response.status}): The edge function encountered an internal error.`);
+        } else {
+          throw new Error(`Failed to get response: ${response.status} ${response.statusText}\n${errorText}`);
+        }
       }
 
       console.log('📦 Parsing response JSON...');
@@ -263,29 +347,53 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
             </motion.div>
             
             {/* Main content container with flexbox column layout */}
-            <div className="flex flex-col h-[calc(100%-72px)] bg-gradient-to-b from-gray-50 to-white relative">
-              {/* Ambient subtle background elements */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.03]">
-                <svg className="absolute w-full h-full opacity-30" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0,1000 C200,800 350,900 500,800 C650,700 700,500 1000,500 L1000,1000 Z" fill="#15803d" />
-                  <path d="M0,1000 C300,950 400,800 600,800 C800,800 900,900 1000,1000 Z" fill="#7e3af2" />
-                </svg>
-                <div className="absolute inset-0 bg-gradient-to-tr from-green-50/10 via-transparent to-lens-purple/5"></div>
+            <div className="flex flex-col h-[calc(100%-72px)] bg-white relative overflow-hidden">
+              {/* Enhanced ambient background with depth elements */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                {/* Gradient base layer */}
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50/80"></div>
+                
+                {/* Soft abstract shapes for visual interest */}
+                <div className="absolute -top-20 -right-20 w-72 h-72 bg-lens-purple/5 rounded-full blur-3xl opacity-70"></div>
+                <div className="absolute top-1/3 -left-20 w-80 h-80 bg-emerald-100/20 rounded-full blur-3xl opacity-60"></div>
+                <div className="absolute bottom-0 right-10 w-96 h-96 bg-amber-50/30 rounded-full blur-3xl opacity-50"></div>
+                
+                {/* Subtle pattern overlay */}
+                <div className="absolute inset-0 opacity-[0.03] [mask-image:linear-gradient(to_bottom,transparent,black)]">
+                  <svg className="w-full h-full" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+                    <pattern id="herb-pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(5)">
+                      <path d="M10,10 Q15,5 20,10 T30,10 M0,20 Q5,15 10,20 T20,20" stroke="#15803d" strokeWidth="1" fill="none" />
+                    </pattern>
+                    <rect x="0" y="0" width="100%" height="100%" fill="url(#herb-pattern)" />
+                  </svg>
+                </div>
+                
+                {/* Decorative subtle elements */}
+                <div className="absolute top-1/4 right-1/4 w-1 h-1 bg-lens-purple/40 rounded-full shadow-lg shadow-lens-purple/20"></div>
+                <div className="absolute top-1/2 left-1/3 w-1.5 h-1.5 bg-emerald-400/30 rounded-full shadow-lg shadow-emerald-400/10"></div>
+                <div className="absolute bottom-1/3 right-1/3 w-1 h-1 bg-amber-300/40 rounded-full shadow-lg shadow-amber-300/10"></div>
+                
+                {/* Soft light effect at the top */}
+                <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-white/80 to-transparent opacity-70"></div>
               </div>
 
               {/* Messages with iOS-like styling - mobile optimized */}
               <ScrollArea className="flex-1 px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-16 overflow-x-hidden">
                 <div className="max-w-2xl mx-auto space-y-3 sm:space-y-4">
-                  {/* Status pill - mobile optimized */}
+                  {/* Status pill - mobile optimized with enhanced styling */}
                   <motion.div 
-                    className="flex justify-center my-2 sm:my-3"
+                    className="flex justify-center my-3 sm:my-4"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.4 }}
                   >
-                    <div className="max-w-[95%] px-2 sm:px-3 py-1 sm:py-1.5 bg-white/90 rounded-full flex items-center gap-1 sm:gap-2 shadow-sm border border-gray-200/50">
-                      <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0 text-emerald-600" />
-                      <span className="text-[10px] sm:text-xs font-medium text-gray-700 truncate">Using AI to interpret traditional herbal knowledge</span>
+                    <div className="relative max-w-[95%] px-2 sm:px-3 py-1 sm:py-1.5 bg-white/90 backdrop-blur-sm rounded-full flex items-center gap-1 sm:gap-2 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-gray-200/70 overflow-hidden">
+                      {/* Inner highlight for pill */}
+                      <div className="absolute inset-x-0 top-0 h-[50%] bg-gradient-to-b from-white to-transparent opacity-70 pointer-events-none"></div>
+                      {/* Left glow accent */}
+                      <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-8 bg-emerald-400/20 blur-xl rounded-full"></div>
+                      <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0 text-emerald-600 relative z-10" />
+                      <span className="text-[10px] sm:text-xs font-medium text-gray-700 truncate relative z-10">Using AI to interpret traditional herbal knowledge</span>
                     </div>
                   </motion.div>
 
@@ -305,10 +413,12 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
                       )}
                       
                       <div
-                        className={`max-w-[75%] sm:max-w-[85%] md:max-w-[70%] p-2.5 sm:p-3.5 shadow-sm ${message.sender === 'user' 
-                          ? 'bg-lens-purple text-white rounded-2xl rounded-tr-sm' 
-                          : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm'}`}
+                        className={`max-w-[75%] sm:max-w-[85%] md:max-w-[70%] p-2.5 sm:p-3.5 ${message.sender === 'user' 
+                          ? 'bg-gradient-to-br from-lens-purple to-lens-purple-light text-white rounded-2xl rounded-tr-sm shadow-[0_2px_8px_rgba(126,58,242,0.25)]' 
+                          : 'bg-white/95 backdrop-blur-sm border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm shadow-[0_2px_10px_rgba(0,0,0,0.03)]'}`}
                       >
+                        {/* Inner highlight effect for depth */}
+                        <div className="absolute inset-x-0 top-0 h-[40%] bg-gradient-to-b from-white/20 to-transparent rounded-t-2xl opacity-50 pointer-events-none"></div>
                         <p className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed break-words">{message.content}</p>
                       </div>
 
@@ -327,8 +437,10 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
                       animate={{ opacity: 1, scale: 1 }}
                       className="flex justify-start items-end"
                     >
-                      <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-emerald-100 flex items-center justify-center mr-1.5 sm:mr-2 mb-1 shadow-sm border border-emerald-200/50 flex-shrink-0">
-                        <Leaf className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600" />
+                      <div className="relative h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center mr-1.5 sm:mr-2 mb-1 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-emerald-200/50 flex-shrink-0 overflow-hidden">
+                        {/* Inner highlight */}
+                        <div className="absolute inset-x-0 top-0 h-[50%] bg-gradient-to-b from-white/80 to-transparent rounded-t-full"></div>
+                        <Leaf className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600 relative z-10" />
                       </div>
                       <div className="rounded-2xl rounded-tl-sm p-2 sm:p-3 bg-white border border-gray-100 shadow-sm">
                         <div className="flex items-center h-4 sm:h-5 space-x-1 sm:space-x-1.5">
@@ -346,11 +458,16 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
             
             {/* Premium iOS-style input area fixed at bottom - mobile optimized */}
             <motion.div 
-              className="sticky bottom-0 p-3 sm:p-4 border-t border-gray-200/70 bg-white/90 backdrop-blur-md shadow-[0_-1px_5px_rgba(0,0,0,0.08)]"
+              className="sticky bottom-0 p-3 sm:p-4 border-t border-gray-200/70 bg-white/90 backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-10"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.4 }}
             >
+              {/* Decorative accents for input area */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-3 left-1/4 right-1/4 h-1.5 bg-gradient-to-r from-transparent via-lens-purple/10 to-transparent blur-sm"></div>
+                <div className="absolute top-0 inset-x-0 h-full bg-gradient-to-b from-white/70 to-white/30 opacity-50"></div>
+              </div>
               <div className="max-w-2xl mx-auto flex items-center gap-2 sm:gap-3">
                 <div className="relative flex-1">
                   <Input
@@ -359,7 +476,7 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={isLoading || !user}
-                    className="flex-1 py-2 sm:py-2.5 pl-3 sm:pl-4 pr-8 sm:pr-10 text-sm sm:text-base rounded-full border-gray-200 shadow-sm focus-visible:ring-lens-purple focus-visible:border-lens-purple bg-white/80 backdrop-blur-sm"
+                    className="flex-1 py-2 sm:py-2.5 pl-3 sm:pl-4 pr-8 sm:pr-10 text-sm sm:text-base rounded-full border-gray-200 shadow-[0_2px_15px_rgba(0,0,0,0.03),inset_0_1px_2px_rgba(255,255,255,0.9)] focus-visible:ring-lens-purple focus-visible:border-lens-purple bg-white/90 backdrop-blur-md transition-all duration-200 hover:shadow-[0_2px_20px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.9)]"
                   />
                   {inputMessage.length > 0 && (
                     <Button 

@@ -43,7 +43,7 @@ async function getConversationHistory(supabase, userId, limit = 10) {
 }
 
 // Query Pinecone vector database for relevant herbal medicine information
-async function queryPineconeVectorDB(query, topK = 3) {
+async function queryPineconeVectorDB(query, topK = 2) {
   try {
     const PINECONE_API_KEY = Deno.env.get('PINECONE_API_KEY') || '';
     const FIREWORKS_API_KEY = Deno.env.get('FIREWORKS_API_KEY') || '';
