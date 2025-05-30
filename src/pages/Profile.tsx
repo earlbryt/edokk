@@ -380,57 +380,65 @@ const Profile = () => {
                           consultation.status === 'cancelled' ? 'bg-red-500' :
                           'bg-yellow-500'
                         }`} />
-                        <CardContent className="p-6">
-                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-2">
+                        <CardContent className="p-5">
+                          <div className="flex flex-col md:flex-row justify-between gap-4">
+                            {/* Left section - Consultation details */}
+                            <div className="space-y-3.5">
+                              {/* Status badges */}
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
                                 {getStatusBadge(consultation.status)}
-                                <Badge variant="outline" className="bg-gray-50 capitalize">
+                                <Badge variant="outline" className="bg-gray-50 capitalize font-medium">
                                   {consultation.consultation_type.replace('_', ' ')}
                                 </Badge>
                               </div>
                               
+                              {/* Title and date/time */}
                               <div>
-                                <h3 className="text-lg font-semibold">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-1.5">
                                   Consultation on {formatDate(consultation.preferred_date)}
                                 </h3>
-                                <div className="flex items-center gap-4 mt-1 text-muted-foreground">
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    <span>{consultation.preferred_time}</span>
+                                <div className="flex items-center gap-4 text-muted-foreground">
+                                  <div className="flex items-center gap-1.5">
+                                    <Clock className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm font-medium">{consultation.preferred_time}</span>
                                   </div>
                                   {consultation.symptoms.length > 0 && (
-                                    <div className="flex items-center gap-2">
-                                      <FileText className="h-4 w-4" />
-                                      <span>{consultation.symptoms.length} Symptoms</span>
+                                    <div className="flex items-center gap-1.5">
+                                      <FileText className="h-4 w-4 text-gray-500" />
+                                      <span className="text-sm font-medium">{consultation.symptoms.length} Symptoms</span>
                                     </div>
                                   )}
                                 </div>
                               </div>
                               
+                              {/* Symptoms tags */}
                               {consultation.symptoms.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {consultation.symptoms.slice(0, 3).map((symptom, i) => (
-                                    <Badge key={i} variant="secondary" className="bg-gray-100">
-                                      {symptom}
-                                    </Badge>
-                                  ))}
-                                  {consultation.symptoms.length > 3 && (
-                                    <Badge variant="secondary" className="bg-gray-100">
-                                      +{consultation.symptoms.length - 3} more
-                                    </Badge>
-                                  )}
+                                <div className="pt-1">
+                                  <p className="text-xs text-gray-500 mb-1.5">Reported symptoms:</p>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {consultation.symptoms.slice(0, 3).map((symptom, i) => (
+                                      <Badge key={i} variant="secondary" className="bg-gray-100 text-gray-700 font-normal">
+                                        {symptom}
+                                      </Badge>
+                                    ))}
+                                    {consultation.symptoms.length > 3 && (
+                                      <Badge variant="secondary" className="bg-gray-100 text-gray-700 font-normal">
+                                        +{consultation.symptoms.length - 3} more
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </div>
                             
-                            <div className="flex items-center gap-2 md:flex-col md:items-end self-end md:self-center">
+                            {/* Right section - Actions */}
+                            <div className="flex items-center gap-2 md:flex-col md:items-end self-end md:self-center mt-2 md:mt-0">
                               {consultation.status === 'confirmed' && (
-                                <Button size="sm" className="bg-lens-purple hover:bg-lens-purple-light">
+                                <Button size="sm" className="bg-lens-purple hover:bg-lens-purple-light px-4">
                                   Join Call
                                 </Button>
                               )}
-                              <Button variant="ghost" size="sm">
+                              <Button variant="outline" size="sm" className="text-gray-600 border-gray-200 px-4">
                                 View Details
                               </Button>
                             </div>
@@ -493,26 +501,42 @@ const Profile = () => {
                       ))
                     ) : assessments.length > 0 ? (
                       assessments.map((assessment) => (
-                        <Card key={assessment.id} className="p-4 hover:shadow-md transition-all duration-200 border">
-                          <div className="flex justify-between items-start mb-2">
-                            <h4 className="font-semibold text-lg text-lens-purple">
-                              {assessment.mental_health_assessment?.title || 'Assessment'}
-                            </h4>
-                            <Badge variant="outline" className="text-xs font-medium bg-gray-50 text-gray-600 border-gray-200">{formatDate(assessment.created_at)}</Badge>
-                          </div>
-                          <div className="mb-3">
-                            <p className="text-sm text-gray-700">
-                              <span className="font-medium text-gray-800">Score:</span> {assessment.score}
-                            </p>
-                            <p className="text-sm text-gray-700">
-                              <span className="font-medium text-gray-800">Category:</span> <span className="font-semibold">{assessment.result_category}</span>
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-800 mb-1">Feedback:</p>
-                            <p className="text-sm text-gray-600 bg-slate-50 p-3 rounded-md border border-slate-200">
-                              {assessment.llm_feedback}
-                            </p>
+                        <Card key={assessment.id} className="overflow-hidden hover:shadow-md transition-all duration-200 border">
+                          {/* Top colored bar */}
+                          <div className="h-1 w-full bg-indigo-400"></div>
+                          
+                          <div className="p-5">
+                            {/* Header with title and date */}
+                            <div className="flex justify-between items-start mb-4">
+                              <h4 className="font-semibold text-lg text-lens-purple">
+                                {assessment.mental_health_assessment?.title || 'Assessment'}
+                              </h4>
+                              <Badge variant="outline" className="text-xs font-medium bg-gray-50 text-gray-600 border-gray-200 whitespace-nowrap ml-2">
+                                {formatDate(assessment.created_at)}
+                              </Badge>
+                            </div>
+                            
+                            {/* Assessment results - boxed for visual separation */}
+                            <div className="bg-slate-50 rounded-md p-3 mb-4 border border-slate-200">
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                <div>
+                                  <p className="text-xs text-gray-500 mb-0.5">Score</p>
+                                  <p className="text-sm font-semibold text-gray-900">{assessment.score}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500 mb-0.5">Category</p>
+                                  <p className="text-sm font-semibold text-gray-900">{assessment.result_category}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Feedback section */}
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 mb-2">Professional Feedback:</p>
+                              <p className="text-sm text-gray-600 bg-white p-3 rounded-md border border-slate-200 leading-relaxed">
+                                {assessment.llm_feedback}
+                              </p>
+                            </div>
                           </div>
                         </Card>
                       ))
