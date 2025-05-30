@@ -444,16 +444,11 @@ const Profile = () => {
                               )}
                             </div>
                             
-                            {/* Right section - Actions */}
-                            <div className="flex items-center gap-2 md:flex-col md:items-end self-end md:self-center mt-2 md:mt-0">
-                              {consultation.status === 'confirmed' && (
-                                <Button size="sm" className="bg-lens-purple hover:bg-lens-purple-light px-4">
-                                  Join Call
-                                </Button>
-                              )}
-                              <Button variant="outline" size="sm" className="text-gray-600 border-gray-200 px-4">
-                                View Details
-                              </Button>
+                            {/* Status indicator */}
+                            <div className="self-end md:self-center mt-2 md:mt-0">
+                              <Badge variant="secondary" className="text-xs px-2 py-1 capitalize">
+                                {consultation.status}
+                              </Badge>
                             </div>
                           </div>
                         </CardContent>
