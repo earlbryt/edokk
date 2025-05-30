@@ -726,28 +726,64 @@ const HerbalMedicine = () => {
           
           {/* Footer section with floating chat button */}
           <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-30">
-            {/* Button with beaming rays effect */}
-            <div className="relative">
-              {/* Beaming rays around the button */}
+            {/* Button with enhanced design */}
+            <div className="relative group">
+              {/* Outer glow - creates a soft halo effect */}
+              <div className="absolute inset-[-8px] bg-gradient-to-tr from-lens-purple/40 via-indigo-400/20 to-lens-purple/30 rounded-full blur-md opacity-70 group-hover:opacity-90 transition-opacity duration-500"></div>
+              
+              {/* Subtle pulsing ring */}
+              <motion.div 
+                className="absolute inset-[-4px] rounded-full border border-lens-purple/30 group-hover:border-lens-purple/50 transition-colors duration-500"
+                animate={{
+                  scale: [1, 1.05, 1],
+                  opacity: [0.5, 0.8, 0.5]
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              
+              {/* Subtler beaming rays */}
               <div className="absolute inset-0 z-0 overflow-visible rounded-full">
-                {Array.from({ length: 12 }).map((_, i) => (
+                {Array.from({ length: 8 }).map((_, i) => (
                   <div 
                     key={i}
-                    className="absolute top-1/2 left-1/2 h-[180%] w-0.5 bg-gradient-to-t from-lens-purple/0 via-lens-purple/20 to-indigo-300/0"
+                    className="absolute top-1/2 left-1/2 h-[150%] w-0.5 bg-gradient-to-t from-lens-purple/0 via-lens-purple/10 to-indigo-300/0 group-hover:via-lens-purple/15 transition-colors duration-500"
                     style={{ 
                       transformOrigin: 'center center',
-                      transform: `translate(-50%, -50%) rotate(${i * 30}deg)` 
+                      transform: `translate(-50%, -50%) rotate(${i * 45}deg)` 
                     }}
                   />
                 ))}
               </div>
               
+              {/* Main button with gradient background */}
               <Button 
                 onClick={() => setIsChatOpen(true)}
-                className="rounded-full h-16 w-16 bg-lens-purple hover:bg-lens-purple-light shadow-xl flex items-center justify-center transition-transform hover:scale-105 relative z-10"
+                className="relative rounded-full h-16 w-16 bg-gradient-to-br from-lens-purple to-indigo-600 hover:from-lens-purple-light hover:to-indigo-500 shadow-lg border-2 border-white/20 backdrop-blur-sm flex items-center justify-center z-10 transition-all duration-300 group-hover:shadow-lens-purple/30 group-hover:shadow-xl"
               >
-                <MessageCircle className="h-7 w-7" />
+                {/* Inner glow effect */}
+                <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-white/10 to-transparent opacity-50"></div>
+                
+                {/* Icon with decorative elements */}
+                <div className="relative">
+                  {/* Small sparkle in top right of icon */}
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full opacity-80"></div>
+                  
+                  {/* Main icon */}
+                  <MessageCircle className="h-7 w-7 text-white drop-shadow-md" />
+                  
+                  {/* Small dot decorations */}
+                  <div className="absolute bottom-0 right-0 w-1.5 h-1.5 bg-white/70 rounded-full"></div>
+                </div>
               </Button>
+              
+              {/* Text label that appears on hover */}
+              <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md text-sm font-medium text-lens-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                Chat with Nature's Wisdom
+              </div>
             </div>
           </div>
         </div>
