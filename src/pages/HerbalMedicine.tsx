@@ -289,7 +289,7 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
             animate={{ 
               y: 0, 
               borderRadius: isFullScreen ? '0' : '24px 24px 0 0',
-              height: isFullScreen ? '100%' : '90%'
+              height: '100%'
             }}
             exit={{ y: '100%' }}
             transition={{ 
@@ -299,8 +299,8 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
               mass: 0.8,
               restSpeed: 0.003,
             }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-white overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.12)] will-change-transform"
-            style={{ height: isFullScreen ? '100%' : '90%' }}
+            className="fixed bottom-0 left-0 right-0 mx-auto z-50 bg-white overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.12)] will-change-transform w-full md:w-3/5 lg:w-1/2 max-w-2xl"
+            style={{ height: '100%' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Premium drag handle for iOS feel */}

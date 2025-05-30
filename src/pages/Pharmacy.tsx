@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Layout/Navbar";
 import Footer from "@/components/Layout/Footer";
@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 // Custom Pharmacy Components
 import ProductCard from "@/components/Pharmacy/ProductCard";
 import CartDrawer from "@/components/Pharmacy/CartDrawer";
-import CheckoutModal from "@/components/Pharmacy/CheckoutModal";
+// Note: CheckoutModal is not used directly in this file (used via CartDrawer)
 
 // Cart Context
 import { CartProvider, useCart, ProductCategory, Product } from "@/context/CartContext";
@@ -83,6 +83,7 @@ const categories: ProductCategory[] = ["Antibiotics", "Pain Relief", "Supplement
 const PharmacyContent = () => {
   const [activeCategory, setActiveCategory] = useState<ProductCategory | "All">("All");
   const { cartCount } = useCart();
+  const productsRef = useRef<HTMLDivElement>(null);
   
   // Filter products by category
   const filteredProducts = activeCategory === "All" 
@@ -94,19 +95,76 @@ const PharmacyContent = () => {
       <Navbar />
       <div className="container mx-auto py-24 px-4 sm:px-6 lg:px-8">
         <div className="space-y-12">
-          {/* Hero Section */}
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+          {/* Banner Section - Enhanced with title incorporated */}
+          <motion.div
+            className="rounded-2xl overflow-hidden shadow-xl relative bg-gradient-to-r from-lens-purple/90 to-indigo-600/90"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900">
-              E-Pharmacy
-            </h1>
-            <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-              Browse our selection of high-quality medications and health products with fast delivery
-            </p>
+            <div className="absolute inset-0 bg-white/5 backdrop-blur-sm z-10"></div>
+            <div className="flex flex-col md:flex-row items-center relative z-20">
+              <div className="p-4 md:p-6 flex-1 text-white">
+                <motion.h1 
+                  className="text-3xl md:text-4xl font-bold mb-0.5"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
+                  E-Pharmacy
+                </motion.h1>
+                <motion.h2 
+                  className="text-xl md:text-2xl font-semibold mb-2 text-white/90"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.35 }}
+                >
+                  Your Health, Our Priority
+                </motion.h2>
+                <motion.p 
+                  className="mb-4 max-w-md opacity-90 text-sm md:text-base"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  Browse our selection of high-quality medications and health products with fast delivery to your doorstep.
+                </motion.p>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                >
+                  <Button 
+                    className="bg-white text-lens-purple hover:bg-white/90 hover:text-lens-purple-dark"
+                    onClick={() => {
+                      productsRef.current?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
+                    Shop Now
+                  </Button>
+                </motion.div>
+              </div>
+              <motion.div 
+                className="flex-1 relative min-h-[110px] md:min-h-[170px] w-full flex items-center justify-center"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.7, delay: 0.3 }}
+              >
+                <div className="relative transform -translate-y-2 md:-translate-y-3">
+                  <img
+                    src="/pharmacy-rm (2).png"
+                    alt="Pharmacy Products"
+                    className="object-contain max-h-[250px] w-auto drop-shadow-xl"
+                    style={{ maxWidth: '400px' }}
+                  />
+                </div>
+              </motion.div>
+            </div>
+            {/* Decorative Elements */}
+            <div className="absolute top-6 left-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md"></div>
+            <div className="absolute bottom-6 left-1/4 w-8 h-8 rounded-full bg-white/10 backdrop-blur-md"></div>
+            <div className="absolute top-1/3 right-1/4 w-6 h-6 rounded-full bg-white/10 backdrop-blur-md"></div>
+            <div className="absolute top-1/2 left-1/3 w-4 h-4 rounded-full bg-white/10 backdrop-blur-md"></div>
           </motion.div>
           
           {/* Category filters */}
@@ -137,6 +195,7 @@ const PharmacyContent = () => {
           
           {/* Products grid */}
           <motion.div 
+            ref={productsRef}
             className="grid grid-cols-1 md:grid-cols-2 gap-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

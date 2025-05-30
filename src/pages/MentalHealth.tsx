@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, Send, Brain, BookOpen, Moon, Phone, ClipboardCheck } from 'lucide-react';
+import { MessageSquare, Send, Brain, BookOpen, Moon, Phone, ClipboardCheck, X } from 'lucide-react'; // Added X icon
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Layout/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import Footer from "@/components/Layout/Footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AnimatePresence } from "framer-motion"; // Added AnimatePresence
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Re-added Dialog imports for assessment
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -55,20 +56,7 @@ type Message = {
 };
 
 // Initial messages to demonstrate the chatbot functionality
-const initialMessages: Message[] = [
-  {
-    id: "welcome-1",
-    content: "Hello! I'm eDok's mental health assistant. I'm here to support your emotional wellbeing.",
-    sender: "assistant",
-    timestamp: new Date()
-  },
-  {
-    id: "welcome-2",
-    content: "You can chat with me about your feelings, take assessments, or explore coping strategies. How can I help you today?",
-    sender: "assistant",
-    timestamp: new Date(Date.now() + 100)
-  }
-];
+const initialMessages: Message[] = []; // Removed placeholder messages
 
 // Quick suggestions for the chatbot
 const quickSuggestions = [
@@ -165,6 +153,7 @@ const tipCategories = [
 ];
 
 const MentalHealth: React.FC = () => {
+  
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth(); // Use auth context consistently
@@ -197,6 +186,45 @@ const MentalHealth: React.FC = () => {
   }, [messages]);
   
   // Check for redirect from login page with assessment dialog flag or chat flag
+  useEffect(() => {
+    // Logic for chat history fetching (similar to HerbalMedicine.tsx)
+    const fetchChatHistory = async () => {
+      if (chatOpen && user && !messages.find(m => m.id === 'history-loaded')) { // Simple check to avoid re-fetching
+        setIsTyping(true);
+        try {
+          const { data, error } = await supabase
+            .from('chat_messages') // Assuming 'chat_messages' table from memory
+            .select('id, content, role, created_at') // session_id might be relevant based on mental-health-chat edge function
+            .eq('user_id', user.id)
+            // .eq('session_id', user.active_session_id) // If session_id is actively managed and known on client
+            .order('created_at', { ascending: true })
+            .limit(50); // Fetch more history if needed
+
+          if (error) {
+            console.error('Error fetching mental health chat history:', error);
+            setMessages(prev => [...prev, { id: 'history-error', content: 'Could not load chat history.', sender: 'assistant', timestamp: new Date() }]);
+          } else if (data && data.length > 0) {
+            const fetchedMessages: Message[] = data.map((msg: any) => ({
+              id: msg.id.toString(),
+              content: msg.content,
+              sender: msg.role === 'user' ? 'user' : 'assistant',
+              timestamp: new Date(msg.created_at)
+            }));
+            setMessages([...fetchedMessages, {id: 'history-loaded', content: '', sender: 'assistant', timestamp: new Date()}]); // Mark history as loaded, removed initialMessages
+          } else {
+             setMessages([{id: 'history-loaded', content: '', sender: 'assistant', timestamp: new Date()}]); // History is empty, removed initialMessages
+          }
+        } catch (e) {
+          console.error('Unexpected error fetching mental health chat history:', e);
+          setMessages(prev => [...prev, { id: 'history-fetch-error', content: 'Error loading history.', sender: 'assistant', timestamp: new Date() }]);
+        } finally {
+          setIsTyping(false);
+        }
+      }
+    };
+    if (chatOpen && isAuthenticated) fetchChatHistory();
+  }, [chatOpen, user, isAuthenticated, supabase]);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const openAssessment = params.get('openAssessment');
@@ -546,20 +574,20 @@ const MentalHealth: React.FC = () => {
               <div className="flex flex-wrap gap-4 mb-8">
                 <Button 
                   size="lg" 
-                  className="bg-lens-purple hover:bg-lens-purple/90 text-white"
-                  onClick={handleStartChat}
-                >
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Start Chatting
-                </Button>
-                <Button 
-                  size="lg" 
                   variant="outline"
                   className="border-lens-purple text-lens-purple hover:bg-lens-purple/10"
                   onClick={handleTakeAssessment}
                 >
                   <ClipboardCheck className="mr-2 h-5 w-5" />
                   Take Mental Health Screening
+                </Button>
+                <Button 
+                  size="lg" 
+                  className="bg-lens-purple hover:bg-lens-purple/90 text-white"
+                  onClick={handleStartChat}
+                >
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  Start Chatting
                 </Button>
               </div>
             </motion.div>
@@ -730,130 +758,160 @@ const MentalHealth: React.FC = () => {
       </main>
       
       {/* Chat Dialog */}
-      <Dialog open={chatOpen} onOpenChange={setChatOpen}>
-        <DialogContent className="sm:max-w-[450px] md:max-w-[500px] h-[85vh] flex flex-col p-0 gap-0 rounded-xl overflow-hidden border-0 shadow-xl">
-          {/* Header with minimal design */}
-          <div className="px-6 py-4 bg-white border-b border-gray-100 flex-shrink-0 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-9 w-9 border-2 border-teal-200/70">
-                <AvatarImage src="/assets/bot-avatar.png" alt="Serene Companion" />
-                <AvatarFallback className="bg-teal-50 text-teal-600 font-medium">SC</AvatarFallback>
-              </Avatar>
-              <div>
-                <h2 className="font-medium text-gray-900">Serene Companion</h2>
-                <p className="text-xs text-gray-500">Your mindful wellness guide</p>
+      <AnimatePresence>
+        {chatOpen && (
+        <>
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setChatOpen(false)}
+            className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+          />
+          {/* Chat Panel */}
+          <motion.div
+            initial={{ y: "100%", borderRadius: '24px 24px 0 0' }} // Changed from x to y
+            animate={{ y: 0, borderRadius: '24px 24px 0 0' }}      // Changed from x to y
+            exit={{ y: "100%" }}        // Changed from x to y
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 top-0 left-0 right-0 mx-auto z-50 bg-white overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.12)] will-change-transform flex flex-col h-full w-full md:w-3/5 lg:w-1/2 max-w-2xl"
+          >
+            {/* Drag Handle */}
+            <div className="absolute top-0 left-0 right-0 flex justify-center pt-3 pb-2 touch-none z-10">
+              <div className="w-10 h-1 rounded-full bg-gray-300/80"></div>
+            </div>
+            {/* New Header - iOS-style frosted glass */}
+            <motion.div
+              className="pt-8 pb-4 px-4 sm:px-6 backdrop-blur-md bg-white/80 border-b border-gray-200/50 sticky top-0 z-[5]"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+            >
+              <div className="max-w-4xl mx-auto flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
+                  <div className="flex-shrink-0 flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-lens-purple to-indigo-600 shadow-sm">
+                    <Brain className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-sm sm:text-base text-gray-900 truncate">Serene Companion</h3>
+                    <p className="text-xs text-indigo-600 truncate">Your mindful wellness guide</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
+                  <Button variant="ghost" size="icon" onClick={() => setChatOpen(false)} className="text-gray-500 hover:text-gray-700">
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
-            </div>
-            <Badge variant="outline" className="h-6 bg-green-50 text-green-700 border-green-100 px-2">
-              <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-green-500 inline-block animate-pulse"></span>Online
-            </Badge>
-          </div>
-          
-          {/* Welcome message */}
-          {messages.length <= 2 && (
-            <div className="px-6 py-3 bg-gray-50/50 border-b border-gray-100">
-              <p className="text-sm text-gray-600">
-                Share how you're feeling in a safe space. I'm here to listen and support you.
-              </p>
-            </div>
-          )}
-          
-          {/* Chat messages with improved styling */}
-          <ScrollArea className="flex-1 px-4 py-4 bg-[#f9fafc]">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div 
-                  key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
-                >
-                  {message.sender === 'assistant' && (
+            </motion.div>
+            
+            {/* Welcome message */}
+            {messages.length <= 2 && (
+              <div className="px-6 py-3 bg-gray-50/50 border-b border-gray-100">
+                <p className="text-sm text-gray-600">
+                  Share how you're feeling in a safe space. I'm here to listen and support you.
+                </p>
+              </div>
+            )}
+            
+            {/* Chat messages with improved styling */}
+            <ScrollArea className="flex-1 px-4 py-4 bg-[#f9fafc]">
+              <div className="space-y-4">
+                {messages.map((message) => (
+                  <div 
+                    key={message.id}
+                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+                  >
+                    {message.sender === 'assistant' && (
+                      <Avatar className="h-8 w-8 mr-2 mt-1 flex-shrink-0 opacity-85">
+                        <AvatarImage src="/assets/bot-avatar.png" alt="Serene Companion" />
+                        <AvatarFallback className="bg-teal-50 text-teal-600 text-xs">SC</AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div 
+                      className={`max-w-[85%] px-4 py-3 text-sm shadow-sm ${
+                        message.sender === 'user' 
+                          ? 'bg-lens-purple text-white rounded-2xl rounded-tr-sm ml-2' 
+                          : 'bg-white text-gray-800 rounded-2xl rounded-tl-sm border border-gray-100'
+                      }`}
+                    >
+                      {message.content}
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Improved typing indicator */}
+                {isTyping && (
+                  <div className="flex justify-start">
                     <Avatar className="h-8 w-8 mr-2 mt-1 flex-shrink-0 opacity-85">
                       <AvatarImage src="/assets/bot-avatar.png" alt="Serene Companion" />
                       <AvatarFallback className="bg-teal-50 text-teal-600 text-xs">SC</AvatarFallback>
                     </Avatar>
-                  )}
-                  <div 
-                    className={`max-w-[85%] px-4 py-3 text-sm shadow-sm ${
-                      message.sender === 'user' 
-                        ? 'bg-lens-purple text-white rounded-2xl rounded-tr-sm ml-2' 
-                        : 'bg-white text-gray-800 rounded-2xl rounded-tl-sm border border-gray-100'
-                    }`}
-                  >
-                    {message.content}
-                  </div>
-                </div>
-              ))}
-              
-              {/* Improved typing indicator */}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <Avatar className="h-8 w-8 mr-2 mt-1 flex-shrink-0 opacity-85">
-                    <AvatarImage src="/assets/bot-avatar.png" alt="Serene Companion" />
-                    <AvatarFallback className="bg-teal-50 text-teal-600 text-xs">SC</AvatarFallback>
-                  </Avatar>
-                  <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 border border-gray-100 shadow-sm">
-                    <div className="flex space-x-1.5 items-center h-5">
-                      <div className="h-2 w-2 rounded-full bg-lens-purple/40 animate-pulse"></div>
-                      <div className="h-2 w-2 rounded-full bg-lens-purple/40 animate-pulse" style={{ animationDelay: '0.3s' }}></div>
-                      <div className="h-2 w-2 rounded-full bg-lens-purple/40 animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+                    <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 border border-gray-100 shadow-sm">
+                      <div className="flex space-x-1.5 items-center h-5">
+                        <div className="h-2 w-2 rounded-full bg-lens-purple/40 animate-pulse"></div>
+                        <div className="h-2 w-2 rounded-full bg-lens-purple/40 animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                        <div className="h-2 w-2 rounded-full bg-lens-purple/40 animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-              
-              <div ref={messagesEndRef} className="h-1" />
-            </div>
-          </ScrollArea>
-
-          {/* Simplified quick suggestions - no scrolling */}
-          <div className="px-4 py-2.5 bg-white border-t border-gray-100">
-            <div className="flex justify-center gap-2">
-              {quickSuggestions.map((suggestion, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs py-1 px-3 h-7 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-lens-purple rounded-full flex-1"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                >
-                  {suggestion}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Improved input area */}
-          <div className="p-3 border-t border-gray-100 bg-white flex-shrink-0">
-            <form 
-              className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage();
-              }}
-            >
-              <Input
-                id="message-input"
-                placeholder="Type your message..."
-                className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400 text-sm py-1"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-              />
-              <Button 
-                type="submit" 
-                size="sm" 
-                className="bg-lens-purple hover:bg-lens-purple/90 h-8 w-8 rounded-full p-0 transition-all"
-                disabled={!inputValue.trim() || isSending || isTyping}
-              >
-                {isSending ? (
-                  <div className="h-3.5 w-3.5 animate-spin border-2 border-white border-t-transparent rounded-full" />
-                ) : (
-                  <Send className="h-3.5 w-3.5" />
                 )}
-              </Button>
-            </form>
-          </div>
-        </DialogContent>
-      </Dialog>
+                
+                <div ref={messagesEndRef} className="h-1" />
+              </div>
+            </ScrollArea>
+
+            {/* Simplified quick suggestions - no scrolling */}
+            <div className="px-4 py-2.5 bg-white border-t border-gray-100">
+              <div className="flex justify-center gap-2">
+                {quickSuggestions.map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs py-1 px-3 h-7 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-lens-purple rounded-full flex-1"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Improved input area */}
+            <div className="p-3 border-t border-gray-100 bg-white flex-shrink-0">
+              <form 
+                className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage();
+                }}
+              >
+                <Input
+                  id="message-input"
+                  placeholder="Type your message..."
+                  className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400 text-sm py-1"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                />
+                <Button 
+                  type="submit" 
+                  size="sm" 
+                  className="bg-lens-purple hover:bg-lens-purple/90 h-8 w-8 rounded-full p-0 transition-all"
+                  disabled={!inputValue.trim() || isSending || isTyping}
+                >
+                  {isSending ? (
+                    <div className="h-3.5 w-3.5 animate-spin border-2 border-white border-t-transparent rounded-full" />
+                  ) : (
+                    <Send className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </form>
+            </div>
+          </motion.div>
+        </>)}
+      </AnimatePresence>
 
       {/* Mental Health Assessment Dialog */}
       <Dialog open={assessmentDialogOpen} onOpenChange={handleAssessmentDialogClose}>
