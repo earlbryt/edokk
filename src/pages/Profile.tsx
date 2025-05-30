@@ -128,8 +128,17 @@ const Profile = () => {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
           
-        if (error) throw error;
-        setOrders(data || []);
+        if (error) {
+          console.error('Error fetching orders:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load your order history. Please try again later.',
+            variant: 'destructive',
+          });
+          setOrders([]); // Set to empty array on error
+        } else {
+          setOrders(Array.isArray(data) ? data : []);
+        }
       } catch (error) {
         console.error('Error fetching orders:', error);
         toast({
@@ -171,7 +180,7 @@ const Profile = () => {
       
       try {
         const { data, error } = await supabase
-          .from('user_assessments')
+          .from('user_assessments' as any) // Cast to any as a temporary workaround for type generation issues
           .select(`
             id,
             created_at,
@@ -183,8 +192,17 @@ const Profile = () => {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
           
-        if (error) throw error;
-        setAssessments(data || []);
+        if (error) {
+          console.error('Error fetching user assessments:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load your assessments. Please try again later.',
+            variant: 'destructive',
+          });
+          setAssessments([]); // Set to empty array on error
+        } else {
+          setAssessments(Array.isArray(data) ? data : []);
+        }
       } catch (error) {
         console.error('Error fetching user assessments:', error);
         toast({
@@ -306,8 +324,12 @@ const Profile = () => {
               )}
             </CardContent>
             <CardFooter className="relative z-10">
-              <Button variant="outline" className="w-full hover:bg-lens-purple hover:text-white border-lens-purple text-lens-purple transition-all duration-300" asChild>
-                <Link to="/settings">Edit Profile</Link>
+              <Button 
+                variant="outline" 
+                className="w-full border-lens-purple text-lens-purple transition-all duration-300 opacity-50 cursor-not-allowed" 
+                disabled
+              >
+                Edit Profile (Coming Soon)
               </Button>
             </CardFooter>
           </Card>
