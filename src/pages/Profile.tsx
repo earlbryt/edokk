@@ -15,6 +15,21 @@ import Footer from '@/components/Layout/Footer';
 import ConsultationDialog from '@/components/Consultations/ConsultationDialog';
 import OrderHistory, { Order } from '@/components/Orders/OrderHistory';
 
+// Define the user assessment type
+interface UserAssessment {
+  id: string;
+  created_at: string;
+  user_id: string;
+  assessment_id: string;
+  responses: any; // jsonb in database
+  score: number;
+  result_category: string;
+  llm_feedback: string; // Column is named llm_feedback, not feedback
+  mental_health_assessment: {
+    title: string;
+  } | null; // Joined data for assessment title
+}
+
 // Define the consultation type
 interface Consultation {
   id: string;
@@ -22,8 +37,8 @@ interface Consultation {
   full_name: string;
   email: string;
   consultation_type: 'virtual' | 'in_person';
-  preferred_date: string;
-  preferred_time: string;
+  preferred_date: string; // Will be formatted from DB date type
+  preferred_time: string; // Will be formatted from DB time type
   symptoms: string[];
   additional_notes?: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
@@ -35,6 +50,8 @@ const Profile = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingConsultations, setIsLoadingConsultations] = useState(true);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [assessments, setAssessments] = useState<UserAssessment[]>([]);
+  const [isLoadingAssessments, setIsLoadingAssessments] = useState(true);
   const [profileData, setProfileData] = useState<any>({});
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [showConsultationDialog, setShowConsultationDialog] = useState(false);
@@ -135,9 +152,41 @@ const Profile = () => {
       }
     };
 
+    const fetchUserAssessments = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_assessments')
+          .select(`
+            id,
+            created_at,
+            score,
+            result_category,
+            llm_feedback,
+            mental_health_assessment:mental_health_assessments(title)
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        setAssessments(data || []);
+      } catch (error) {
+        console.error('Error fetching user assessments:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load your assessments. Please try again later.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoadingAssessments(false);
+      }
+    };
+
     fetchUserConsultations();
     fetchUserOrders();
     fetchProfileData();
+    fetchUserAssessments();
   }, [user, toast]);
 
   // Get status badge color based on consultation status
@@ -205,27 +254,8 @@ const Profile = () => {
                       <p className="font-medium">{user?.id.substring(0, 8).toUpperCase()}</p>
                     </div>
                   </div>
-
-                  {profileData.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-5 w-5 text-lens-purple opacity-70" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Phone</p>
-                        <p className="font-medium">{profileData.phone}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {profileData.address && (
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-5 w-5 text-lens-purple opacity-70" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Address</p>
-                        <p className="font-medium">{profileData.address}</p>
-                      </div>
-                    </div>
-                  )}
-
+                  
+                  {/* Show email from user object directly */}
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-lens-purple opacity-70" />
                     <div>
@@ -233,13 +263,25 @@ const Profile = () => {
                       <p className="font-medium">{user?.email}</p>
                     </div>
                   </div>
-
-                  {profileData.date_of_birth && (
+                  
+                  {/* Show name from profile data if available */}
+                  {profileData.name && (
                     <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-lens-purple opacity-70" />
+                      <User className="h-5 w-5 text-lens-purple opacity-70" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Date of Birth</p>
-                        <p className="font-medium">{formatDate(profileData.date_of_birth)}</p>
+                        <p className="text-sm text-muted-foreground">Name</p>
+                        <p className="font-medium">{profileData.name}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Add role information if available */}
+                  {profileData.role && (
+                    <div className="flex items-center gap-3">
+                      <ShoppingBag className="h-5 w-5 text-lens-purple opacity-70" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Role</p>
+                        <p className="font-medium">{profileData.role}</p>
                       </div>
                     </div>
                   )}
@@ -261,9 +303,9 @@ const Profile = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-lens-purple/5 p-4 rounded-lg text-center">
                   <p className="text-2xl font-bold text-lens-purple">
-                    {isLoadingConsultations || isLoadingOrders ? 
+                    {isLoadingConsultations ? 
                       <Skeleton className="h-8 w-8 mx-auto" /> : 
-                      consultations.length + orders.length
+                      consultations.length
                     }
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">Total Consultations</p>
@@ -305,9 +347,8 @@ const Profile = () => {
           <Tabs defaultValue="consultations" className="w-full">
             <TabsList className="mb-8">
               <TabsTrigger value="consultations">Consultations</TabsTrigger>
-              <TabsTrigger value="orders">Orders</TabsTrigger>
-              <TabsTrigger value="lab-results">Lab Results</TabsTrigger>
-              <TabsTrigger value="medical-history">Medical History</TabsTrigger>
+              <TabsTrigger value="orders">Order History</TabsTrigger>
+              <TabsTrigger value="assessments">Assessments</TabsTrigger>
             </TabsList>
             
             <TabsContent value="consultations">
@@ -439,41 +480,66 @@ const Profile = () => {
               </div>
             </TabsContent>
             
-            <TabsContent value="lab-results">
-              <Card className="border-dashed">
-                <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center text-center space-y-4">
-                  <div className="rounded-full bg-lens-purple/10 p-3">
-                    <FileText className="h-8 w-8 text-lens-purple" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium">No lab results yet</h3>
-                    <p className="text-muted-foreground mt-1">
-                      Your lab results will appear here after tests.
-                    </p>
-                  </div>
+            <TabsContent value="assessments">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Mental Health Assessments</CardTitle>
+                  <CardDescription>Review your completed mental health assessments.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {isLoadingAssessments ? (
+                    Array.from({ length: 2 }).map((_, index) => (
+                      <Card key={index} className="p-4 border shadow-sm">
+                        <Skeleton className="h-6 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-1/2 mb-1" />
+                        <Skeleton className="h-4 w-1/4 mb-3" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full mt-1" />
+                      </Card>
+                    ))
+                  ) : assessments.length > 0 ? (
+                    assessments.map((assessment) => (
+                      <Card key={assessment.id} className="p-4 hover:shadow-lg transition-shadow duration-200 ease-in-out border">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-semibold text-lg text-lens-purple">
+                            {assessment.mental_health_assessment?.title || 'Assessment'}
+                          </h4>
+                          <Badge variant="outline" className="text-xs font-medium bg-gray-50 text-gray-600 border-gray-200">{formatDate(assessment.created_at)}</Badge>
+                        </div>
+                        <div className="mb-3">
+                          <p className="text-sm text-gray-700">
+                            <span className="font-medium text-gray-800">Score:</span> {assessment.score}
+                          </p>
+                          <p className="text-sm text-gray-700">
+                            <span className="font-medium text-gray-800">Category:</span> <span className="font-semibold">{assessment.result_category}</span>
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-800 mb-1">Feedback:</p>
+                          <p className="text-sm text-gray-600 bg-slate-50 p-3 rounded-md border border-slate-200">
+                            {assessment.llm_feedback}
+                          </p>
+                        </div>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="text-center py-10 border border-dashed rounded-lg">
+                      <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                      <p className="text-gray-600 text-lg font-medium">No assessments found.</p>
+                      <p className="text-sm text-gray-500 mt-1">You haven't completed any mental health assessments yet.</p>
+                      {/* Consider adding a link/button to the mental health page if desired */}
+                      {/* <Button variant="outline" className="mt-4" onClick={() => navigate('/mental-health?open_assessments=true')}>Take an Assessment</Button> */}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
-            
-            <TabsContent value="medical-history">
-              <Card className="border-dashed">
-                <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center text-center space-y-4">
-                  <div className="rounded-full bg-lens-purple/10 p-3">
-                    <FileText className="h-8 w-8 text-lens-purple" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium">Medical history not available</h3>
-                    <p className="text-muted-foreground mt-1">
-                      Your medical history will be available here after your first consultation.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+
           </Tabs>
         </div>
       </div>
-      </div>
+      {/* End of main content grid */}
+      </div> {/* This closes the container div started after Navbar */}
       <Footer />
       
       {/* Consultation Dialog */}
@@ -481,7 +547,7 @@ const Profile = () => {
         open={showConsultationDialog} 
         onOpenChange={setShowConsultationDialog} 
       />
-    </div>
+    </div> /* This closes the outermost div started after <Navbar /> */
   );
 };
 
