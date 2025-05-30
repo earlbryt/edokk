@@ -1,9 +1,39 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Logo from "@/components/shared/Logo";
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 
 const Footer: React.FC = () => {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleAdminLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    e.preventDefault();
+    
+    if (!isAuthenticated) {
+      // If not authenticated, redirect to login page with returnUrl
+      navigate(`/login?returnUrl=${encodeURIComponent(path)}`);
+      return;
+    }
+    
+    if (user?.role !== 'admin') {
+      // If authenticated but not admin, show message and redirect to homepage
+      toast({
+        title: "Access Denied",
+        description: "You need admin privileges to access this area.",
+        variant: "destructive"
+      });
+      navigate('/');
+      return;
+    }
+    
+    // If admin, proceed to the requested page
+    navigate(path);
+  };
+  
   return (
     <footer className="bg-white py-16 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
@@ -62,10 +92,33 @@ const Footer: React.FC = () => {
           <div className="col-span-1">
             <h3 className="font-semibold text-gray-900 mb-4">Admin</h3>
             <ul className="space-y-3">
-              <li><Link to="/admin/dashboard" className="text-gray-600 hover:text-lens-purple transition-colors">Admin Dashboard</Link></li>
-              <li><Link to="/admin/appointments" className="text-gray-600 hover:text-lens-purple transition-colors">Manage Appointments</Link></li>
-              <li><Link to="/admin/prescriptions" className="text-gray-600 hover:text-lens-purple transition-colors">Manage Prescriptions</Link></li>
-              <li><Link to="/admin/health-records" className="text-gray-600 hover:text-lens-purple transition-colors">Patient Records</Link></li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => handleAdminLinkClick(e, '/admin')} 
+                  className="text-gray-600 hover:text-lens-purple transition-colors"
+                >
+                  Dashboard
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => handleAdminLinkClick(e, '/admin/consultations')} 
+                  className="text-gray-600 hover:text-lens-purple transition-colors"
+                >
+                  Consultations
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#" 
+                  onClick={(e) => handleAdminLinkClick(e, '/admin/orders')} 
+                  className="text-gray-600 hover:text-lens-purple transition-colors"
+                >
+                  Orders
+                </a>
+              </li>
             </ul>
           </div>
         </div>
