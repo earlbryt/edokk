@@ -262,8 +262,8 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
               </div>
             </motion.div>
             
-            {/* Chat content area with subtle background */}
-            <div className="flex-1 overflow-hidden bg-gradient-to-b from-gray-50 to-white relative">
+            {/* Main content container with flexbox column layout */}
+            <div className="flex flex-col h-[calc(100%-72px)] bg-gradient-to-b from-gray-50 to-white relative">
               {/* Ambient subtle background elements */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.03]">
                 <svg className="absolute w-full h-full opacity-30" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
@@ -274,7 +274,7 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
               </div>
 
               {/* Messages with iOS-like styling - mobile optimized */}
-              <ScrollArea className="h-full px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-8 overflow-x-hidden">
+              <ScrollArea className="flex-1 px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-16 overflow-x-hidden">
                 <div className="max-w-2xl mx-auto space-y-3 sm:space-y-4">
                   {/* Status pill - mobile optimized */}
                   <motion.div 
@@ -344,9 +344,9 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
               </ScrollArea>
             </div>
             
-            {/* Premium iOS-style input area - mobile optimized */}
+            {/* Premium iOS-style input area fixed at bottom - mobile optimized */}
             <motion.div 
-              className="p-3 sm:p-4 border-t border-gray-200/70 bg-white/80 backdrop-blur-md shadow-[0_-1px_5px_rgba(0,0,0,0.03)]"
+              className="sticky bottom-0 p-3 sm:p-4 border-t border-gray-200/70 bg-white/90 backdrop-blur-md shadow-[0_-1px_5px_rgba(0,0,0,0.08)]"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.4 }}
