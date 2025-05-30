@@ -50,12 +50,12 @@ const SymptomSelector: React.FC<SymptomSelectorProps> = ({ value, onChange }) =>
             {value.length > 0 ? `${value.length} symptom(s) selected` : "Select symptoms..."}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0" align="start">
+        <PopoverContent className="w-[300px] p-0" align="start"> {/* Adjusted width for better popover sizing */}
           <Command>
             <CommandInput placeholder="Search symptoms..." className="h-9" />
             <CommandList>
               <CommandEmpty>No symptoms found.</CommandEmpty>
-              <CommandGroup className="max-h-64 overflow-auto">
+              <CommandGroup className="max-h-60 overflow-y-auto"> {/* Explicitly overflow-y-auto */}
                 {SYMPTOMS.map((symptom) => (
                   <CommandItem
                     key={symptom}

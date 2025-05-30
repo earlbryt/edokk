@@ -261,8 +261,8 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ onSubmit, isDialog 
                   {time || "Select time"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-64 p-0">
-                <div className="max-h-72 overflow-y-auto p-2">
+              <PopoverContent className="w-64 p-0" align="start">
+                <div className="max-h-60 overflow-y-auto p-2">
                   {TIME_SLOTS.map((timeSlot) => (
                     <Button
                       key={timeSlot}
