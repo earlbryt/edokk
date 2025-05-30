@@ -375,7 +375,7 @@ const HerbalMedicine = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="container mx-auto py-24 px-4 sm:px-6 lg:px-8 overflow-hidden mt-16 md:mt-24">
+      <div className="container mx-auto py-24 px-4 sm:px-6 lg:px-8 overflow-visible mt-16 md:mt-24">
         <div className="space-y-16">
           {/* Hero Section with 3D effect */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
@@ -437,16 +437,16 @@ const HerbalMedicine = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="relative mt-12 lg:mt-0 lg:ml-auto w-full max-w-[600px]"
+              className="relative mt-12 lg:mt-0 lg:ml-4 lg:mr-auto w-full max-w-[486px]" /* Moved slightly back to the right with ml-4 */
             >
               {/* Dynamic background elements */}
-              <div className="absolute -inset-16 overflow-hidden">
+              <div className="absolute -inset-14 overflow-hidden"> {/* Reduced from -inset-16 to -inset-14 */}
                 {/* Dramatic radial gradient backgrounds */}
                 <div className="absolute inset-0 bg-gradient-to-br from-green-900/10 via-transparent to-amber-700/5 z-0"></div>
                 
                 {/* Animated background circles */}
                 <motion.div 
-                  className="absolute -right-20 top-10 w-64 h-64 rounded-full bg-gradient-to-br from-emerald-500/20 via-green-400/10 to-transparent blur-xl"
+                  className="absolute -right-18 top-9 w-52 h-52 rounded-full bg-gradient-to-br from-emerald-500/20 via-green-400/10 to-transparent blur-xl" /* Reduced size by 10% */
                   animate={{
                     scale: [1, 1.2, 1],
                     opacity: [0.3, 0.5, 0.3],
@@ -459,7 +459,7 @@ const HerbalMedicine = () => {
                 />
                 
                 <motion.div 
-                  className="absolute -left-20 bottom-0 w-72 h-72 rounded-full bg-gradient-to-tr from-amber-500/15 via-yellow-400/10 to-transparent blur-xl"
+                  className="absolute -left-18 bottom-0 w-58 h-58 rounded-full bg-gradient-to-tr from-amber-500/15 via-yellow-400/10 to-transparent blur-xl" /* Reduced size by 10% */
                   animate={{
                     scale: [1, 1.15, 1],
                     opacity: [0.2, 0.4, 0.2],
@@ -497,92 +497,121 @@ const HerbalMedicine = () => {
                 </div>
               </div>
               
-              {/* Main showcase display */}
+              {/* Main showcase display - Hexagonal style from Nutrition page */}
               <div className="relative">
-                {/* Dramatic outer frame with golden ratio proportions */}
-                <motion.div
-                  className="absolute -inset-6 bg-gradient-to-br from-amber-700/30 via-emerald-600/20 to-green-700/30 rounded-[38px] z-0 backdrop-blur-sm"
+                {/* Divine angelic backdrop */}
+                <div className="relative">
+                  {/* Completely solid hexagonal outer layer - fully visible and extended */}
+                  <div className="absolute inset-[-45px] bg-gradient-to-tr from-purple-100 via-teal-100 to-indigo-50 transform rotate-45 rounded-3xl -z-0"></div>
+                  
+                  {/* Removed the beaming rays as requested */}
+                  
+                  {/* Consistent, non-dimming ethereal glow - inspired by OrderConfirmation */}
+                  <div className="absolute inset-0 z-1 flex items-center justify-center">
+                    <div className="absolute inset-0 shadow-[inset_0_0_30px_15px_rgba(126,58,242,0.1)]"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-3/4 h-3/4 rounded-full bg-gradient-to-tr from-lens-purple/20 via-teal-200/15 to-indigo-100/20 blur-xl"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Subtle, static sacred geometric patterns */}
+                  <div className="absolute inset-0 z-2 flex items-center justify-center overflow-hidden">
+                    <svg className="absolute w-full h-full opacity-10" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#7e3af2" strokeWidth="0.2" strokeDasharray="0.5 0.5" />
+                      <circle cx="50" cy="50" r="35" fill="none" stroke="#14b8a6" strokeWidth="0.2" />
+                      <circle cx="50" cy="50" r="30" fill="none" stroke="#7e3af2" strokeWidth="0.2" strokeDasharray="0.8 0.8" />
+                      <path d="M50,10 L90,50 L50,90 L10,50 Z" fill="none" stroke="#14b8a6" strokeWidth="0.2" />
+                      <path d="M50,20 L80,50 L50,80 L20,50 Z" fill="none" stroke="#7e3af2" strokeWidth="0.2" />
+                      <path d="M10,50 L50,10 L90,50 L50,90 Z" fill="none" stroke="#4f46e5" strokeWidth="0.2" strokeDasharray="1 1" />
+                    </svg>
+                  </div>
+                  
+                  {/* Divine halo frame with white glow - inspired by OrderConfirmation */}
+                  <div className="relative z-10 p-5"> {/* Reduced padding from p-6 to p-5 */}
+                    {/* Angelic glow ring - consistent, non-dimming */}
+                    <div className="absolute inset-0 rounded-full flex items-center justify-center overflow-hidden shadow-[0_0_15px_5px_rgba(255,255,255,0.7),0_0_30px_15px_rgba(126,58,242,0.3)]"></div>
+                    
+                    {/* Main image container with divine border */}
+                    <div className="relative overflow-hidden rounded-full border-7 border-gradient-to-r from-lens-purple/80 via-white/90 to-indigo-300/80 shadow-xl"> {/* Reduced border from 8 to 7 */}
+                      {/* Accent layer */}
+                      <div className="absolute inset-0 border-3 border-lens-purple/20 rounded-full z-20 pointer-events-none"></div> {/* Reduced border from 4 to 3 */}
+                      
+                      {/* Actual image */}
+                      <img 
+                        src="/assets/herbal.png" 
+                        alt="Herbal Medicine" 
+                        className="w-full h-auto transform scale-100 z-10" /* Reduced scale from 110% to 100% */
+                      />
+                      
+                      {/* Divine light from above effect - consistent */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-indigo-100/40 via-transparent to-lens-purple/10 mix-blend-soft-light z-30"></div>
+                      
+                      {/* Subtle light reflection - single, fixed positioning */}
+                      <div className="absolute right-0 top-0 w-1/3 h-1/3 bg-white/20 rounded-full blur-md mix-blend-overlay z-40"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Smaller decorative accent elements - consistent, static styling */}
+                  <div className="absolute top-0 right-0 w-11 h-11 bg-gradient-to-br from-lens-purple/40 to-indigo-300/20 rounded-full blur-sm z-10 shadow-[0_0_10px_5px_rgba(126,58,242,0.15)]"></div> {/* Reduced from 12x12 to 11x11 */}
+                  <div className="absolute bottom-4 left-0 w-12 h-12 bg-gradient-to-tr from-teal-400/25 to-teal-200/15 rounded-full blur-sm z-10 shadow-[0_0_10px_5px_rgba(20,184,166,0.15)]"></div> {/* Reduced from 14x14 to 12x12 */}
+                </div>
+                
+                {/* Modern geometric leaf pattern background */}
+                <motion.div 
+                  className="absolute -inset-6 z-0 opacity-25"
                   animate={{
-                    opacity: [0.7, 0.9, 0.7],
-                    boxShadow: [
-                      "0 10px 30px -5px rgba(0, 0, 0, 0.2)",
-                      "0 20px 40px -5px rgba(0, 0, 0, 0.3)",
-                      "0 10px 30px -5px rgba(0, 0, 0, 0.2)"
-                    ]
+                    rotate: [0, 0.5, 0],
+                    scale: [1, 1.01, 1]
                   }}
                   transition={{
-                    duration: 8,
+                    duration: 20,
                     repeat: Infinity,
                     ease: "easeInOut"
                   }}
                 >
-                  {/* Decorative corner accents */}
-                  <div className="absolute top-0 left-0 w-16 h-16">
-                    <div className="absolute top-6 left-6 w-10 h-10 border-t-4 border-l-4 border-amber-400/70 rounded-tl-xl"></div>
-                  </div>
-                  <div className="absolute top-0 right-0 w-16 h-16">
-                    <div className="absolute top-6 right-6 w-10 h-10 border-t-4 border-r-4 border-green-500/70 rounded-tr-xl"></div>
-                  </div>
-                  <div className="absolute bottom-0 left-0 w-16 h-16">
-                    <div className="absolute bottom-6 left-6 w-10 h-10 border-b-4 border-l-4 border-green-500/70 rounded-bl-xl"></div>
-                  </div>
-                  <div className="absolute bottom-0 right-0 w-16 h-16">
-                    <div className="absolute bottom-6 right-6 w-10 h-10 border-b-4 border-r-4 border-amber-400/70 rounded-br-xl"></div>
-                  </div>
-                </motion.div>
-                
-                {/* Inner frame with premium border */}
-                <motion.div
-                  className="relative z-10 p-1 rounded-[30px] overflow-hidden bg-gradient-to-br from-amber-300/30 via-green-100/20 to-emerald-300/30"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                >
-                  {/* Rich inner container */}
-                  <div className="relative p-5 bg-white/90 backdrop-blur-md rounded-[26px] overflow-hidden">
-                    {/* Golden ratio mask for image */}
-                    <div className="relative overflow-hidden rounded-2xl">
-                      {/* Dark vignette border */}
-                      <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_15px_rgba(0,0,0,0.2)] pointer-events-none z-20"></div>
+                  <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    {/* Clean, modern honeycomb/leaf pattern */}
+                    <defs>
+                      <pattern id="leafGrid" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+                        {/* Single leaf shape */}
+                        <path d="M25,10 Q35,25 25,40 Q15,25 25,10" fill="none" stroke="#14532d" strokeWidth="0.5" />
+                        
+                        {/* Single hexagon */}
+                        <path d="M35,15 L45,25 L45,35 L35,45 L25,35 L25,25 Z" fill="none" stroke="#15803d" strokeWidth="0.3" opacity="0.4" />
+                      </pattern>
                       
-                      <img 
-                        src="/assets/herbal.png" 
-                        alt="Herbal Medicine" 
-                        className="w-full h-auto max-h-[450px] object-contain transform scale-110"
-                      />
-                      
-                      {/* Rich color overlay */}
-                      <motion.div 
-                        className="absolute inset-0 bg-gradient-to-br from-amber-900/10 via-transparent to-green-900/20"
-                        animate={{
-                          opacity: [0.4, 0.6, 0.4],
-                        }}
-                        transition={{
-                          duration: 6,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      />
-                      
-                      {/* Dynamic light sweep effect */}
-                      <motion.div 
-                        className="absolute -inset-full w-[300%] h-[300%] bg-gradient-to-tr from-transparent via-white/30 to-transparent transform -rotate-45"
-                        animate={{
-                          left: ["-150%", "100%"],
-                          top: ["-150%", "100%"],
-                        }}
-                        transition={{
-                          duration: 7,
-                          repeat: Infinity,
-                          ease: "linear"
-                        }}
-                      />
-                    </div>
-                  </div>
+                      <pattern id="dotGrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <circle cx="10" cy="10" r="1" fill="#b45309" opacity="0.5" />
+                      </pattern>
+                    </defs>
+                    
+                    {/* Background patterns */}
+                    <rect x="0" y="0" width="200" height="200" fill="url(#dotGrid)" />
+                    <rect x="0" y="0" width="200" height="200" fill="url(#leafGrid)" />
+                    
+                    {/* Central geometric element */}
+                    <path d="M70,70 L130,70 L130,130 L70,130 Z" fill="none" stroke="#15803d" strokeWidth="0.4" opacity="0.6" transform="rotate(45, 100, 100)" />
+                    <path d="M80,80 L120,80 L120,120 L80,120 Z" fill="none" stroke="#b45309" strokeWidth="0.3" opacity="0.5" transform="rotate(45, 100, 100)" />
+                    
+                    {/* Clean symmetrical cross elements */}
+                    <line x1="0" y1="100" x2="200" y2="100" stroke="#15803d" strokeWidth="0.2" opacity="0.3" />
+                    <line x1="100" y1="0" x2="100" y2="200" stroke="#15803d" strokeWidth="0.2" opacity="0.3" />
+                    
+                    {/* Diagonal elements */}
+                    <line x1="0" y1="0" x2="200" y2="200" stroke="#15803d" strokeWidth="0.2" opacity="0.2" />
+                    <line x1="200" y1="0" x2="0" y2="200" stroke="#15803d" strokeWidth="0.2" opacity="0.2" />
+                    
+                    {/* Corner decorative elements - minimal */}
+                    <circle cx="25" cy="25" r="15" fill="none" stroke="#b45309" strokeWidth="0.3" opacity="0.4" />
+                    <circle cx="175" cy="25" r="15" fill="none" stroke="#b45309" strokeWidth="0.3" opacity="0.4" />
+                    <circle cx="25" cy="175" r="15" fill="none" stroke="#b45309" strokeWidth="0.3" opacity="0.4" />
+                    <circle cx="175" cy="175" r="15" fill="none" stroke="#b45309" strokeWidth="0.3" opacity="0.4" />
+                  </svg>
                 </motion.div>
                 
                 {/* Bold floating herbal elements */}
                 <motion.div
-                  className="absolute -bottom-8 -right-8 w-28 h-28 bg-gradient-to-br from-amber-400/70 to-amber-200/50 rounded-full z-20 flex items-center justify-center shadow-lg backdrop-blur-sm"
+                  className="absolute -bottom-7 -right-7 w-25 h-25 bg-gradient-to-br from-amber-400/70 to-amber-200/50 rounded-full z-20 flex items-center justify-center shadow-lg backdrop-blur-sm" /* Reduced size and position */  
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.3 }}
@@ -597,12 +626,12 @@ const HerbalMedicine = () => {
                       ease: "linear"
                     }}
                   >
-                    <Flower className="w-12 h-12 text-amber-700/90" />
+                    <Flower className="w-11 h-11 text-amber-700/90" /> {/* Reduced from 12x12 to 11x11 */}
                   </motion.div>
                 </motion.div>
                 
                 <motion.div
-                  className="absolute -top-8 -left-8 w-28 h-28 bg-gradient-to-tl from-emerald-500/70 to-green-200/50 rounded-full z-20 flex items-center justify-center shadow-lg backdrop-blur-sm"
+                  className="absolute -top-7 -left-7 w-25 h-25 bg-gradient-to-tl from-emerald-500/70 to-green-200/50 rounded-full z-20 flex items-center justify-center shadow-lg backdrop-blur-sm" /* Reduced size and position */
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.5 }}
@@ -617,7 +646,7 @@ const HerbalMedicine = () => {
                       ease: "linear"
                     }}
                   >
-                    <Leaf className="w-12 h-12 text-green-800/90" />
+                    <Leaf className="w-11 h-11 text-green-800/90" /> {/* Reduced from 12x12 to 11x11 */}
                   </motion.div>
                 </motion.div>
               </div>
@@ -697,12 +726,29 @@ const HerbalMedicine = () => {
           
           {/* Footer section with floating chat button */}
           <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-30">
-            <Button 
-              onClick={() => setIsChatOpen(true)}
-              className="rounded-full h-16 w-16 bg-lens-purple hover:bg-lens-purple-light shadow-xl flex items-center justify-center transition-transform hover:scale-105"
-            >
-              <MessageCircle className="h-7 w-7" />
-            </Button>
+            {/* Button with beaming rays effect */}
+            <div className="relative">
+              {/* Beaming rays around the button */}
+              <div className="absolute inset-0 z-0 overflow-visible rounded-full">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div 
+                    key={i}
+                    className="absolute top-1/2 left-1/2 h-[180%] w-0.5 bg-gradient-to-t from-lens-purple/0 via-lens-purple/20 to-indigo-300/0"
+                    style={{ 
+                      transformOrigin: 'center center',
+                      transform: `translate(-50%, -50%) rotate(${i * 30}deg)` 
+                    }}
+                  />
+                ))}
+              </div>
+              
+              <Button 
+                onClick={() => setIsChatOpen(true)}
+                className="rounded-full h-16 w-16 bg-lens-purple hover:bg-lens-purple-light shadow-xl flex items-center justify-center transition-transform hover:scale-105 relative z-10"
+              >
+                <MessageCircle className="h-7 w-7" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
