@@ -52,7 +52,6 @@ const Footer: React.FC = () => {
             <ul className="space-y-3">
               <li><Link to="/" className="text-gray-600 hover:text-lens-purple transition-colors">Home</Link></li>
               <li><Link to="/pharmacy" className="text-gray-600 hover:text-lens-purple transition-colors">E-Pharmacy</Link></li>
-              <li><Link to="/nutrition" className="text-gray-600 hover:text-lens-purple transition-colors">Nutrition</Link></li>
               <li><Link to="/mental-health" className="text-gray-600 hover:text-lens-purple transition-colors">Mental Health</Link></li>
               <li><Link to="/herbal-medicine" className="text-gray-600 hover:text-lens-purple transition-colors">Herbal Medicine</Link></li>
             </ul>
@@ -67,7 +66,6 @@ const Footer: React.FC = () => {
               <li><Link to="/admin/appointments" className="text-gray-600 hover:text-lens-purple transition-colors">Manage Appointments</Link></li>
               <li><Link to="/admin/prescriptions" className="text-gray-600 hover:text-lens-purple transition-colors">Manage Prescriptions</Link></li>
               <li><Link to="/admin/health-records" className="text-gray-600 hover:text-lens-purple transition-colors">Patient Records</Link></li>
-              <li><Link to="/admin/diet-plans" className="text-gray-600 hover:text-lens-purple transition-colors">Diet Plans</Link></li>
             </ul>
           </div>
         </div>

@@ -222,7 +222,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50">
       <Navbar />
-      <div className="container max-w-7xl mx-auto px-4 py-24 md:py-32">
+      <div className="container max-w-7xl mx-auto px-4 py-16 md:py-32 overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left column - User profile info */}
         <div className="md:col-span-1">
@@ -316,7 +316,7 @@ const Profile = () => {
         {/* Right column - Consultations and other tabs */}
         <div className="md:col-span-2">
           <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="consultations" className="w-full">
-            <TabsList className="mb-8">
+            <TabsList className="mb-8 w-full max-w-full overflow-x-auto flex">
               <TabsTrigger value="consultations">
                 Consultations {!isLoadingConsultations && (
                   <span className="ml-1.5 rounded-full bg-lens-purple/20 text-lens-purple px-2 py-0.5 text-xs font-medium">
@@ -342,10 +342,10 @@ const Profile = () => {
             
             <TabsContent value="consultations">
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-lens-purple to-indigo-600 bg-clip-text text-transparent">
-                    Your Consultations
-                    <span className="ml-2 text-base bg-lens-purple/10 text-lens-purple px-2 py-0.5 rounded-full">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+                  <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-lens-purple to-indigo-600 bg-clip-text text-transparent flex flex-wrap items-center gap-2">
+                    <span>Your Consultations</span>
+                    <span className="text-sm sm:text-base bg-lens-purple/10 text-lens-purple px-2 py-0.5 rounded-full">
                       {consultations.length}
                     </span>
                   </h2>
@@ -394,7 +394,7 @@ const Profile = () => {
                           'bg-yellow-500'
                         }`} />
                         <CardContent className="p-5">
-                          <div className="flex flex-col md:flex-row justify-between gap-4">
+                          <div className="flex flex-col md:flex-row justify-between gap-4 overflow-hidden">
                             {/* Left section - Consultation details */}
                             <div className="space-y-3.5">
                               {/* Status badges */}
@@ -407,10 +407,10 @@ const Profile = () => {
                               
                               {/* Title and date/time */}
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-800 mb-1.5">
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-1.5 break-words">
                                   Consultation on {formatDate(consultation.preferred_date)}
                                 </h3>
-                                <div className="flex items-center gap-4 text-muted-foreground">
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-muted-foreground">
                                   <div className="flex items-center gap-1.5">
                                     <Clock className="h-4 w-4 text-gray-500" />
                                     <span className="text-sm font-medium">{consultation.preferred_time}</span>
@@ -466,10 +466,10 @@ const Profile = () => {
             
             <TabsContent value="orders">
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-lens-purple to-indigo-600 bg-clip-text text-transparent">
-                    Your Orders
-                    <span className="ml-2 text-base bg-lens-purple/10 text-lens-purple px-2 py-0.5 rounded-full">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+                  <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-lens-purple to-indigo-600 bg-clip-text text-transparent flex flex-wrap items-center gap-2">
+                    <span>Your Orders</span>
+                    <span className="text-sm sm:text-base bg-lens-purple/10 text-lens-purple px-2 py-0.5 rounded-full">
                       {orders.length}
                     </span>
                   </h2>
@@ -484,10 +484,10 @@ const Profile = () => {
             
             <TabsContent value="assessments">
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-lens-purple to-indigo-600 bg-clip-text text-transparent">
-                    Mental Health Assessments
-                    <span className="ml-2 text-base bg-lens-purple/10 text-lens-purple px-2 py-0.5 rounded-full">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+                  <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-lens-purple to-indigo-600 bg-clip-text text-transparent flex flex-wrap items-center gap-2">
+                    <span>Mental Health Assessments</span>
+                    <span className="text-sm sm:text-base bg-lens-purple/10 text-lens-purple px-2 py-0.5 rounded-full">
                       {assessments.length}
                     </span>
                   </h2>
@@ -519,8 +519,8 @@ const Profile = () => {
                           <div className="h-1 w-full bg-indigo-400"></div>
                           
                           <div className="p-5">
-                            {/* Header with title and date */}
-                            <div className="flex justify-between items-start mb-4">
+                              {/* Header with title and date */}
+                            <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-2 sm:gap-0">
                               <h4 className="font-semibold text-lg text-lens-purple">
                                 {assessment.mental_health_assessment?.title || 'Assessment'}
                               </h4>

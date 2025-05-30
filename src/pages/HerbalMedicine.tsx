@@ -186,178 +186,206 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
         <>
-          {/* Overlay that covers the entire screen with enhanced backdrop effect */}
+          {/* Refined backdrop with subtle fade-in and blur */}
           <motion.div 
             initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            animate={{ opacity: 1, backdropFilter: 'blur(5px)' }}
+            animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
             exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 bg-black/25 backdrop-blur-[5px] z-50"
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 bg-black/20 backdrop-blur-[8px] z-50"
             onClick={onClose}
           />
 
-          {/* Chatbot panel that slides in from the bottom with enhanced animations */}
+          {/* iOS-style sheet that slides up with dynamic spring physics */}
           <motion.div
-            initial={{ y: '100%', opacity: 0.5, scale: 0.98 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: '100%', opacity: 0.5, scale: 0.98 }}
+            initial={{ y: '100%', borderRadius: '24px 24px 0 0' }}
+            animate={{ 
+              y: 0, 
+              borderRadius: isFullScreen ? '0' : '24px 24px 0 0',
+              height: isFullScreen ? '100%' : '90%'
+            }}
+            exit={{ y: '100%' }}
             transition={{ 
               type: "spring", 
-              damping: 25, 
-              stiffness: 400, 
-              mass: 0.9, 
-              restDelta: 0.001,
-              restSpeed: 0.001,
-              bounce: 0,
+              damping: 30, 
+              stiffness: 350, 
+              mass: 0.8,
+              restSpeed: 0.003,
             }}
-            className={`fixed inset-0 ${isFullScreen ? '' : 'top-auto h-[90vh] rounded-t-3xl'} bg-white z-50 flex flex-col overflow-hidden shadow-2xl will-change-transform`}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-white overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.12)] will-change-transform"
+            style={{ height: isFullScreen ? '100%' : '90%' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header with title and control buttons - added subtle entrance animation */}
+            {/* Premium drag handle for iOS feel */}
+            <div className="absolute top-0 left-0 right-0 flex justify-center pt-3 pb-2 touch-none z-10">
+              <div className="w-10 h-1 rounded-full bg-gray-300/80"></div>
+            </div>
+
+            {/* iOS-style frosted glass header - mobile optimized */}
             <motion.div 
-              className={`px-6 py-4 bg-gradient-to-r from-lens-purple/20 to-green-100/50 border-b flex items-center justify-between ${isFullScreen ? 'pt-7 pb-5' : ''}`}
+              className="pt-8 pb-4 px-4 sm:px-6 backdrop-blur-md bg-white/80 border-b border-gray-200/50 sticky top-0 z-10 overflow-hidden"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.3 }}
             >
-              <div className="flex items-center">
-                <Flower2 className="h-6 w-6 text-emerald-600 mr-2" />
-                <h3 className="font-semibold text-lg">Nature's Wisdom - Herbal Medicine Consultant</h3>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="rounded-full hover:bg-white/20"
-                  onClick={() => setIsFullScreen(!isFullScreen)}
-                >
-                  {isFullScreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="rounded-full hover:bg-white/20"
-                  onClick={onClose}
-                >
-                  <X className="h-5 w-5" />
-                </Button>
+              <div className="max-w-4xl mx-auto flex items-center justify-between">
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <div className="flex-shrink-0 flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 shadow-sm">
+                    <Flower2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-sm sm:text-base text-gray-900 truncate">Nature's Wisdom</h3>
+                    <p className="text-xs text-emerald-600 truncate">Herbal Medicine Consultant</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="rounded-full h-7 w-7 sm:h-8 sm:w-8 hover:bg-gray-100/80"
+                    onClick={() => setIsFullScreen(!isFullScreen)}
+                  >
+                    {isFullScreen ? <Minimize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" /> : <Maximize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" />}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="rounded-full h-7 w-7 sm:h-8 sm:w-8 hover:bg-gray-100/80"
+                    onClick={onClose}
+                  >
+                    <X className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" />
+                  </Button>
+                </div>
               </div>
             </motion.div>
-
-            {/* Enhanced decorative accent elements with subtle animations - only visible in non-fullscreen mode */}
-            {!isFullScreen && (
-              <>
-                <motion.div 
-                  className="absolute top-0 left-1/4 w-32 h-1 bg-gradient-to-r from-green-500/30 to-lens-purple/30 rounded-full translate-y-[-50%] blur-sm"
-                  initial={{ opacity: 0, width: "10%" }}
-                  animate={{ opacity: 1, width: "32%" }}
-                  transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
-                />
-                <motion.div 
-                  className="absolute top-0 right-1/4 w-24 h-1 bg-gradient-to-r from-amber-500/30 to-green-400/30 rounded-full translate-y-[-50%] blur-sm"
-                  initial={{ opacity: 0, width: "6%" }}
-                  animate={{ opacity: 1, width: "24%" }}
-                  transition={{ delay: 0.25, duration: 0.5, ease: "easeOut" }}
-                />
-              </>
-            )}
             
-            {/* Chat area with ambient gradient background */}
-            <div className="flex-1 overflow-hidden bg-gradient-to-b from-white to-green-50/30 relative">
-              {/* Ambient decorative elements */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-5">
-                <motion.div
-                  className="absolute top-10 right-10 w-80 h-80 rounded-full bg-gradient-to-br from-emerald-400 via-green-300 to-amber-200 blur-3xl"
-                  animate={{opacity: [0.3, 0.5, 0.3], scale: [1, 1.1, 1], x: [0, 10, 0]}}
-                  transition={{duration: 12, repeat: Infinity, ease: "easeInOut"}}
-                />
-                <motion.div
-                  className="absolute bottom-40 left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-amber-300 via-lens-purple/60 to-emerald-200 blur-3xl"
-                  animate={{opacity: [0.2, 0.4, 0.2], scale: [1, 1.15, 1], y: [0, -10, 0]}}
-                  transition={{duration: 14, repeat: Infinity, ease: "easeInOut"}}
-                />
+            {/* Chat content area with subtle background */}
+            <div className="flex-1 overflow-hidden bg-gradient-to-b from-gray-50 to-white relative">
+              {/* Ambient subtle background elements */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.03]">
+                <svg className="absolute w-full h-full opacity-30" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0,1000 C200,800 350,900 500,800 C650,700 700,500 1000,500 L1000,1000 Z" fill="#15803d" />
+                  <path d="M0,1000 C300,950 400,800 600,800 C800,800 900,900 1000,1000 Z" fill="#7e3af2" />
+                </svg>
+                <div className="absolute inset-0 bg-gradient-to-tr from-green-50/10 via-transparent to-lens-purple/5"></div>
               </div>
 
-              {/* Messages area with scrolling */}
-              <ScrollArea className="h-full px-4 md:px-8 py-6">
-                <div className="max-w-4xl mx-auto space-y-6">
+              {/* Messages with iOS-like styling - mobile optimized */}
+              <ScrollArea className="h-full px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-8 overflow-x-hidden">
+                <div className="max-w-2xl mx-auto space-y-3 sm:space-y-4">
+                  {/* Status pill - mobile optimized */}
                   <motion.div 
-                    className="flex justify-center mb-6"
+                    className="flex justify-center my-2 sm:my-3"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.4 }}
+                    transition={{ delay: 0.2, duration: 0.4 }}
                   >
-                    <div className="px-4 py-2 bg-green-100/50 rounded-full flex items-center gap-2 border border-green-200/50 backdrop-blur-sm">
-                      <motion.div
-                        animate={{ rotate: [0, 10, -10, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 5 }}
-                      >
-                        <Sparkles className="h-4 w-4 text-emerald-600" />
-                      </motion.div>
-                      <span className="text-sm text-emerald-800">Powered by traditional knowledge and AI</span>
+                    <div className="max-w-[95%] px-2 sm:px-3 py-1 sm:py-1.5 bg-white/90 rounded-full flex items-center gap-1 sm:gap-2 shadow-sm border border-gray-200/50">
+                      <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0 text-emerald-600" />
+                      <span className="text-[10px] sm:text-xs font-medium text-gray-700 truncate">Using AI to interpret traditional herbal knowledge</span>
                     </div>
                   </motion.div>
 
-                  {messages.map((message) => (
-                    <div
+                  {/* Message bubbles with iOS-like styling - mobile optimized */}
+                  {messages.map((message, index) => (
+                    <motion.div
                       key={message.id}
-                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} items-end w-full`}
                     >
+                      {message.sender === 'assistant' && (
+                        <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-emerald-100 flex items-center justify-center mr-1.5 sm:mr-2 mb-1 shadow-sm border border-emerald-200/50 flex-shrink-0">
+                          <Leaf className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600" />
+                        </div>
+                      )}
+                      
                       <div
-                        className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-4 shadow-sm ${message.sender === 'user' 
-                          ? 'bg-lens-purple text-white' 
-                          : 'bg-gradient-to-r from-emerald-50 to-green-100 text-gray-800 border border-green-200/50'}`}
+                        className={`max-w-[75%] sm:max-w-[85%] md:max-w-[70%] p-2.5 sm:p-3.5 shadow-sm ${message.sender === 'user' 
+                          ? 'bg-lens-purple text-white rounded-2xl rounded-tr-sm' 
+                          : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm'}`}
                       >
-                        <p className="whitespace-pre-wrap">{message.content}</p>
+                        <p className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed break-words">{message.content}</p>
                       </div>
-                    </div>
+
+                      {message.sender === 'user' && (
+                        <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-lens-purple-light flex items-center justify-center ml-1.5 sm:ml-2 mb-1 shadow-sm flex-shrink-0">
+                          <div className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 rounded-full bg-white/90"></div>
+                        </div>
+                      )}
+                    </motion.div>
                   ))}
+
+                  {/* iOS-style typing indicator - mobile optimized */}
                   {isLoading && (
-                    <div className="flex justify-start">
-                      <div className="max-w-[85%] md:max-w-[70%] rounded-2xl p-4 bg-gray-100/80 backdrop-blur-sm text-gray-500 shadow-sm">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
-                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '600ms' }} />
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex justify-start items-end"
+                    >
+                      <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-emerald-100 flex items-center justify-center mr-1.5 sm:mr-2 mb-1 shadow-sm border border-emerald-200/50 flex-shrink-0">
+                        <Leaf className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600" />
+                      </div>
+                      <div className="rounded-2xl rounded-tl-sm p-2 sm:p-3 bg-white border border-gray-100 shadow-sm">
+                        <div className="flex items-center h-4 sm:h-5 space-x-1 sm:space-x-1.5">
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '0ms', animationDuration: '1000ms' }} />
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '300ms', animationDuration: '1000ms' }} />
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '600ms', animationDuration: '1000ms' }} />
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
                   <div ref={messagesEndRef} className="h-5" />
                 </div>
               </ScrollArea>
             </div>
             
-            {/* Input area at the bottom with entrance animation */}
+            {/* Premium iOS-style input area - mobile optimized */}
             <motion.div 
-              className="p-4 md:p-6 border-t bg-white/80 backdrop-blur-md"
-              initial={{ opacity: 0, y: 30 }}
+              className="p-3 sm:p-4 border-t border-gray-200/70 bg-white/80 backdrop-blur-md shadow-[0_-1px_5px_rgba(0,0,0,0.03)]"
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ delay: 0.15, duration: 0.4 }}
             >
-              <div className="max-w-4xl mx-auto flex items-center gap-3">
-                <Input
-                  placeholder="Ask about herbal remedies for your symptoms..."
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  disabled={isLoading || !user}
-                  className="flex-1 py-6 px-4 text-base rounded-xl border-lens-purple/20 shadow-sm focus-visible:ring-lens-purple"
-                />
+              <div className="max-w-2xl mx-auto flex items-center gap-2 sm:gap-3">
+                <div className="relative flex-1">
+                  <Input
+                    placeholder="Ask about herbal remedies..."
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    disabled={isLoading || !user}
+                    className="flex-1 py-2 sm:py-2.5 pl-3 sm:pl-4 pr-8 sm:pr-10 text-sm sm:text-base rounded-full border-gray-200 shadow-sm focus-visible:ring-lens-purple focus-visible:border-lens-purple bg-white/80 backdrop-blur-sm"
+                  />
+                  {inputMessage.length > 0 && (
+                    <Button 
+                      onClick={() => setInputMessage('')}
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 sm:h-7 sm:w-7 rounded-full hover:bg-gray-100/80"
+                    >
+                      <X className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-400" />
+                    </Button>
+                  )}
+                </div>
                 <Button 
                   onClick={handleSendMessage} 
                   disabled={isLoading || !inputMessage.trim() || !user}
-                  size="icon"
-                  className="rounded-full h-12 w-12 bg-lens-purple hover:bg-lens-purple-light shadow-md transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="rounded-full h-9 w-9 sm:h-10 sm:w-10 p-0 bg-lens-purple hover:bg-lens-purple-light shadow-sm transition-all duration-200 flex items-center justify-center flex-shrink-0"
                 >
-                  <Send className="h-5 w-5" />
+                  <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                 </Button>
               </div>
               {!user && (
-                <p className="text-sm text-red-500 mt-3 text-center">Please log in to use the herbal medicine consultant</p>
+                <div className="mt-2 sm:mt-3 max-w-2xl mx-auto">
+                  <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-50 border border-amber-100 rounded-lg">
+                    <p className="text-[10px] sm:text-xs text-amber-800 text-center">Please sign in to use the herbal medicine consultant</p>
+                  </div>
+                </div>
               )}
             </motion.div>
           </motion.div>
@@ -724,16 +752,16 @@ const HerbalMedicine = () => {
           {/* Slide-in Fullscreen Chat Interface */}
           <HerbalChatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
           
-          {/* Footer section with floating chat button */}
-          <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-30">
-            {/* Button with enhanced design */}
+          {/* Footer section with floating chat button - improved for mobile */}
+          <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-30 max-w-[90vw] overflow-visible">
+            {/* Button with enhanced design - mobile optimized */}
             <div className="relative group">
-              {/* Outer glow - creates a soft halo effect */}
-              <div className="absolute inset-[-8px] bg-gradient-to-tr from-lens-purple/40 via-indigo-400/20 to-lens-purple/30 rounded-full blur-md opacity-70 group-hover:opacity-90 transition-opacity duration-500"></div>
+              {/* Outer glow - creates a soft halo effect - constrained for mobile */}
+              <div className="absolute inset-[-6px] sm:inset-[-8px] bg-gradient-to-tr from-lens-purple/40 via-indigo-400/20 to-lens-purple/30 rounded-full blur-md opacity-70 group-hover:opacity-90 transition-opacity duration-500"></div>
               
-              {/* Subtle pulsing ring */}
+              {/* Subtle pulsing ring - size adjusted for mobile */}
               <motion.div 
-                className="absolute inset-[-4px] rounded-full border border-lens-purple/30 group-hover:border-lens-purple/50 transition-colors duration-500"
+                className="absolute inset-[-3px] sm:inset-[-4px] rounded-full border border-lens-purple/30 group-hover:border-lens-purple/50 transition-colors duration-500"
                 animate={{
                   scale: [1, 1.05, 1],
                   opacity: [0.5, 0.8, 0.5]
@@ -745,12 +773,12 @@ const HerbalMedicine = () => {
                 }}
               />
               
-              {/* Subtler beaming rays */}
-              <div className="absolute inset-0 z-0 overflow-visible rounded-full">
+              {/* Subtler beaming rays - contained for mobile */}
+              <div className="absolute inset-0 z-0 overflow-hidden rounded-full">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div 
                     key={i}
-                    className="absolute top-1/2 left-1/2 h-[150%] w-0.5 bg-gradient-to-t from-lens-purple/0 via-lens-purple/10 to-indigo-300/0 group-hover:via-lens-purple/15 transition-colors duration-500"
+                    className="absolute top-1/2 left-1/2 h-[130%] sm:h-[150%] w-0.5 bg-gradient-to-t from-lens-purple/0 via-lens-purple/10 to-indigo-300/0 group-hover:via-lens-purple/15 transition-colors duration-500"
                     style={{ 
                       transformOrigin: 'center center',
                       transform: `translate(-50%, -50%) rotate(${i * 45}deg)` 
@@ -759,29 +787,29 @@ const HerbalMedicine = () => {
                 ))}
               </div>
               
-              {/* Main button with gradient background */}
+              {/* Main button with gradient background - smaller on mobile */}
               <Button 
                 onClick={() => setIsChatOpen(true)}
-                className="relative rounded-full h-16 w-16 bg-gradient-to-br from-lens-purple to-indigo-600 hover:from-lens-purple-light hover:to-indigo-500 shadow-lg border-2 border-white/20 backdrop-blur-sm flex items-center justify-center z-10 transition-all duration-300 group-hover:shadow-lens-purple/30 group-hover:shadow-xl"
+                className="relative rounded-full h-14 w-14 sm:h-16 sm:w-16 bg-gradient-to-br from-lens-purple to-indigo-600 hover:from-lens-purple-light hover:to-indigo-500 shadow-lg border-2 border-white/20 backdrop-blur-sm flex items-center justify-center z-10 transition-all duration-300 group-hover:shadow-lens-purple/30 group-hover:shadow-xl"
               >
                 {/* Inner glow effect */}
                 <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-white/10 to-transparent opacity-50"></div>
                 
-                {/* Icon with decorative elements */}
+                {/* Icon with decorative elements - smaller for mobile */}
                 <div className="relative">
                   {/* Small sparkle in top right of icon */}
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full opacity-80"></div>
+                  <div className="absolute -top-1 -right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full opacity-80"></div>
                   
                   {/* Main icon */}
-                  <MessageCircle className="h-7 w-7 text-white drop-shadow-md" />
+                  <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7 text-white drop-shadow-md" />
                   
                   {/* Small dot decorations */}
-                  <div className="absolute bottom-0 right-0 w-1.5 h-1.5 bg-white/70 rounded-full"></div>
+                  <div className="absolute bottom-0 right-0 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-white/70 rounded-full"></div>
                 </div>
               </Button>
               
-              {/* Text label that appears on hover */}
-              <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md text-sm font-medium text-lens-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              {/* Text label that appears on hover - hidden on small mobile */}
+              <div className="hidden sm:block absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md text-sm font-medium text-lens-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                 Chat with Nature's Wisdom
               </div>
             </div>
