@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, ShoppingCart, Trash2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,9 +6,16 @@ import { useCart } from "@/context/CartContext";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import CheckoutModal from "./FixedCheckoutModal";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const CartDrawer: React.FC = () => {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
   
   // Get all cart state and functions from useCart hook
   const { 
@@ -23,10 +30,42 @@ const CartDrawer: React.FC = () => {
     cartCount
   } = useCart();
   
+  // Check for checkout return from login
+  useEffect(() => {
+    // Check if we're returning from a login with the returnToCheckout flag
+    const params = new URLSearchParams(location.search);
+    const returnToCheckout = params.get('returnToCheckout');
+    
+    if (returnToCheckout === 'true' && user) {
+      // We're returning from login and user is authenticated
+      setIsCheckoutOpen(true);
+      
+      // Clean up the URL
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, user, navigate]);
+  
   // Handle proceeding to checkout
   const handleCheckout = () => {
     closeCart(); // Close the cart drawer
-    setIsCheckoutOpen(true); // Open the checkout modal
+    
+    // Check if user is logged in
+    if (!user) {
+      // Save current path to redirect back after login
+      const returnPath = `${location.pathname}?returnToCheckout=true`;
+      
+      toast({
+        title: "Login required",
+        description: "Please sign in to continue with checkout",
+        duration: 3000
+      });
+      
+      // Redirect to login page with return path
+      navigate(`/login?returnUrl=${encodeURIComponent(returnPath)}`);
+    } else {
+      // User is logged in, proceed to checkout
+      setIsCheckoutOpen(true);
+    }
   };
 
   return (

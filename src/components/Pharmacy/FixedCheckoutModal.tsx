@@ -8,6 +8,7 @@ import { X, Check, CreditCard, MapPin } from 'lucide-react';
 import { createOrder } from '@/services/orderService';
 import { useAuth } from '@/context/AuthContext';
 import CheckoutLoginModal from './CheckoutLoginModal';
+import OrderConfirmation from './OrderConfirmation';
 import { useCart } from '@/context/CartContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -24,9 +25,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('cash'); // Changed default to cash
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  
+  // Order confirmation state
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [orderId, setOrderId] = useState('');
   
   // Form references
   const formRef = useRef<HTMLFormElement>(null);
@@ -142,22 +147,22 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
     try {
       // Save order to database
-      await createOrder({
+      const orderData = await createOrder({
         cartItems: cart,
         totalAmount: totalAmount,
         paymentMethod: paymentMethod,
         shippingAddress: shippingInfo
       });
       
-      toast({
-        title: "Order confirmed",
-        description: "Your medications will be delivered soon",
-        duration: 1500,
-        className: "bg-gray-800/80 text-white text-sm py-1 pl-2 pr-3 border-none"
-      });
+      // Generate a random order ID if not provided by the backend
+      const generatedOrderId = orderData?.id || `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+      setOrderId(generatedOrderId);
       
+      // Show the spectacular animated confirmation instead of a simple toast
+      setIsConfirmationOpen(true);
+      
+      // Clear cart but don't close the modal yet (the confirmation will handle that)
       clearCart();
-      onClose();
     } catch (error) {
       console.error('Failed to create order:', error);
       toast({
@@ -165,7 +170,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
         description: "There was a problem processing your order",
         variant: "destructive"
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -280,36 +284,25 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                     <div className="space-y-6">
                       <div className="space-y-2">
                         <Label>Payment Method</Label>
-                        <Tabs defaultValue="card" onValueChange={setPaymentMethod}>
-                          <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="card">Card</TabsTrigger>
-                            <TabsTrigger value="mobile">Mobile Money</TabsTrigger>
+                        <Tabs defaultValue="cash" onValueChange={setPaymentMethod}>
+                          <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="cash">Cash on Delivery</TabsTrigger>
+                            <TabsTrigger value="mobile">Mobile Money</TabsTrigger>
                           </TabsList>
-                          <TabsContent value="card" className="pt-4">
-                            <div className="space-y-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="cardNumber">Card Number</Label>
-                                <Input id="cardNumber" placeholder="1234 5678 9012 3456" required />
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="expiry">Expiry Date</Label>
-                                  <Input id="expiry" placeholder="MM/YY" required />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="cvv">CVV</Label>
-                                  <Input id="cvv" placeholder="123" required />
-                                </div>
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="cardName">Name on Card</Label>
-                                <Input id="cardName" required />
-                              </div>
+                          <TabsContent value="cash" className="pt-4">
+                            <div className="p-4 bg-gray-50 rounded-lg text-center space-y-2">
+                              <p>You will pay when your order is delivered.</p>
+                              <p className="text-sm text-gray-500">Please have the exact amount ready.</p>
                             </div>
                           </TabsContent>
                           <TabsContent value="mobile" className="pt-4">
                             <div className="space-y-4">
+                              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md mb-3">
+                                <p className="text-sm text-yellow-700">
+                                  <strong>Note:</strong> We are currently working on integrating online payment solutions. 
+                                  Mobile money payments will be processed manually for now.
+                                </p>
+                              </div>
                               <div className="space-y-2">
                                 <Label htmlFor="mobileNumber">Mobile Number</Label>
                                 <Input id="mobileNumber" placeholder="0XX XXX XXXX" required />
@@ -327,12 +320,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                                   <option value="airteltigo">AirtelTigo Money</option>
                                 </select>
                               </div>
-                            </div>
-                          </TabsContent>
-                          <TabsContent value="cash" className="pt-4">
-                            <div className="p-4 bg-gray-50 rounded-lg text-center space-y-2">
-                              <p>You will pay when your order is delivered.</p>
-                              <p className="text-sm text-gray-500">Please have the exact amount ready.</p>
                             </div>
                           </TabsContent>
                         </Tabs>
@@ -455,6 +442,17 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
         isOpen={isLoginModalOpen} 
         onClose={() => setIsLoginModalOpen(false)}
         onLoginSuccess={handleLoginSuccess}
+      />
+      
+      {/* Spectacular Animated Order Confirmation */}
+      <OrderConfirmation 
+        isOpen={isConfirmationOpen}
+        onClose={() => {
+          setIsConfirmationOpen(false);
+          setIsSubmitting(false);
+          onClose();
+        }}
+        orderId={orderId}
       />
     </AnimatePresence>
   );

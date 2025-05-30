@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import CartNotification from "@/components/Pharmacy/CartNotification";
 
 // Types
 export type ProductCategory = "Antibiotics" | "Pain Relief" | "Supplements" | "First Aid";
@@ -41,6 +42,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  // State for custom notifications
+  const [notificationProduct, setNotificationProduct] = useState<Product | null>(null);
+  const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   
   // Load cart from localStorage on initial render
   useEffect(() => {
@@ -86,13 +91,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           )
         : [...prevCart, { productId: product.id, quantity: 1, product }];
       
-      // Show subtle toast notification
-      toast({
-        title: `${product.name}`,
-        description: "Added to cart",
-        duration: 800,
-        className: "bg-gray-800/80 text-white text-sm py-1 pl-2 pr-3 border-none"
-      });
+      // Show enhanced notification
+      setNotificationProduct(product);
+      setIsNotificationVisible(true);
       
       // We no longer automatically open the cart drawer here
       // The drawer will only open when user clicks the cart icon
@@ -159,9 +160,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     cartCount
   };
   
+  // Handle closing notification
+  const handleCloseNotification = () => {
+    setIsNotificationVisible(false);
+  };
+  
   return (
     <CartContext.Provider value={value}>
       {children}
+      <CartNotification 
+        product={notificationProduct}
+        isVisible={isNotificationVisible}
+        onClose={handleCloseNotification}
+      />
     </CartContext.Provider>
   );
 };

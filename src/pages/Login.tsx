@@ -26,6 +26,9 @@ const Login: React.FC = () => {
   const fromConsultation = queryParams.get('fromConsultation') === 'true';
   const openChat = queryParams.get('openChat') === 'true';
   const openAssessment = queryParams.get('openAssessment') === 'true';
+  
+  // Check if the returnUrl contains a checkout redirect
+  const isCheckoutRedirect = returnUrl?.includes('returnToCheckout=true');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,8 +50,16 @@ const Login: React.FC = () => {
       
       // Handle redirects based on parameters
       if (returnUrl) {
+        // If we're returning to checkout flow
+        if (isCheckoutRedirect) {
+          toast({
+            title: "Login Successful",
+            description: "Returning to checkout"
+          });
+          navigate(decodeURIComponent(returnUrl));
+        }
         // If we're returning to mental health page with chat or assessment flags
-        if (openChat) {
+        else if (openChat) {
           toast({
             title: "Login Successful",
             description: "You will now be redirected to chat with Serene Companion."
