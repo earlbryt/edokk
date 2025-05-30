@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Get user profile data
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('name, role, photo_url')
+          .select('name, role, avatar_url')
           .eq('id', session.user.id)
           .single();
         
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             email: session.user.email || '',
             name: profile.name || '',
             role: profile.role || 'user',
-            photoUrl: profile.photo_url || undefined,
+            photoUrl: profile.avatar_url || undefined,
           });
         }
       }
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Get user profile data
             const { data: profile, error } = await supabase
               .from('profiles')
-              .select('name, role, photo_url')
+              .select('name, role, avatar_url')
               .eq('id', session.user.id)
               .single();
             
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 email: session.user.email || '',
                 name: profile.name || '',
                 role: profile.role || 'user',
-                photoUrl: profile.photo_url || undefined,
+                photoUrl: profile.avatar_url || undefined,
               });
             }
           } else if (event === 'SIGNED_OUT') {
