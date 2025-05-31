@@ -395,7 +395,7 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
                       {/* Left glow accent */}
                       <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-8 bg-emerald-400/20 blur-xl rounded-full"></div>
                       <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0 text-emerald-600 relative z-10" />
-                      <span className="text-[10px] sm:text-xs font-medium text-gray-700 truncate relative z-10">Using AI to interpret traditional herbal knowledge</span>
+                      <span className="text-[10px] sm:text-xs font-medium text-gray-700 truncate relative z-10">Offering herbal solutions to health issues</span>
                     </div>
                   </motion.div>
 
