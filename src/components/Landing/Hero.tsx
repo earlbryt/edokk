@@ -87,7 +87,7 @@ const Hero: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              eDok seamlessly blends AI-powered healthcare with both modern and traditional medicine. Access consultations, prescriptions, nutrition plans, mental wellness tools, and herbal remedies—all through one intuitive platform.
+              eDok blends AI-powered healthcare with both modern and traditional medicine. Access consultations, mental wellness tools, and herbal remedies—all through one platform.
             </motion.p>
             <motion.div 
               className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mt-8"
