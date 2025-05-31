@@ -24,7 +24,9 @@ import {
   X,
   Sparkles,
   Maximize2,
-  Minimize2
+  Minimize2,
+  HeartPulse,
+  ClipboardList
 } from "lucide-react";
 
 // No herbal remedy types needed since we removed the database section
@@ -536,45 +538,42 @@ const HerbalMedicine = () => {
               <p className="mt-4 text-lg text-gray-600">
                 Discover the power of nature with our AI-powered herbal remedy consultant, combining ancient wisdom with modern science.
               </p>
+
+              {/* Statistics Section */}
+              <motion.div 
+                className="mt-8 mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                {[ 
+                  { icon: HeartPulse, label: 'Diseases Covered', value: 49, color: 'text-red-500' },
+                  { icon: Leaf, label: 'Herbal Remedies', value: 49, color: 'text-green-500' },
+                  { icon: ClipboardList, label: 'Preparation Methods', value: 49, color: 'text-blue-500' },
+                ].map((stat, index) => (
+                  <div key={index} className="p-3 bg-gray-50 rounded-lg shadow-sm flex flex-col items-center">
+                    <stat.icon className={`w-7 h-7 mb-1.5 ${stat.color}`} />
+                    <p className="text-xl font-semibold text-gray-700">{stat.value}</p>
+                    <p className="text-xs text-gray-500">{stat.label}</p>
+                  </div>
+                ))}
+              </motion.div>
               
               {/* Chat button - prominent call to action */}
-              <div className="mt-8">
+              <div className="mt-6">
                 <Button 
                   className="bg-lens-purple hover:bg-lens-purple-light w-full md:w-auto text-lg py-6 px-8 shadow-lg transition-all duration-300 hover:scale-102"
                   onClick={() => setIsChatOpen(true)}
                 >
                   <span className="flex items-center gap-3 font-medium">
                     <MessageCircle className="h-5 w-5" />
-                    Chat with Nature's Wisdom
+                    Find Herbal Remedies
                     <ChevronRight className="h-5 w-5 ml-1" />
                   </span>
                 </Button>
               </div>
               
-              {/* How to Use Guide - directly on the hero section */}
-              <div className="mt-10 space-y-4 border-t border-lens-purple/10 pt-6">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-lens-purple">
-                  <Info className="h-5 w-5" /> 
-                  How to Use the Herbal Consultant
-                </h3>
-                
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lens-purple/10 text-lens-purple text-sm font-medium">1</div>
-                    <p className="text-sm text-gray-600">Describe your symptoms or health concerns in detail</p>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lens-purple/10 text-lens-purple text-sm font-medium">2</div>
-                    <p className="text-sm text-gray-600">Receive information about relevant herbal remedies from our database</p>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lens-purple/10 text-lens-purple text-sm font-medium">3</div>
-                    <p className="text-sm text-gray-600">Ask follow-up questions about preparation methods and dosage</p>
-                  </div>
-                </div>
-              </div>
+
             </motion.div>
             
             {/* Bold and visually striking herbal showcase */}
