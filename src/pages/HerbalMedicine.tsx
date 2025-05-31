@@ -52,7 +52,7 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
-      content: "Hello! I'm Nature's Wisdom, your herbal medicine consultant. Tell me about your symptoms or health concerns, and I'll provide information on relevant herbal remedies from our database.",
+      content: "Hello! I'm Nature's Wisdom, your guide to herbal remedies. Describe your symptoms or health concerns, and I can share information about relevant herbal treatments from our database.",
       sender: 'assistant',
       timestamp: new Date()
     }
@@ -324,7 +324,7 @@ const HerbalChatbot: React.FC<HerbalChatbotProps> = ({ isOpen, onClose }) => {
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-medium text-sm sm:text-base text-gray-900 truncate">Nature's Wisdom</h3>
-                    <p className="text-xs text-emerald-600 truncate">Herbal Medicine Consultant</p>
+                    <p className="text-xs text-emerald-600 truncate">Herbal Remedy Guide</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
@@ -525,23 +525,23 @@ const HerbalMedicine = () => {
       <div className="container mx-auto py-24 px-4 sm:px-6 lg:px-8 overflow-hidden mt-0"> {/* Fixed overflow and margin */}
         <div className="space-y-16">
           {/* Hero Section with 3D effect */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
-              className="max-w-xl -mt-6 lg:-mt-12"
+              className="max-w-xl -mt-6 lg:-mt-12 lg:pl-8"
             >
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
                 <span className="text-lens-purple">Traditional</span> Herbal Medicine
               </h1>
-              <p className="mt-4 text-lg text-gray-600">
-                Discover the power of nature with our AI-powered herbal remedy consultant, combining ancient wisdom with modern science.
+              <p className="mt-5 text-lg text-gray-600">
+                Your guide to traditional herbal remedies. Learn about natural treatments, their preparation, and uses.
               </p>
 
               {/* Statistics Section */}
               <motion.div 
-                className="mt-8 mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center"
+                className="mt-10 mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -560,7 +560,7 @@ const HerbalMedicine = () => {
               </motion.div>
               
               {/* Chat button - prominent call to action */}
-              <div className="mt-6">
+              <div className="mt-10">
                 <Button 
                   className="bg-lens-purple hover:bg-lens-purple-light w-full md:w-auto text-lg py-6 px-8 shadow-lg transition-all duration-300 hover:scale-102"
                   onClick={() => setIsChatOpen(true)}
