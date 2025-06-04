@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -137,6 +138,7 @@ const Profile = () => {
           });
           setOrders([]); // Set to empty array on error
         } else {
+          // Safely handle the response data
           setOrders(Array.isArray(data) ? data : []);
         }
       } catch (error) {
@@ -146,6 +148,7 @@ const Profile = () => {
           description: 'Failed to load your order history. Please try again later.',
           variant: 'destructive',
         });
+        setOrders([]); // Set to empty array on error
       } finally {
         setIsLoadingOrders(false);
       }
@@ -201,6 +204,7 @@ const Profile = () => {
           });
           setAssessments([]); // Set to empty array on error
         } else {
+          // Safely handle the response data
           setAssessments(Array.isArray(data) ? data : []);
         }
       } catch (error) {
@@ -210,6 +214,7 @@ const Profile = () => {
           description: 'Failed to load your assessments. Please try again later.',
           variant: 'destructive',
         });
+        setAssessments([]); // Set to empty array on error
       } finally {
         setIsLoadingAssessments(false);
       }
