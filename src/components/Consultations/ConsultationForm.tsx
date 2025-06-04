@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -33,9 +32,10 @@ const TIME_SLOTS = generateTimeSlots();
 interface ConsultationFormProps {
   onSubmit?: (data: any) => void;
   isDialog?: boolean;
+  initialData?: any;
 }
 
-const ConsultationForm: React.FC<ConsultationFormProps> = ({ onSubmit, isDialog = false }) => {
+const ConsultationForm: React.FC<ConsultationFormProps> = ({ onSubmit, isDialog = false, initialData }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,6 +56,19 @@ const ConsultationForm: React.FC<ConsultationFormProps> = ({ onSubmit, isDialog 
       setEmail(user.email || '');
     }
   }, [user]);
+
+  // Prefill form with initial data if provided (when editing)
+  useEffect(() => {
+    if (initialData) {
+      setFullName(initialData.fullName || '');
+      setEmail(initialData.email || '');
+      setConsultationType(initialData.consultationType || 'virtual');
+      setDate(initialData.date || undefined);
+      setTime(initialData.time || undefined);
+      setSymptoms(initialData.symptoms || []);
+      setNotes(initialData.notes || '');
+    }
+  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
