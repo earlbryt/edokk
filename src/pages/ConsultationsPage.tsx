@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -175,7 +176,7 @@ const ConsultationsPage: React.FC = () => {
             toast({
               title: 'Warning',
               description: 'Consultation was confirmed but there was an issue sending the email notification.',
-              variant: 'warning',
+              variant: 'destructive',
             });
           }
         } catch (emailError) {

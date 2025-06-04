@@ -1,111 +1,162 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Calendar,
-  LayoutDashboard,
+import { 
+  LayoutDashboard, 
+  Calendar, 
+  Users, 
+  MessageSquare,
+  ShoppingCart,
+  Settings, 
   LogOut,
-  Home,
-  ShoppingBag,
-  PackageSearch
-} from "lucide-react";
+  ChevronLeft,
+  Heart,
+  Leaf,
+  Brain
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import Logo from '@/components/shared/Logo';
 import { useAuth } from '@/context/AuthContext';
 
-interface SidebarProps {
-  className?: string;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ className }) => {
+const Sidebar: React.FC = () => {
   const location = useLocation();
   const { logout } = useAuth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const isActive = (href: string) => {
-    return location.pathname === href;
-  };
+  const navigationItems = [
+    {
+      name: 'Dashboard',
+      href: '/dashboard',
+      icon: LayoutDashboard,
+      current: location.pathname === '/dashboard'
+    },
+    {
+      name: 'Consultations',
+      href: '/dashboard/consultations',
+      icon: Calendar,
+      current: location.pathname === '/dashboard/consultations'
+    },
+    {
+      name: 'Mental Health',
+      href: '/mental-health',
+      icon: Brain,
+      current: location.pathname === '/mental-health'
+    },
+    {
+      name: 'Herbal Medicine',
+      href: '/herbal-medicine',
+      icon: Leaf,
+      current: location.pathname === '/herbal-medicine'
+    },
+    {
+      name: 'E-Pharmacy',
+      href: '/pharmacy',
+      icon: ShoppingCart,
+      current: location.pathname === '/pharmacy'
+    },
+    {
+      name: 'Profile',
+      href: '/profile',
+      icon: Users,
+      current: location.pathname === '/profile'
+    }
+  ];
 
   const handleLogout = async () => {
     try {
       await logout();
-      // Redirecting is handled within the AuthContext
     } catch (error) {
-      console.error("Logout failed:", error);
-      // Handle logout error if necessary
+      console.error('Error during logout:', error);
     }
   };
 
-  // Define sidebar links
-  const sidebarLinks = [
-    {
-      name: "Dashboard",
-      href: "/admin",
-      icon: LayoutDashboard,
-    },
-    {
-      name: "Consultations",
-      href: "/admin/consultations",
-      icon: Calendar,
-    },
-    {
-      name: "Orders",
-      href: "/admin/orders",
-      icon: PackageSearch,
-    },
-  ];
-
   return (
-    <div className={cn("w-64 flex-shrink-0 border-r bg-white dark:bg-gray-900 dark:border-gray-800 py-4 h-screen fixed overflow-y-auto shadow-sm", className)}>
-      <div className="flex flex-col h-full">
-        <div className="px-4 py-3 border-b mb-4">
-          <Link to="/admin" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-lens-purple to-lens-purple-light flex items-center justify-center relative overflow-hidden">
-              <span className="text-white font-semibold text-lg relative z-10">eD</span>
-              <div className="absolute inset-0 bg-white/10 opacity-50 rounded-full scale-[0.85]"></div>
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-2 bg-white/20 rounded-b-full"></div>
-            </div>
-            <span className="font-semibold text-xl bg-gradient-to-r from-lens-purple to-emerald-600 bg-clip-text text-transparent">eDok</span>
+    <div className={cn(
+      "fixed inset-y-0 left-0 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-50",
+      isCollapsed ? "w-16" : "w-64"
+    )}>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        {!isCollapsed && (
+          <Link to="/dashboard" className="flex items-center">
+            <Logo />
           </Link>
-        </div>
-        
-        <div className="px-3 py-2 flex-1">
-          <h2 className="mb-3 px-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
-            Main Menu
-          </h2>
-          <div className="space-y-1">
-            {sidebarLinks.map((link) => (
-              <Button
-                key={link.href}
-                asChild
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start font-normal border-l-2 rounded-l-none",
-                  isActive(link.href) 
-                    ? "bg-lens-purple/10 text-lens-purple border-lens-purple font-medium" 
-                    : "border-transparent text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800",
-                )}
-              >
-                <Link to={link.href} className="flex items-center">
-                  <link.icon className="mr-2 h-4 w-4" />
-                  <span>{link.name}</span>
-                </Link>
-              </Button>
-            ))}
-          </div>
-        </div>
+        )}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+        >
+          <ChevronLeft className={cn(
+            "h-4 w-4 transition-transform duration-200",
+            isCollapsed && "rotate-180"
+          )} />
+        </button>
+      </div>
 
-        <div className="mt-auto border-t border-gray-200 dark:border-gray-700 px-3 py-3">
-          <Button asChild variant="ghost" className="w-full justify-start font-normal text-gray-600">
-            <Link to="/" className="flex items-center">
-              <Home className="mr-2 h-4 w-4" />
-              <span>Return to Homepage</span>
-            </Link>
-          </Button>
-          <Button variant="ghost" className="w-full justify-start font-normal text-red-500 hover:bg-red-50 dark:hover:bg-red-900" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Logout</span>
-          </Button>
-        </div>
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1">
+        {navigationItems.map((item) => (
+          <Link
+            key={item.name}
+            to={item.href}
+            className={cn(
+              "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+              item.current
+                ? "bg-purple-100 text-purple-700"
+                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            )}
+            title={isCollapsed ? item.name : undefined}
+          >
+            <item.icon
+              className={cn(
+                "flex-shrink-0 h-5 w-5",
+                item.current ? "text-purple-500" : "text-gray-400 group-hover:text-gray-500",
+                !isCollapsed && "mr-3"
+              )}
+            />
+            {!isCollapsed && item.name}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Footer */}
+      <div className="px-3 py-4 border-t border-gray-200 space-y-1">
+        <Link
+          to="/settings"
+          className={cn(
+            "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+            location.pathname === '/settings'
+              ? "bg-purple-100 text-purple-700"
+              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+          )}
+          title={isCollapsed ? "Settings" : undefined}
+        >
+          <Settings
+            className={cn(
+              "flex-shrink-0 h-5 w-5",
+              location.pathname === '/settings' ? "text-purple-500" : "text-gray-400 group-hover:text-gray-500",
+              !isCollapsed && "mr-3"
+            )}
+          />
+          {!isCollapsed && "Settings"}
+        </Link>
+        
+        <button
+          onClick={handleLogout}
+          className={cn(
+            "group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors",
+            "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+          )}
+          title={isCollapsed ? "Sign out" : undefined}
+        >
+          <LogOut
+            className={cn(
+              "flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500",
+              !isCollapsed && "mr-3"
+            )}
+          />
+          {!isCollapsed && "Sign out"}
+        </button>
       </div>
     </div>
   );

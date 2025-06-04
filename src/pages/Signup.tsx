@@ -58,7 +58,7 @@ const Signup: React.FC = () => {
         toast({
         title: "Account Created!",
         description: "Welcome to eDok! You have been successfully signed up. We are redirecting you to the homepage.",
-        variant: "success", // Ensure you have a 'success' variant or adjust as needed
+        variant: "default",
       });
       console.log("Signup.tsx: Toast from Signup.tsx should have been displayed.");
       navigate('/');
