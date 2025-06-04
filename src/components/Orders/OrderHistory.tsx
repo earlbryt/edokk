@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,12 +18,19 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
-  created_at: string | null;
+  created_at: string;
   user_id: string;
   total_amount: number;
-  status: string; // Changed from union type to string to match database
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   payment_method: string;
-  shipping_address: any; // Changed to any to match Json type from database
+  shipping_address: {
+    firstName: string;
+    lastName: string;
+    address: string;
+    city: string;
+    postalCode: string;
+    phone: string;
+  };
   order_items: OrderItem[];
 }
 
@@ -33,8 +41,7 @@ interface OrderHistoryProps {
 
 const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
   // Format date for display
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Unknown date';
+  const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'MMM d, yyyy');
     } catch (error) {
@@ -56,7 +63,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
       case 'cancelled':
         return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Cancelled</Badge>;
       default:
-        return <Badge variant="outline" className="capitalize">{status}</Badge>;
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 

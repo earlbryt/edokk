@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
 import StatsCard from '@/components/Dashboard/StatsCard';
-import { Users, Calendar, Clock, Activity } from 'lucide-react';
+import ChartCard from '@/components/Dashboard/ChartCard';
+import { Users, Calendar, Clock, Video, PersonStanding, Activity } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import LoadingAnimation from '@/components/ui/loading-animation';
@@ -18,9 +18,14 @@ const AdminDashboard: React.FC = () => {
     totalUsers: 0,
     totalConsultations: 0,
     pendingConsultations: 0,
-    completedConsultations: 0
+    completedConsultations: 0,
+    todayConsultations: 0,
+    todayDelta: 0
   });
-  const [recentUsers, setRecentUsers] = useState<{ id: string; name: string; email: string; updated_at: string }[]>([]);
+  const [monthlyData, setMonthlyData] = useState<{ name: string; value: number }[]>([]);
+  const [consultationTypeData, setConsultationTypeData] = useState<{ name: string; value: number }[]>([]);
+  const [recentUsers, setRecentUsers] = useState<{ id: string; name: string; email: string; created_at: string }[]>([]);
+  const [topSymptoms, setTopSymptoms] = useState<{ name: string; value: number; percentage: number }[]>([]);
   
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -58,6 +63,29 @@ const AdminDashboard: React.FC = () => {
         
         if (completedError) throw completedError;
         
+        // Get consultations booked today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const { count: todayCount, error: todayError } = await supabase
+          .from('consultations')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', today.toISOString());
+        
+        if (todayError) throw todayError;
+        
+        // Get yesterday's count for comparison
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        const { count: yesterdayCount, error: yesterdayError } = await supabase
+          .from('consultations')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', yesterday.toISOString())
+          .lt('created_at', today.toISOString());
+        
+        if (yesterdayError) throw yesterdayError;
+        
         // Get recent users for the table display
         const { data: recentUsersData, error: recentUsersError } = await supabase
           .from('profiles')
@@ -65,17 +93,121 @@ const AdminDashboard: React.FC = () => {
           .order('updated_at', { ascending: false })
           .limit(10);
         
-        if (recentUsersError) throw recentUsersError;
+        if (recentUsersError) {
+          console.error('Error fetching recent users:', recentUsersError);
+          setRecentUsers([]);
+        } else if (recentUsersData) {
+          // Type safety - ensure we have the correct data structure
+          const typedUserData = recentUsersData.map(user => ({
+            id: String(user.id || ''),
+            name: String(user.name || ''),
+            email: String(user.email || ''),
+            created_at: String(user.updated_at || new Date().toISOString())
+          }));
+          setRecentUsers(typedUserData);
+        } else {
+          setRecentUsers([]);
+        }
+        
+        // Get consultations by type
+        const { data: consultationTypes, error: typesError } = await supabase
+          .from('consultations')
+          .select('consultation_type');
+        
+        if (typesError) throw typesError;
+        
+        // Calculate monthly data for the last 6 months - consultations by month
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const now = new Date();
+        const last6Months = [];
+        
+        for (let i = 5; i >= 0; i--) {
+          const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthName = monthNames[month.getMonth()];
+          
+          const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+          const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+          
+          // Count consultations booked in this month
+          const { count, error } = await supabase
+            .from('consultations')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', firstDay.toISOString())
+            .lte('created_at', lastDay.toISOString());
+            
+          if (error) throw error;
+          
+          last6Months.push({
+            name: `${monthName} ${month.getFullYear().toString().substr(2)}`,
+            value: count || 0
+          });
+        }
+        
+        // Create consultation type distribution data
+        const typeCount = {
+          virtual: 0,
+          in_person: 0
+        };
+        
+        consultationTypes?.forEach(consultation => {
+          if (consultation.consultation_type === 'virtual') {
+            typeCount.virtual++;
+          } else if (consultation.consultation_type === 'in_person') {
+            typeCount.in_person++;
+          }
+        });
+        
+        const typeData = [
+          { name: 'Virtual', value: typeCount.virtual },
+          { name: 'In-Person', value: typeCount.in_person }
+        ];
+        
+        // Calculate top symptoms mentioned
+        const { data: consultationsWithSymptoms, error: symptomsError } = await supabase
+          .from('consultations')
+          .select('symptoms');
+        
+        if (symptomsError) throw symptomsError;
+        
+        // Count occurrences of each symptom
+        const symptomCounts: Record<string, number> = {};
+        
+        consultationsWithSymptoms?.forEach(consultation => {
+          if (consultation.symptoms && Array.isArray(consultation.symptoms)) {
+            consultation.symptoms.forEach((symptom: string) => {
+              if (symptomCounts[symptom]) {
+                symptomCounts[symptom]++;
+              } else {
+                symptomCounts[symptom] = 1;
+              }
+            });
+          }
+        });
+        
+        // Get top 10 symptoms
+        const sortedSymptoms = Object.entries(symptomCounts)
+          .map(([name, value]) => ({
+            name,
+            value,
+            percentage: Math.round((value / (consultationsWithSymptoms?.length || 1)) * 100)
+          }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 10);
         
         // Update state with fetched data
         setStats({
           totalUsers: usersCount || 0,
           totalConsultations: consultationsCount || 0,
           pendingConsultations: pendingCount || 0,
-          completedConsultations: completedCount || 0
+          completedConsultations: completedCount || 0,
+          todayConsultations: todayCount || 0,
+          todayDelta: yesterdayCount ? todayCount - yesterdayCount : 0
         });
         
+        setMonthlyData(last6Months);
+        setConsultationTypeData(typeData);
         setRecentUsers(recentUsersData || []);
+        setTopSymptoms(sortedSymptoms);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -91,13 +223,13 @@ const AdminDashboard: React.FC = () => {
       <Sidebar />
       <div className="flex-1 ml-64">
         <TopBar />
-        <main className="p-6">
+        <main className="p-8 overflow-y-auto">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              Admin Dashboard
+            <h1 className="text-2xl font-bold">
+              {user?.name ? `Welcome, ${user.name.split(' ')[0]}` : 'Admin Dashboard'}
             </h1>
             <p className="text-gray-600">
-              Healthcare platform administration overview
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
           </div>
           
@@ -123,9 +255,26 @@ const AdminDashboard: React.FC = () => {
                   icon={<Clock size={20} className="text-amber-500" />}
                 />
                 <StatsCard 
-                  title="Completed Consultations"
-                  value={stats.completedConsultations.toString()}
+                  title="Today's Bookings"
+                  value={stats.todayConsultations.toString()}
                   icon={<Activity size={20} className="text-purple-500" />}
+                  trend={stats.todayDelta !== 0 ? { value: Math.abs(stats.todayDelta), positive: stats.todayDelta > 0 } : undefined}
+                />
+              </div>
+              
+              {/* Charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <ChartCard 
+                  title="Consultations per Month"
+                  subtitle="Last 6 months activity"
+                  data={monthlyData}
+                  type="bar"
+                />
+                <ChartCard 
+                  title="Consultation Types"
+                  subtitle="Virtual vs In-Person"
+                  data={consultationTypeData}
+                  type="pie"
                 />
               </div>
               
@@ -150,14 +299,39 @@ const AdminDashboard: React.FC = () => {
                             <TableCell className="font-medium">{user.name}</TableCell>
                             <TableCell>{user.email}</TableCell>
                             <TableCell>
-                              {user.updated_at ? (
-                                format(new Date(user.updated_at), 'PPP')
+                              {user.created_at ? (
+                                 // Safe date formatting with error handling
+                                 (() => {
+                                   try {
+                                     return format(new Date(user.created_at), 'PPP');
+                                   } catch (error) {
+                                     console.error('Date formatting error:', error);
+                                     return user.created_at.toString().split('T')[0] || 'Invalid date';
+                                   }
+                                 })()
                               ) : 'N/A'}
                             </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Top Symptoms */}
+              <div className="mb-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Top Reported Symptoms</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartCard 
+                      title=""
+                      subtitle=""
+                      data={topSymptoms}
+                      type="bar"
+                    />
                   </CardContent>
                 </Card>
               </div>

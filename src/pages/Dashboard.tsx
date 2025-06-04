@@ -4,7 +4,7 @@ import Sidebar from '@/components/Dashboard/Sidebar';
 import TopBar from '@/components/Dashboard/TopBar';
 import StatsCard from '@/components/Dashboard/StatsCard';
 import ChartCard from '@/components/Dashboard/ChartCard';
-import { Users, FileText, Calendar, Clock, Activity, UserCheck } from 'lucide-react';
+import { Users, FileText, Calendar, Clock, Activity, UserCheck, Video, PersonStanding } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import LoadingAnimation from '@/components/ui/loading-animation';
@@ -90,8 +90,8 @@ const Dashboard: React.FC = () => {
         // Get recent users for the table display
         const { data: recentUsersData, error: recentUsersError } = await supabase
           .from('profiles')
-          .select('id, name, email, updated_at')
-          .order('updated_at', { ascending: false })
+          .select('id, name, email, created_at')
+          .order('created_at', { ascending: false })
           .limit(10);
         
         if (recentUsersError) throw recentUsersError;
@@ -193,10 +193,7 @@ const Dashboard: React.FC = () => {
         
         setMonthlyData(last6Months);
         setConsultationTypeData(typeData);
-        setRecentUsers(recentUsersData?.map(user => ({
-          ...user,
-          created_at: user.updated_at || new Date().toISOString()
-        })) || []);
+        setRecentUsers(recentUsersData || []);
         setTopSymptoms(sortedSymptoms);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);

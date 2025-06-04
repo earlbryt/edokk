@@ -119,36 +119,26 @@ const Profile = () => {
       if (!user) return;
       
       try {
-        // First fetch orders
-        const { data: ordersData, error: ordersError } = await supabase
-          .from('orders')
-          .select('*')
+        const { data, error } = await supabase
+          .from('orders' as any)
+          .select(`
+            *,
+            order_items(*)
+          `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
           
-        if (ordersError) {
-          console.error('Error fetching orders:', ordersError);
-          throw ordersError;
+        if (error) {
+          console.error('Error fetching orders:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load your order history. Please try again later.',
+            variant: 'destructive',
+          });
+          setOrders([]); // Set to empty array on error
+        } else {
+          setOrders(Array.isArray(data) ? data : []);
         }
-        
-        // Then fetch order items for each order
-        const ordersWithItems = await Promise.all(
-          (ordersData || []).map(async (order) => {
-            const { data: itemsData, error: itemsError } = await supabase
-              .from('order_items')
-              .select('*')
-              .eq('order_id', order.id);
-              
-            if (itemsError) {
-              console.error('Error fetching order items:', itemsError);
-              return { ...order, order_items: [] };
-            }
-            
-            return { ...order, order_items: itemsData || [] };
-          })
-        );
-        
-        setOrders(ordersWithItems);
       } catch (error) {
         console.error('Error fetching orders:', error);
         toast({
@@ -156,7 +146,6 @@ const Profile = () => {
           description: 'Failed to load your order history. Please try again later.',
           variant: 'destructive',
         });
-        setOrders([]);
       } finally {
         setIsLoadingOrders(false);
       }
@@ -190,37 +179,30 @@ const Profile = () => {
       if (!user) return;
       
       try {
-        // First fetch user assessments
-        const { data: assessmentsData, error: assessmentsError } = await supabase
-          .from('user_assessments')
-          .select('*')
+        const { data, error } = await supabase
+          .from('user_assessments' as any) // Cast to any as a temporary workaround for type generation issues
+          .select(`
+            id,
+            created_at,
+            score,
+            result_category,
+            llm_feedback,
+            mental_health_assessment:mental_health_assessments(title)
+          `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
           
-        if (assessmentsError) {
-          console.error('Error fetching user assessments:', assessmentsError);
-          throw assessmentsError;
+        if (error) {
+          console.error('Error fetching user assessments:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load your assessments. Please try again later.',
+            variant: 'destructive',
+          });
+          setAssessments([]); // Set to empty array on error
+        } else {
+          setAssessments(Array.isArray(data) ? data : []);
         }
-        
-        // Then fetch assessment titles for each assessment
-        const assessmentsWithTitles = await Promise.all(
-          (assessmentsData || []).map(async (assessment) => {
-            const { data: titleData, error: titleError } = await supabase
-              .from('mental_health_assessments')
-              .select('title')
-              .eq('id', assessment.assessment_id)
-              .single();
-              
-            if (titleError) {
-              console.error('Error fetching assessment title:', titleError);
-              return { ...assessment, mental_health_assessment: null };
-            }
-            
-            return { ...assessment, mental_health_assessment: titleData };
-          })
-        );
-        
-        setAssessments(assessmentsWithTitles);
       } catch (error) {
         console.error('Error fetching user assessments:', error);
         toast({
@@ -228,7 +210,6 @@ const Profile = () => {
           description: 'Failed to load your assessments. Please try again later.',
           variant: 'destructive',
         });
-        setAssessments([]);
       } finally {
         setIsLoadingAssessments(false);
       }

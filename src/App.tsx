@@ -10,6 +10,7 @@ import Landing from "./pages/Landing";
 import AdminDashboard from "./pages/AdminDashboard";
 import CVParser from "./pages/CVParser";
 import Filters from "./pages/Filters";
+import Candidates from "./pages/Candidates";
 import Positions from "./pages/Positions";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -161,6 +162,14 @@ const AppRoutes = () => {
         element={
           <AdminRoute>
             <Filters />
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/candidates" 
+        element={
+          <AdminRoute>
+            <Candidates />
           </AdminRoute>
         } 
       />
