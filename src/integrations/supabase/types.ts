@@ -9,6 +9,76 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      assessment_questions: {
+        Row: {
+          assessment_id: string
+          created_at: string | null
+          id: string
+          question_order: number
+          question_text: string
+          response_options: Json | null
+          response_type: string
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string | null
+          id?: string
+          question_order: number
+          question_text: string
+          response_options?: Json | null
+          response_type: string
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string | null
+          id?: string
+          question_order?: number
+          question_text?: string
+          response_options?: Json | null
+          response_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "mental_health_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultations: {
         Row: {
           additional_notes: string | null
@@ -54,6 +124,237 @@ export type Database = {
           symptoms?: string[]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      herbal_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meal_plans: {
+        Row: {
+          background_color: string | null
+          created_at: string | null
+          description: string | null
+          duration: string | null
+          health_condition: string | null
+          id: string
+          image_url: string | null
+          name: string
+          price: number | null
+          restrictions: string[] | null
+        }
+        Insert: {
+          background_color?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: string | null
+          health_condition?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          price?: number | null
+          restrictions?: string[] | null
+        }
+        Update: {
+          background_color?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: string | null
+          health_condition?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number | null
+          restrictions?: string[] | null
+        }
+        Relationships: []
+      }
+      meal_tracking: {
+        Row: {
+          calories: number | null
+          carbs_g: number | null
+          created_at: string
+          date: string
+          fat_g: number | null
+          foods: Json
+          id: string
+          meal_type: string
+          notes: string | null
+          protein_g: number | null
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          date?: string
+          fat_g?: number | null
+          foods: Json
+          id?: string
+          meal_type: string
+          notes?: string | null
+          protein_g?: number | null
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          date?: string
+          fat_g?: number | null
+          foods?: Json
+          id?: string
+          meal_type?: string
+          notes?: string | null
+          protein_g?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mental_health_assessments: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      nutrition_assessments: {
+        Row: {
+          created_at: string
+          id: string
+          recommendations: Json | null
+          responses: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recommendations?: Json | null
+          responses: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recommendations?: Json | null
+          responses?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nutrition_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nutrition_profiles: {
+        Row: {
+          activity_level: string | null
+          age: number | null
+          allergies: string[] | null
+          created_at: string
+          dietary_restrictions: string[] | null
+          gender: string | null
+          health_conditions: string[] | null
+          health_goals: string[] | null
+          height: number | null
+          id: string
+          updated_at: string
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string[] | null
+          created_at?: string
+          dietary_restrictions?: string[] | null
+          gender?: string | null
+          health_conditions?: string[] | null
+          health_goals?: string[] | null
+          height?: number | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string[] | null
+          created_at?: string
+          dietary_restrictions?: string[] | null
+          gender?: string | null
+          health_conditions?: string[] | null
+          health_goals?: string[] | null
+          height?: number | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          weight?: number | null
         }
         Relationships: []
       }
@@ -155,6 +456,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_assessments: {
+        Row: {
+          assessment_id: string
+          created_at: string | null
+          id: string
+          llm_feedback: string | null
+          responses: Json
+          result_category: string | null
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string | null
+          id?: string
+          llm_feedback?: string | null
+          responses: Json
+          result_category?: string | null
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string | null
+          id?: string
+          llm_feedback?: string | null
+          responses?: Json
+          result_category?: string | null
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_assessments_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "mental_health_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_assessments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -170,6 +519,14 @@ export type Database = {
           role: string
           updated_at: string | null
         }[]
+      }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_profile_owner: {
+        Args: { profile_id_to_check: string }
+        Returns: boolean
       }
       table_exists: {
         Args: { table_name: string }

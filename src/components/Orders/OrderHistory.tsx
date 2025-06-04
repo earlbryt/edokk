@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { Package, ShoppingBag } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export interface OrderItem {
   id: string;
@@ -88,12 +90,12 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
               Visit our pharmacy to make your first purchase.
             </p>
           </div>
-          <a 
-            href="/pharmacy" 
+          <Link 
+            to="/pharmacy" 
             className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-lens-purple text-white hover:bg-lens-purple/90 h-10 px-4 py-2"
           >
             Browse Pharmacy
-          </a>
+          </Link>
         </CardContent>
       </Card>
     );
