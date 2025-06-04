@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Dialog, 
@@ -14,6 +15,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { Check, Calendar, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface ConsultationDialogProps {
   open: boolean;
@@ -117,9 +119,16 @@ const ConsultationDialog: React.FC<ConsultationDialogProps> = ({
     }
   };
 
+  // Determine dialog size based on step
+  const getDialogSize = () => {
+    if (step === 0) return "sm:max-w-[600px] md:max-w-[850px] lg:max-w-[1000px]"; // Form step
+    if (step === 1) return "sm:max-w-[500px]"; // Confirmation step - smaller
+    return "sm:max-w-[400px]"; // Success step - same size as e-pharmacy
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] md:max-w-[850px] lg:max-w-[1000px]">
+      <DialogContent className={getDialogSize()}>
         <DialogHeader>
           <DialogTitle>Book a Consultation</DialogTitle>
           <DialogDescription>
@@ -133,12 +142,13 @@ const ConsultationDialog: React.FC<ConsultationDialogProps> = ({
             <ConsultationForm 
               onSubmit={handleFormSubmit} 
               isDialog={true}
+              initialData={formData} // Pass existing form data to preserve on edit
             />
           )}
           
           {step === 1 && formData && (
             <div className="space-y-4">
-              <div className="rounded-lg border p-4 space-y-3">
+              <div className="rounded-lg border p-4 space-y-3 bg-gray-50">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">Name</h4>
@@ -189,7 +199,7 @@ const ConsultationDialog: React.FC<ConsultationDialogProps> = ({
               </div>
               
               <DialogFooter>
-                <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
+                <Button variant="outline" onClick={() => setStep(0)}>Edit Details</Button>
                 <Button onClick={handleConfirm} disabled={isSubmitting}>
                   {isSubmitting ? "Booking..." : "Confirm Booking"}
                 </Button>
@@ -198,21 +208,29 @@ const ConsultationDialog: React.FC<ConsultationDialogProps> = ({
           )}
           
           {step === 2 && (
-            <div className="text-center space-y-6 py-8">
+            <div className="text-center space-y-4 py-6">
               <div className="mx-auto rounded-full bg-green-100 p-3 w-16 h-16 flex items-center justify-center">
-                <Check className="h-8 w-8 text-green-600" />
+                <Check className="h-8 w-8 text-green-600 animate-pulse" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">Booking Confirmed</h3>
-                <p className="mt-2 text-gray-600">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Booking Confirmed!</h3>
+                <p className="text-sm text-gray-600 mb-4">
                   Your consultation has been scheduled successfully. You'll receive a confirmation email shortly.
                 </p>
               </div>
-              <DialogFooter>
+              
+              <div className="flex flex-col gap-3">
+                <Link to="/profile?tab=consultations">
+                  <Button className="w-full bg-green-600 hover:bg-green-700">
+                    View My Consultations
+                  </Button>
+                </Link>
                 <DialogClose asChild>
-                  <Button className="w-full" onClick={handleClose}>Done</Button>
+                  <Button variant="outline" className="w-full" onClick={handleClose}>
+                    Close
+                  </Button>
                 </DialogClose>
-              </DialogFooter>
+              </div>
             </div>
           )}
         </div>
