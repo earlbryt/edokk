@@ -22,14 +22,7 @@ export interface Order {
   total_amount: number;
   status: string; // Changed from union type to string to match database
   payment_method: string;
-  shipping_address: {
-    firstName: string;
-    lastName: string;
-    address: string;
-    city: string;
-    postalCode: string;
-    phone: string;
-  };
+  shipping_address: any; // Changed to any to match Json type from database
   order_items: OrderItem[];
 }
 
