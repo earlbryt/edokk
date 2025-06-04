@@ -11,21 +11,25 @@
 ### For Patients
 
 #### 👩‍⚕️ Consultation Booking
+
 - Schedule appointments with healthcare professionals (virtual or in-person)
 - Track consultation status with visual indicators
 - Receive confirmation notifications when doctors accept appointments
 
 #### 🌿 Herbal Medicine Chat ("Nature's Wisdom")
+
 - AI-powered chatbot providing culturally relevant herbal medicine advice
 - Knowledge base covering 100+ documented Ghanaian diseases and herbal practices
 - Conversation memory that maintains context throughout your session
 
 #### 🧠 Mental Health Support ("Serene Companion")
+
 - Real-time mental health assessments with actionable insights
 - Supportive AI chatbot for emotional wellness conversations
 - Professional resources and wellness tips
 
 #### 💊 E-Pharmacy
+
 - Browse modern and herbal medicines in an intuitive card layout
 - Filter by category (Antibiotics, Pain Relief, Supplements, First Aid)
 - Seamless shopping experience with Ghana Cedi (GH₵) pricing
@@ -34,16 +38,19 @@
 ### For Administrators
 
 #### 📊 Comprehensive Dashboard
+
 - View platform usage statistics and patient trends
 - Monitor active consultations and order statuses
 - Track key performance indicators
 
 #### 🔍 Consultation Management
+
 - Review and confirm incoming consultation requests
 - Access patient symptoms and consultation notes
 - Manage appointment scheduling
 
 #### 📦 Order Fulfillment
+
 - Track e-pharmacy orders in real-time
 - Confirm and process medication orders
 - Manage inventory and delivery status
@@ -51,6 +58,7 @@
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v14.0.0 or higher)
 - npm or yarn
 - Supabase account
@@ -58,23 +66,24 @@
 ### Installation
 
 1. Clone this repository
+
    ```bash
    git clone https://github.com/earlbryt/edokk.git
    cd edokk
    ```
-
 2. Install dependencies
+
    ```bash
    npm install
    # or
    yarn
    ```
-
 3. Set up environment variables
+
    - Create a `.env` file based on `.env.example`
    - Add your Supabase credentials and other required API keys
-
 4. Start the development server
+
    ```bash
    npm run dev
    # or

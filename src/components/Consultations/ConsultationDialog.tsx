@@ -334,7 +334,7 @@ const ConsultationDialog: React.FC<ConsultationDialogProps> = ({
                       <p className="text-center text-gray-700 text-xs mt-1">
                         View all consultations in your{" "}
                         <Link 
-                          to="/consultations" 
+                          to="/profile?tab=consultations" 
                           className="font-semibold text-lens-purple hover:underline"
                         >
                           Consultations
@@ -373,7 +373,7 @@ const ConsultationDialog: React.FC<ConsultationDialogProps> = ({
                       className="flex flex-col gap-2 w-full max-w-xs mx-auto"
                     >
                       <Link 
-                        to="/consultations" 
+                        to="/profile?tab=consultations" 
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-lens-purple text-white font-medium rounded-lg hover:bg-lens-purple-light transition-all duration-200 w-full text-sm"
                       >
                         <Calendar className="h-4 w-4" />
